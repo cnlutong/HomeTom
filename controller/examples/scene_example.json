@@ -1,0 +1,79 @@
+{
+  "id": "scene_welcome_home",
+  "name": "回家模式",
+  "description": "回家时自动开灯和空调",
+  "is_active": true,
+  "definition": {
+    "triggers": [
+      {
+        "type": "device_state",
+        "device_id": "door_sensor_01",
+        "condition": {
+          "operator": "eq",
+          "attribute": "state",
+          "value": "open"
+        }
+      },
+      {
+        "type": "time",
+        "cron": "0 18 * * *"
+      }
+    ],
+    "conditions": {
+      "operator": "and",
+      "items": [
+        {
+          "type": "device_state",
+          "device_id": "light_sensor_01",
+          "condition": {
+            "operator": "lt",
+            "attribute": "brightness",
+            "value": 50
+          }
+        },
+        {
+          "type": "time_range",
+          "start": "18:00",
+          "end": "23:00"
+        }
+      ]
+    },
+    "actions": [
+      {
+        "type": "device_control",
+        "device_id": "light_living_room",
+        "command": {
+          "state": "on",
+          "brightness": 80,
+          "color": "warm"
+        }
+      },
+      {
+        "type": "delay",
+        "seconds": 2
+      },
+      {
+        "type": "device_control",
+        "device_id": "ac_living_room",
+        "command": {
+          "state": "on",
+          "temperature": 24,
+          "mode": "cool"
+        }
+      },
+      {
+        "type": "delay",
+        "seconds": 1
+      },
+      {
+        "type": "device_control",
+        "device_id": "light_bedroom",
+        "command": {
+          "state": "on",
+          "brightness": 60
+        }
+      }
+    ]
+  }
+}
+

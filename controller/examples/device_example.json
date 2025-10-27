@@ -1,0 +1,50 @@
+{
+  "devices": [
+    {
+      "id": "light_living_room",
+      "name": "客厅灯",
+      "type": "light",
+      "config": {
+        "hal_endpoint": "/devices/light_living_room",
+        "features": ["brightness", "color"]
+      }
+    },
+    {
+      "id": "light_bedroom",
+      "name": "卧室灯",
+      "type": "light",
+      "config": {
+        "hal_endpoint": "/devices/light_bedroom",
+        "features": ["brightness"]
+      }
+    },
+    {
+      "id": "ac_living_room",
+      "name": "客厅空调",
+      "type": "climate",
+      "config": {
+        "hal_endpoint": "/devices/ac_living_room",
+        "features": ["temperature", "mode"]
+      }
+    },
+    {
+      "id": "door_sensor_01",
+      "name": "门磁传感器",
+      "type": "sensor",
+      "config": {
+        "hal_endpoint": "/devices/door_sensor_01",
+        "sensor_type": "door"
+      }
+    },
+    {
+      "id": "light_sensor_01",
+      "name": "光照传感器",
+      "type": "sensor",
+      "config": {
+        "hal_endpoint": "/devices/light_sensor_01",
+        "sensor_type": "brightness"
+      }
+    }
+  ]
+}
+
