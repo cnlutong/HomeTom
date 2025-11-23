@@ -1,4 +1,3 @@
-<!-- a6e54809-0d8b-49e5-84db-d79529c1c2e3 039ad77e-9af0-4b09-b416-3fe4bc603719 -->
 # 智能家居后端架构方案（Domain-Driven Onion Architecture）
 
 ## 1. 项目定位与总体目标
