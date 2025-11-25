@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HomeTom - Architecture Presentation (1080P)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&family=Ubuntu+Condensed&family=Ubuntu+Mono:wght@400;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        /* CORE SETUP */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #f1f5f9;
+            margin: 0;
+            padding: 40px 0;
+            display: grid;
+            gap: 60px;
+            place-items: center;
+            min-height: 100vh;
+            font-family: 'Ubuntu', sans-serif;
+            color: #334155;
+        }
+
+        /* 1080P CONTAINER SETUP (1920x1080) */
+        .slide-container {
+            width: 1920px;
+            height: 1080px;
+            background-color: #ffffff;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            /* Adjusted Padding to prevent overflow */
+            padding: 60px 80px;
+        }
+
+        /* BACKGROUNDS */
+        .bg-abstract {
+            background-image: linear-gradient(rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.98)), url('http://googleusercontent.com/image_collection/image_retrieval/6558534441525307264');
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* TYPOGRAPHY - Optimized for 1080P fit */
+        h1,
+        h2,
+        h3,
+        h4 {
+            font-family: 'Ubuntu', sans-serif;
+            margin: 0;
+            color: #0f172a;
+        }
+
+        h1 {
+            font-size: 80px;
+            font-weight: 700;
+            letter-spacing: -1.5px;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            font-size: 48px;
+            font-weight: 600;
+            margin-bottom: 35px;
+            border-bottom: 3px solid #cbd5e1;
+            padding-bottom: 15px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h3 {
+            font-size: 32px;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 15px;
+            font-family: 'Ubuntu', sans-serif;
+        }
+
+        p,
+        li {
+            font-family: 'Inter', sans-serif;
+            font-size: 22px;
+            line-height: 1.5;
+            color: #475569;
+            margin-bottom: 12px;
+        }
+
+        .page-indicator {
+            font-family: 'Inter', sans-serif;
+            font-size: 20px;
+            color: #94a3b8;
+            font-weight: 400;
+        }
+
+        /* CODE BLOCKS - Optimized */
+        pre {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-left: 6px solid #3b82f6;
+            padding: 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 19px;
+            color: #334155;
+            margin: 0;
+            white-space: pre;
+            overflow-x: auto;
+            border-radius: 8px;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            color: #0369a1;
+            background: #e0f2fe;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.9em;
+        }
+
+        pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+        }
+
+        .keyword {
+            color: #7c3aed;
+            font-weight: 600;
+        }
+
+        .class-name {
+            color: #059669;
+            font-weight: 600;
+        }
+
+        .function {
+            color: #2563eb;
+            font-weight: 600;
+        }
+
+        .string {
+            color: #d97706;
+        }
+
+        .comment {
+            color: #94a3b8;
+            font-style: italic;
+        }
+
+        /* LAYOUTS */
+        .content-area {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            position: relative;
+            padding-top: 10px;
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            height: 100%;
+        }
+
+        .three-column {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            height: 100%;
+        }
+
+        /* COMPONENTS */
+        .card {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.03);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .highlight-box {
+            background: #f1f5f9;
+            border-left: 6px solid #64748b;
+            padding: 20px 25px;
+            margin-bottom: 25px;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .tag.blue {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+
+        .tag.green {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .tag.gray {
+            background-color: #f1f5f9;
+            color: #475569;
+        }
+
+        /* DIAGRAMS (CSS) - Optimized */
+        .diagram-tree {
+            list-style: none;
+            padding-left: 30px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 20px;
+        }
+
+        .diagram-tree li {
+            position: relative;
+            margin-bottom: 14px;
+            color: #475569;
+        }
+
+        .diagram-tree li::before {
+            content: '';
+            position: absolute;
+            left: -25px;
+            top: 12px;
+            width: 15px;
+            height: 2px;
+            background: #cbd5e1;
+        }
+
+        .diagram-tree li::after {
+            content: '';
+            position: absolute;
+            left: -25px;
+            top: -10px;
+            bottom: auto;
+            width: 2px;
+            height: 44px;
+            background: #cbd5e1;
+        }
+
+        .diagram-tree li:last-child::after {
+            height: 24px;
+        }
+
+        .folder-icon {
+            color: #f59e0b;
+            margin-right: 12px;
+        }
+
+        /* AGENDA STYLES */
+        .agenda-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px 50px;
+            /* Row gap, Column gap */
+            height: 100%;
+            align-content: center;
+        }
+
+        .agenda-item {
+            display: flex;
+            align-items: center;
+            padding: 25px 30px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+            transition: all 0.2s ease;
+        }
+
+        .agenda-num {
+            font-family: 'Ubuntu', sans-serif;
+            font-size: 42px;
+            font-weight: 700;
+            color: #cbd5e1;
+            /* Subtle gray */
+            margin-right: 25px;
+            line-height: 1;
+            min-width: 50px;
+        }
+
+        .agenda-title {
+            font-family: 'Ubuntu', sans-serif;
+            font-size: 24px;
+            font-weight: 500;
+            color: #334155;
+        }
+
+        .agenda-desc {
+            display: block;
+            font-family: 'Inter', sans-serif;
+            font-size: 16px;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        /* Hover effect (optional, strictly aesthetic) */
+        .agenda-item:hover {
+            border-color: #3b82f6;
+            transform: translateX(5px);
+            box-shadow: 0 10px 15px rgba(59, 130, 246, 0.1);
+        }
+
+        .agenda-item:hover .agenda-num {
+            color: #3b82f6;
+        }
+
+        /* FOOTER */
+        .slide-footer {
+            margin-top: auto;
+            padding-top: 25px;
+            border-top: 1px solid #f1f5f9;
+            display: flex;
+            justify-content: space-between;
+            font-size: 16px;
+            color: #94a3b8;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .title-slide-bar {
+            width: 120px;
+            height: 10px;
+            background: #0f172a;
+            margin-bottom: 40px;
+        }
+
+        .card ul {
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Slide 1: Title -->
+    <div class="slide-container bg-abstract" id="slide1">
+        <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; padding-left: 60px;">
+            <div class="title-slide-bar"></div>
+
+            <h3 style="margin: 0; opacity: 0.7; text-transform: uppercase; letter-spacing: 1px;">T2 Scenario Design
+                Project</h3>
+
+            <h1 style="margin: 10px 0;">Smart Home Demo Lab</h1>
+
+            <h2 style="margin-top: 0; margin-bottom: 40px; font-weight: 400;">Update 2 Progress Review</h2>
+
+            <div style="margin-top: 20px;">
+                <strong style="display: block; margin-bottom: 8px; font-size: 1.1em;">Developers</strong>
+                <span style="font-size: 1.1em;">Yixue Wang • Linghao Dong • Tong Lu • Chenxu Liu • Yang Xiao</span>
+            </div>
+
+        </div>
+
+        <div class="slide-footer">
+            <span>Smart Home Demo Lab - Update 1</span>
+            <span>26.11.2025</span>
+        </div>
+    </div>
+
+    <div class="slide-container" id="slide-agenda">
+        <h2>
+            Presentation Agenda
+            <span class="page-indicator">Overview</span>
+        </h2>
+
+        <div class="content-area">
+            <div class="agenda-grid">
+                <div class="agenda-item">
+                    <div class="agenda-num">01</div>
+                    <div>
+                        <div class="agenda-title">Project Demo</div>
+                        <span class="agenda-desc">Video demonstration of current progress</span>
+                    </div>
+                </div>
+
+                <div class="agenda-item">
+                    <div class="agenda-num">02</div>
+                    <div>
+                        <div class="agenda-title">Architecture Standard</div>
+                        <span class="agenda-desc">Async I/O & Non-blocking protocols</span>
+                    </div>
+                </div>
+
+                <div class="agenda-item">
+                    <div class="agenda-num">03</div>
+                    <div>
+                        <div class="agenda-title">Code Interface</div>
+                        <span class="agenda-desc">Base contracts & Implementation patterns</span>
+                    </div>
+                </div>
+
+                <div class="agenda-item">
+                    <div class="agenda-num">04</div>
+                    <div>
+                        <div class="agenda-title">Tech Stack</div>
+                        <span class="agenda-desc">Network layer & Runtime engine</span>
+                    </div>
+                </div>
+
+                <div class="agenda-item">
+                    <div class="agenda-num">05</div>
+                    <div>
+                        <div class="agenda-title">Domain Structure</div>
+                        <span class="agenda-desc">DDD Layer separation</span>
+                    </div>
+                </div>
+
+                <div class="agenda-item">
+                    <div class="agenda-num">06</div>
+                    <div>
+                        <div class="agenda-title">Device Domain</div>
+                        <span class="agenda-desc">Hardware abstraction & Capabilities</span>
+                    </div>
+                </div>
+
+                <div class="agenda-item">
+                    <div class="agenda-num">07</div>
+                    <div>
+                        <div class="agenda-title">Scene Lifecycle</div>
+                        <span class="agenda-desc">State machine & Validation rules</span>
+                    </div>
+                </div>
+
+                <div class="agenda-item">
+                    <div class="agenda-num">08</div>
+                    <div>
+                        <div class="agenda-title">Execution Logic</div>
+                        <span class="agenda-desc">Reliability, T-C-A pattern & Auditing</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide-footer">
+            <span>Overview of the technical architecture update.</span>
+        </div>
+    </div>
+
+    <!-- Slide: Video Demo -->
+    <div class="slide-container" id="slide-video">
+        <h2>
+            Project Demonstration
+            <span class="page-indicator">Page 1/9</span>
+        </h2>
+        <div class="content-area"
+            style="display: flex; justify-content: center; align-items: center; background-color: #000; border-radius: 12px; overflow: hidden;">
+            <video controls style="width: 100%; height: 100%; object-fit: contain;">
+                <source src="1.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+        <div class="slide-footer">
+            <span>System demonstration video.</span>
+        </div>
+    </div>
+
+    <!-- Slide 2: Architecture Standard -->
+    <div class="slide-container" id="slide2">
+        <h2>
+            Architecture Standard
+            <span class="page-indicator">Page 2/9</span>
+        </h2>
+        <div class="content-area">
+            <h3
+                style="font-weight: 400; color: #64748b; margin-bottom: 40px; border-bottom: 1px solid #eee; padding-bottom: 15px;">
+                Asynchronous I/O Protocol</h3>
+
+            <div class="three-column">
+                <!-- Col 1 -->
+                <div class="card">
+                    <div style="margin-bottom: auto;">
+                        <div class="tag gray">SYNCHRONOUS</div>
+                        <h3>Property Access</h3>
+                        <p>Reading cached attributes remains synchronous for high-speed access.</p>
+                    </div>
+                    <div
+                        style="margin-top: 20px; padding: 20px; background: #f8fafc; border-radius: 8px; font-size: 18px;">
+                        <i class="fa-solid fa-microchip" style="margin-right: 12px; color: #64748b;"></i>
+                        Hardware synchronization occurs concurrently across multiple devices.
+                    </div>
+                </div>
+
+                <!-- Col 2 -->
+                <div class="card">
+                    <div class="tag blue">ASYNC/AWAIT</div>
+                    <h3>Device Control</h3>
+                    <p>All state-changing commands are executed asynchronously to prevent thread blocking.</p>
+                </div>
+
+                <!-- Col 3 -->
+                <div class="card">
+                    <div class="tag blue">ASYNC/AWAIT</div>
+                    <h3>State Polling</h3>
+                    <p>Periodic state synchronization is handled via non-blocking event loops.</p>
+                </div>
+            </div>
+        </div>
+        <div class="slide-footer">
+            <span>Standardized patterns for non-blocking device control and state management.</span>
+        </div>
+    </div>
+
+    <!-- Slide 3: Target Code Interface -->
+    <div class="slide-container" id="slide3">
+        <h2>
+            Target Code Interface
+            <span class="page-indicator">Page 3/9</span>
+        </h2>
+        <div class="content-area">
+            <div class="two-column">
+                <div>
+                    <h3 style="margin-bottom: 20px;">BaseDevice Contract</h3>
+                    <pre>
+<span class="keyword">class</span> <span class="class-name">BaseDevice</span>(ABC):
+
+    <span class="keyword">@abstractmethod</span>
+    <span class="keyword">async def</span> <span class="function">update_state</span>(self):
+        <span class="string">"""Fetch data from hardware"""</span>
+        <span class="keyword">pass</span>
+
+    <span class="keyword">def</span> <span class="function">get_state</span>(self):
+        <span class="keyword">return</span> self._state</pre>
+                </div>
+                <div>
+                    <h3 style="margin-bottom: 20px;">Light Implementation</h3>
+                    <pre>
+<span class="keyword">class</span> <span class="class-name">Light</span>(Actuator):
+
+    <span class="keyword">async def</span> <span class="function">turn_on</span>(self):
+        <span class="keyword">await</span> self.adapter.send(<span class="string">'ON'</span>)
+        self._state = <span class="string">"on"</span>
+
+    <span class="keyword">async def</span> <span class="function">set_brightness</span>(self, val):
+        <span class="keyword">if</span> 0 <= val <= 255:
+            <span class="keyword">await</span> self.adapter.set_level(val)
+            self._brightness = val</pre>
+                </div>
+            </div>
+        </div>
+        <div class="slide-footer">
+            <span>Target Code Interface Definition</span>
+        </div>
+    </div>
+
+    <!-- Slide 4: Target Technology Stack -->
+    <div class="slide-container" id="slide4">
+        <h2>
+            Target Technology Stack
+            <span class="page-indicator">Page 4/9</span>
+        </h2>
+        <div class="content-area">
+            <h3 style="font-weight: 400; color: #64748b; margin-bottom: 30px;">Production Environment</h3>
+
+            <div class="two-column">
+                <div class="card">
+                    <h3 style="border-bottom: 1px solid #f1f5f9; padding-bottom: 15px; margin-bottom: 20px;"><i
+                            class="fa-solid fa-network-wired" style="color: #3b82f6; margin-right: 15px;"></i>Network
+                        Layer</h3>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="border-bottom: 1px solid #f1f5f9; padding: 15px 0;">
+                            <strong>HTTP Client:</strong> <span
+                                style="font-family: 'JetBrains Mono'; color: #475569;">AIOHTTP</span>
+                        </li>
+                        <li style="border-bottom: 1px solid #f1f5f9; padding: 15px 0;">
+                            <strong>Protocol:</strong> Async REST / WebSocket
+                        </li>
+                        <li style="padding: 15px 0;">
+                            <strong>Adapter Interface:</strong> Non-blocking IO
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3 style="border-bottom: 1px solid #f1f5f9; padding-bottom: 15px; margin-bottom: 20px;"><i
+                            class="fa-solid fa-cogs" style="color: #3b82f6; margin-right: 15px;"></i>Runtime Engine</h3>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="border-bottom: 1px solid #f1f5f9; padding: 15px 0;">
+                            <strong>Concurrency:</strong> <span
+                                style="font-family: 'JetBrains Mono'; color: #475569;">asyncio.gather()</span>
+                        </li>
+                        <li style="padding: 15px 0;">
+                            <strong>Delays & Timers:</strong> <span
+                                style="font-family: 'JetBrains Mono'; color: #475569;">await asyncio.sleep()</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="slide-footer">
+            <span>Selected technologies for the high-concurrency runtime.</span>
+        </div>
+    </div>
+
+    <!-- Slide 5: Domain Layer Structure -->
+    <div class="slide-container" id="slide5">
+        <h2>
+            Domain Layer Architecture
+            <span class="page-indicator">Page 5/9</span>
+        </h2>
+        <div class="content-area">
+            <div class="two-column" style="grid-template-columns: 1fr 1.5fr;">
+                <div style="display: flex; flex-direction: column; justify-content: center;">
+                    <p>The domain layer is the pure core of the system, adhering to standard DDD patterns. It has zero
+                        dependencies on infrastructure or frameworks.</p>
+                    <div class="highlight-box">
+                        <h4 style="margin-bottom: 15px; font-size: 22px;">Core Principles</h4>
+                        <ul style="font-size: 20px; margin: 0; padding-left: 25px;">
+                            <li><strong>Aggregates:</strong> Transaction boundaries.</li>
+                            <li><strong>Value Objects:</strong> Immutable characteristics.</li>
+                            <li><strong>Side-Effects:</strong> Handled via Domain Events.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card" style="background: #f8fafc;">
+                    <h4 style="margin-bottom: 20px; font-family: 'JetBrains Mono'; color: #334155; font-size: 22px;">
+                        /src/domain/</h4>
+                    <ul class="diagram-tree">
+                        <li><i class="fa-regular fa-folder folder-icon"></i>Device
+                            <ul class="diagram-tree">
+                                <li><i class="fa-regular fa-folder folder-icon"></i>Actuators</li>
+                                <li><i class="fa-regular fa-folder folder-icon"></i>Sensors</li>
+                                <li><i class="fa-regular fa-folder folder-icon"></i>MediaSecurity</li>
+                                <li><i class="fa-regular fa-folder folder-icon"></i>aggregates</li>
+                                <li><i class="fa-regular fa-folder folder-icon"></i>value_objects</li>
+                            </ul>
+                        </li>
+                        <li><i class="fa-regular fa-folder folder-icon"></i>Scene
+                            <ul class="diagram-tree">
+                                <li><i class="fa-regular fa-folder folder-icon"></i>aggregates</li>
+                                <li><i class="fa-regular fa-folder folder-icon"></i>entities</li>
+                                <li><i class="fa-regular fa-folder folder-icon"></i>value_objects</li>
+                                <li><i class="fa-regular fa-folder folder-icon"></i>events</li>
+                            </ul>
+                        </li>
+                        <li><i class="fa-regular fa-folder folder-icon"></i>Execution
+                            <ul class="diagram-tree">
+                                <li><i class="fa-regular fa-folder folder-icon"></i>aggregates</li>
+                                <li><i class="fa-regular fa-folder folder-icon"></i>entities</li>
+                                <li><i class="fa-regular fa-folder folder-icon"></i>services</li>
+                            </ul>
+                        </li>
+                    </ul>
+
+                </div>
+            </div>
+        </div>
+        <div class="slide-footer">
+            <span>Strict separation of concerns via directory structure.</span>
+        </div>
+    </div>
+
+    <!-- Slide 6: Device Domain -->
+    <div class="slide-container" id="slide6">
+        <h2>
+            Device Domain
+            <span class="page-indicator">Page 6/9</span>
+        </h2>
+        <div class="content-area">
+            <h3 style="font-weight: 400; color: #64748b; margin-bottom: 30px;">Abstraction Layer Design</h3>
+
+            <div class="two-column">
+                <!-- Left: Inheritance Hierarchy -->
+                <div class="card">
+                    <h4 style="color: #0f172a; margin-bottom: 20px; font-size: 26px;">1. Structural Abstraction</h4>
+                    <p style="font-size: 20px; margin-bottom: 20px;">
+                        We employ a strict inheritance hierarchy to categorize physical hardware, enforcing consistent
+                        state management across different device types.
+                    </p>
+
+                    <ul class="diagram-tree" style="font-size: 20px; margin-top: 20px;">
+                        <li><span class="class-name" style="font-weight:700;">DeviceAggregate</span> <span
+                                class="tag gray" style="font-size: 14px; vertical-align: middle;">ROOT</span>
+                            <ul class="diagram-tree" style="margin-top: 15px;">
+                                <li style="margin-bottom: 20px;">
+                                    <span class="class-name">Actuators</span>
+                                    <div style="font-size: 18px; color: #64748b; margin-top: 5px;">State-changing
+                                        devices (Lights, Switches)</div>
+                                </li>
+                                <li style="margin-bottom: 20px;">
+                                    <span class="class-name">Sensors</span>
+                                    <div style="font-size: 18px; color: #64748b; margin-top: 5px;">Read-only data inputs
+                                        (Temp, Motion)</div>
+                                </li>
+                                <li>
+                                    <span class="class-name">MediaSecurity</span>
+                                    <div style="font-size: 18px; color: #64748b; margin-top: 5px;">Cameras & Smart Locks
+                                    </div>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Right: Capability Pattern -->
+                <div class="card" style="border-top: 6px solid #7c3aed;">
+                    <h4 style="color: #0f172a; margin-bottom: 20px; font-size: 26px;">2. Behavioral Abstraction</h4>
+                    <p style="font-size: 20px;">
+                        Decoupling "Identity" from "Behavior". Capabilities (Traits) allow us to abstract operations
+                        without hardcoding device types.
+                    </p>
+
+                    <div
+                        style="background: #f8fafc; padding: 25px; border-radius: 8px; margin-top: 20px; border: 1px solid #e2e8f0;">
+                        <div style="font-family: 'JetBrains Mono'; font-size: 18px; margin-bottom: 10px;">
+                            <span class="keyword">class</span> <span class="class-name">Light</span>(<span
+                                class="class-name">Actuator</span>):
+                        </div>
+                        <ul
+                            style="list-style: none; padding-left: 20px; margin: 0; font-family: 'JetBrains Mono'; font-size: 18px; color: #334155;">
+                            <li><i class="fa-solid fa-angle-right" style="color: #7c3aed; margin-right: 8px;"></i>
+                                self.capabilities = [</li>
+                            <li style="padding-left: 20px;"><span class="string">'turn_on'</span>,</li>
+                            <li style="padding-left: 20px;"><span class="string">'set_brightness'</span>,</li>
+                            <li style="padding-left: 20px;"><span class="string">'set_color_temp'</span></li>
+                            <li>]</li>
+                        </ul>
+                    </div>
+
+                    <div
+                        style="margin-top: 25px; font-size: 18px; background: #f0fdf4; border-left: 6px solid #16a34a; padding: 15px; color: #166534;">
+                        <strong>Design Value:</strong> A generic <code>turn_on</code> command works uniformly across
+                        Zigbee Lights, WiFi Plugs, and IR Blasters.
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-footer">
+            <span>Abstraction via Inheritance (Structure) & Composition (Behavior).</span>
+        </div>
+    </div>
+
+    <!-- Slide 7: Scene Domain: Lifecycle (Consolidated) -->
+    <div class="slide-container" id="slide7">
+        <h2>
+            Scene Domain: Lifecycle & Versioning
+            <span class="page-indicator">Page 7/9</span>
+        </h2>
+        <div class="content-area">
+            <div class="two-column" style="grid-template-columns: 1fr 1.2fr;">
+                <!-- Left: Concepts -->
+                <div>
+                    <h3 style="margin-bottom: 25px;">Immutable State Management</h3>
+                    <p style="font-size: 20px; margin-bottom: 25px;">To ensure automation reliability, Scene Definitions
+                        are strictly versioned. Running automations always refer to a specific, immutable snapshot.</p>
+
+                    <div class="highlight-box">
+                        <h4 style="margin-bottom: 15px; font-size: 22px;">Invariants (Validation)</h4>
+                        <p style="font-size: 18px; margin-bottom: 10px;">Before a Draft can be Published, the
+                            <code>SceneAggregate</code> enforces strict integrity rules:
+                        </p>
+                        <ul class="check-list" style="font-size: 18px; list-style: none; padding: 0;">
+                            <li style="margin-bottom: 10px; padding-left: 30px; position: relative;"><i
+                                    class="fa-solid fa-check" style="position: absolute; left: 0; color: #10b981;"></i>
+                                Must have at least one Trigger.</li>
+                            <li style="margin-bottom: 10px; padding-left: 30px; position: relative;"><i
+                                    class="fa-solid fa-check" style="position: absolute; left: 0; color: #10b981;"></i>
+                                No circular dependencies.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Right: State Machine -->
+                <div style="display: flex; align-items: center; justify-content: center;">
+                    <div
+                        style="background: #f8fafc; border: 1px dashed #cbd5e1; padding: 50px; border-radius: 16px; width: 100%;">
+                        <h4
+                            style="text-align: center; margin-bottom: 40px; color: #64748b; font-family: 'JetBrains Mono'; text-transform: uppercase; letter-spacing: 2px;">
+                            State Transition Flow</h4>
+                        <!-- CSS State Machine -->
+                        <div style="display: flex; flex-direction: column; align-items: center; gap: 30px;">
+                            <div
+                                style="background: #fff; border: 3px solid #94a3b8; padding: 15px 40px; border-radius: 30px; font-weight: 700; font-size: 20px; width: 250px; text-align: center;">
+                                DRAFT</div>
+
+                            <div style="display: flex; align-items: center; height: 40px;">
+                                <i class="fa-solid fa-arrow-down" style="font-size: 24px; color: #cbd5e1;"></i>
+                                <span
+                                    style="margin-left: 15px; font-family: 'JetBrains Mono'; color: #2563eb; font-size: 16px;">publish()</span>
+                            </div>
+
+                            <div
+                                style="background: #dcfce7; border: 3px solid #16a34a; padding: 15px 40px; border-radius: 30px; font-weight: 700; color: #166534; font-size: 20px; width: 250px; text-align: center;">
+                                PUBLISHED</div>
+
+                            <div style="display: flex; align-items: center; height: 40px;">
+                                <i class="fa-solid fa-arrow-down" style="font-size: 24px; color: #cbd5e1;"></i>
+                            </div>
+
+                            <div
+                                style="background: #f1f5f9; border: 3px solid #cbd5e1; padding: 15px 40px; border-radius: 30px; font-weight: 700; color: #94a3b8; font-size: 20px; width: 250px; text-align: center;">
+                                DISABLED</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-footer">
+            <span>State Machine ensures integrity of running automations.</span>
+        </div>
+    </div>
+
+    <!-- Slide 8: Scene Domain: Logic (Consolidated) -->
+    <div class="slide-container" id="slide8">
+        <h2>
+            Scene Domain: Logic & Patterns
+            <span class="page-indicator">Page 8/9</span>
+        </h2>
+        <div class="content-area">
+            <p style="margin-bottom: 40px;">A <code>SceneAggregate</code> uses a robust Trigger-Condition-Action (T-C-A)
+                model, backed by proven Design Patterns for flexibility.</p>
+
+            <div class="three-column">
+                <div class="card" style="border-top: 6px solid #f59e0b;">
+                    <h3><i class="fa-regular fa-clock" style="margin-right: 12px; color: #f59e0b;"></i>Triggers</h3>
+                    <p style="font-size: 18px;">Events that initiate the evaluation process.</p>
+                    <ul style="font-size: 18px; color: #475569; padding-left: 20px; margin-top: 20px;">
+                        <li>Manual Invocation</li>
+                        <li>Cron Schedule</li>
+                        <li>Device Event (e.g., Sensor Motion)</li>
+                    </ul>
+                </div>
+
+                <div class="card" style="border-top: 6px solid #3b82f6;">
+                    <h3><i class="fa-solid fa-filter" style="margin-right: 12px; color: #3b82f6;"></i>Conditions</h3>
+                    <p style="font-size: 18px;">Boolean predicates evaluated against current state.</p>
+                    <div
+                        style="margin-top: auto; font-family: 'Inter'; font-size: 16px; color: #1e40af; background: #eff6ff; padding: 15px; border-radius: 8px; border: 1px solid #bfdbfe;">
+                        <strong style="display: block; margin-bottom: 5px;"><i class="fa-solid fa-code-branch"></i>
+                            Specification Pattern</strong>
+                        Allows composing complex logic (AND/OR/NOT) dynamically without hardcoding.
+                    </div>
+                </div>
+
+                <div class="card" style="border-top: 6px solid #10b981;">
+                    <h3><i class="fa-solid fa-bolt" style="margin-right: 12px; color: #10b981;"></i>Actions</h3>
+                    <p style="font-size: 18px;">Side effects executed if conditions pass.</p>
+                    <div
+                        style="margin-top: auto; font-family: 'Inter'; font-size: 16px; color: #166534; background: #f0fdf4; padding: 15px; border-radius: 8px; border: 1px solid #bbf7d0;">
+                        <strong style="display: block; margin-bottom: 5px;"><i class="fa-solid fa-terminal"></i> Command
+                            Pattern</strong>
+                        Encapsulates requests as objects (JSON), enabling queuing, logging, and undo operations.
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-footer">
+            <span>T-C-A Pattern implementation enhanced with DDD best practices.</span>
+        </div>
+    </div>
+
+    <!-- Slide 9: Execution Domain -->
+    <div class="slide-container" id="slide9">
+        <h2>
+            Execution Domain
+            <span class="page-indicator">Page 9/9</span>
+        </h2>
+        <div class="content-area">
+            <div class="two-column">
+                <div>
+                    <h3>Runtime Context</h3>
+                    <p>The <code>ExecutionAggregate</code> does not just run code; it records a forensic audit trail of
+                        <em>why</em> and <em>how</em> automation occurred.
+                    </p>
+                    <ul style="margin-top: 25px;">
+                        <li><strong>Traceability:</strong> Links execution back to the specific Trigger Source (User ID
+                            or Event ID).</li>
+                        <li><strong>Snapshot:</strong> Captures `ExecutionContext` variables at the moment of start.
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <h3>Reliability Engineering</h3>
+                    <div class="card" style="background: #f8fafc;">
+                        <h4>Retry Policy Strategy</h4>
+                        <p style="font-size: 20px;">Configurable per execution context to handle transient failures.</p>
+                        <ul style="font-size: 18px; font-family: 'JetBrains Mono';">
+                            <li>MAX_RETRIES = 3</li>
+                            <li>BACKOFF_FACTOR = 1.5</li>
+                            <li>INTERVAL = 500ms</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div style="margin-top: 25px; border-top: 1px solid #eee; padding-top: 20px;">
+                <p style="font-size: 20px;"><strong>Events:</strong> <code>ExecutionStarted</code> &rarr;
+                    <code>ExecutionSucceeded</code> | <code>ExecutionFailed</code>
+                </p>
+            </div>
+        </div>
+        <div class="slide-footer">
+            <span>Ensuring observability and resilience in automation logic.</span>
+        </div>
+    </div>
+
+    <div class="slide-container" id="slide10">
+        <h2>
+            Project Timeline
+            <span class="page-indicator">Page 10/10</span>
+        </h2>
+        <div class="content-area">
+            <div
+                style="width: 100%; height: 4px; background: #e2e8f0; position: absolute; top: 110px; left: 0; z-index: 0;">
+            </div>
+
+            <div class="three-column" style="position: relative; z-index: 1;">
+
+                <div class="card">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <div class="tag blue">26.11.2025</div>
+                        <i class="fa-solid fa-flask" style="color: #cbd5e1; font-size: 24px;"></i>
+                    </div>
+
+                    <h3 style="margin-bottom: 20px;">Update 2</h3>
+
+                    <ul style="font-size: 20px; line-height: 1.6; color: #475569; padding-left: 20px; margin-top: 0;">
+                        <li style="margin-bottom: 10px;"><strong>Core Implementation:</strong>
+                            <ul style="color: #64748b; font-size: 18px; margin-top: 5px;">
+                                <li>Basic Domain Layer</li>
+                                <li>Basic Frontend Prototype</li>
+                            </ul>
+                        </li>
+                        <li><strong>Selection & Testing (PoC):</strong>
+                            <ul style="color: #64748b; font-size: 18px; margin-top: 5px;">
+                                <li>Database Schema</li>
+                                <li>Async I/O Patterns</li>
+                                <li>Message Queue (MQ)</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <div class="tag blue">10.12.2025</div>
+                        <i class="fa-solid fa-code" style="color: #cbd5e1; font-size: 24px;"></i>
+                    </div>
+
+                    <h3 style="margin-bottom: 20px;">Update 3</h3>
+
+                    <ul style="font-size: 20px; line-height: 1.6; color: #475569; padding-left: 20px; margin-top: 0;">
+                        <li style="margin-bottom: 15px;"><strong>Service Layer</strong><br>
+                            <span style="font-size: 18px; color: #64748b;">Business logic implementation</span>
+                        </li>
+                        <li style="margin-bottom: 15px;"><strong>API Definition</strong><br>
+                            <span style="font-size: 18px; color: #64748b;">Endpoint construction</span>
+                        </li>
+                        <li><strong>Infra Integration</strong><br>
+                            <span style="font-size: 18px; color: #64748b;">Database & MQ connectivity</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <div class="tag blue">07.01.2026</div>
+                        <i class="fa-solid fa-layer-group" style="color: #cbd5e1; font-size: 24px;"></i>
+                    </div>
+
+                    <h3 style="margin-bottom: 20px;">Update 4</h3>
+
+                    <ul style="font-size: 20px; line-height: 1.6; color: #475569; padding-left: 20px; margin-top: 0;">
+                        <li style="margin-bottom: 15px;"><strong>Full MVC Structure</strong><br>
+                            <span style="font-size: 18px; color: #64748b;">Complete Model-View-Controller workflow
+                                integration.</span>
+                        </li>
+                        <li style="margin-bottom: 15px;"><strong>System Stability</strong><br>
+                            <span style="font-size: 18px; color: #64748b;">End-to-end data flow validation.</span>
+                        </li>
+                        <li><strong>Ready for Expansion</strong><br>
+                            <span style="font-size: 18px; color: #64748b;">Base architecture finalized for future
+                                feature modules.</span>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+        <div class="slide-footer">
+            <span>Development roadmap and key milestones.</span>
+        </div>
+    </div>
+
+
+</body>
+
+</html>
