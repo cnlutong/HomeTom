@@ -4,7 +4,6 @@ from datetime import datetime
 from typing import Optional, List
 from enum import Enum
 from ..value_objects.scene_definition import SceneDefinition
-from ..entities.scene_version import SceneVersion
 from ..events.scene_published import ScenePublished
 from ..events.scene_disabled import SceneDisabled
 
@@ -28,7 +27,7 @@ class SceneAggregate:
         name: str,
         description: Optional[str] = None,
         status: SceneStatus = SceneStatus.DRAFT,
-        current_version: Optional[int] = None,
+        definition: Optional[SceneDefinition] = None,
         created_at: Optional[datetime] = None,
         updated_at: Optional[datetime] = None
     ):
@@ -39,7 +38,7 @@ class SceneAggregate:
             name: 场景名称
             description: 场景描述
             status: 场景状态
-            current_version: 当前版本号
+            definition: 场景定义（MVP阶段直接存储在聚合根中）
             created_at: 创建时间
             updated_at: 更新时间
         """
@@ -52,12 +51,9 @@ class SceneAggregate:
         self._name = name
         self._description = description
         self._status = status
-        self._current_version = current_version or 0
+        self._definition = definition
         self._created_at = created_at or datetime.utcnow()
         self._updated_at = updated_at or datetime.utcnow()
-        
-        # 版本历史（在内存中维护，实际持久化由仓储处理）
-        self._versions: List[SceneVersion] = []
         
         # 领域事件列表
         self._domain_events: List[object] = []
@@ -83,9 +79,9 @@ class SceneAggregate:
         return self._status
     
     @property
-    def current_version(self) -> int:
-        """获取当前版本号"""
-        return self._current_version
+    def definition(self) -> Optional[SceneDefinition]:
+        """获取场景定义"""
+        return self._definition
     
     @property
     def created_at(self) -> datetime:
@@ -109,52 +105,17 @@ class SceneAggregate:
         self._description = description
         self._updated_at = datetime.utcnow()
     
-    def create_version(
-        self,
-        definition: SceneDefinition,
-        operator: Optional[str] = None,
-        change_summary: Optional[str] = None
-    ) -> SceneVersion:
-        """创建新版本
+    def update_definition(self, definition: SceneDefinition) -> None:
+        """更新场景定义（MVP阶段直接替换，不保留历史版本）
         
         Args:
-            definition: 场景定义
-            operator: 操作者
-            change_summary: 变更摘要
-            
-        Returns:
-            新创建的版本实体
+            definition: 新的场景定义
         """
         if not definition:
             raise ValueError("场景定义不能为空")
         
-        self._current_version += 1
-        version = SceneVersion(
-            version_number=self._current_version,
-            scene_id=self._scene_id,
-            definition=definition,
-            created_at=datetime.utcnow(),
-            operator=operator,
-            change_summary=change_summary
-        )
-        
-        self._versions.append(version)
+        self._definition = definition
         self._updated_at = datetime.utcnow()
-        
-        return version
-    
-    def get_latest_version(self) -> Optional[SceneVersion]:
-        """获取最新版本"""
-        if not self._versions:
-            return None
-        return self._versions[-1]
-    
-    def get_version(self, version_number: int) -> Optional[SceneVersion]:
-        """获取指定版本"""
-        for version in self._versions:
-            if version.version_number == version_number:
-                return version
-        return None
     
     def publish(self) -> None:
         """发布场景
@@ -167,18 +128,17 @@ class SceneAggregate:
         if self._status == SceneStatus.DISABLED:
             raise ValueError("已禁用的场景不能直接发布，需要先启用")
         
-        if not self._versions:
-            raise ValueError("场景必须至少有一个版本才能发布")
+        if not self._definition:
+            raise ValueError("场景必须有定义才能发布")
         
         self._status = SceneStatus.PUBLISHED
         self._updated_at = datetime.utcnow()
         
         # 发布领域事件
-        latest_version = self.get_latest_version()
         event = ScenePublished(
             scene_id=self._scene_id,
-            version_number=self._current_version,
-            definition=latest_version.definition,
+            version_number=1,  # MVP阶段始终为版本1
+            definition=self._definition,
             occurred_at=datetime.utcnow()
         )
         self._add_domain_event(event)
