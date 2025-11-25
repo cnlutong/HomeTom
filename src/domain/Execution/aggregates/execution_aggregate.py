@@ -1,15 +1,16 @@
 """执行聚合根"""
 
+import logging
 from datetime import datetime
 from typing import List, Optional
 from ..value_objects.execution_context import ExecutionContext
 from ..value_objects.execution_result import ExecutionResult, ExecutionStatus
 from ..value_objects.retry_policy import RetryPolicy
-from ..entities.execution_record import ExecutionRecord
-from ..entities.execution_log import ExecutionLog
 from ..events.execution_started import ExecutionStarted
 from ..events.execution_succeeded import ExecutionSucceeded
 from ..events.execution_failed import ExecutionFailed
+
+logger = logging.getLogger(__name__)
 
 
 class ExecutionAggregate:
@@ -40,17 +41,9 @@ class ExecutionAggregate:
         self._context = context
         self._retry_policy = retry_policy or RetryPolicy.default()
         
-        # 执行记录
-        self._record = ExecutionRecord(
-            execution_id=execution_id,
-            scene_id=context.scene_id,
-            scene_version=context.scene_version,
-            trigger_source=context.trigger_source,
-            started_at=datetime.utcnow()
-        )
-        
-        # 执行日志列表
-        self._logs: List[ExecutionLog] = []
+        # 简单的重试计数
+        self._retry_count = 0
+        self._is_completed = False
         
         # 领域事件列表
         self._domain_events: List[object] = []
@@ -75,9 +68,9 @@ class ExecutionAggregate:
         return self._context
     
     @property
-    def record(self) -> ExecutionRecord:
-        """获取执行记录"""
-        return self._record
+    def is_completed(self) -> bool:
+        """是否已完成"""
+        return self._is_completed
     
     @property
     def retry_policy(self) -> RetryPolicy:
@@ -86,7 +79,7 @@ class ExecutionAggregate:
     
     def start(self) -> None:
         """开始执行"""
-        # 执行记录已经在初始化时创建，这里可以添加额外的逻辑
+        logger.info(f"开始执行场景: {self._context.scene_id} (ExecutionID: {self._execution_id})")
         pass
     
     def add_log(
@@ -96,30 +89,18 @@ class ExecutionAggregate:
         target: str,
         command: str,
         parameters: Optional[dict] = None
-    ) -> ExecutionLog:
+    ) -> None:
         """添加执行日志"""
-        log = ExecutionLog(
-            log_id=f"{self._execution_id}_step_{step_number}",
-            execution_id=self._execution_id,
-            step_number=step_number,
-            action_type=action_type,
-            target=target,
-            command=command,
-            parameters=parameters
-        )
-        self._logs.append(log)
-        return log
-    
-    def get_logs(self) -> List[ExecutionLog]:
-        """获取所有执行日志"""
-        return list(self._logs)
+        log_msg = f"步骤 {step_number}: {action_type} -> {target} | Cmd: {command} | Params: {parameters}"
+        logger.info(f"[{self._execution_id}] {log_msg}")
     
     def complete(self, result: ExecutionResult) -> None:
         """完成执行"""
-        if self._record.is_completed():
+        if self._is_completed:
             raise ValueError("执行已经完成")
         
-        self._record.complete(result)
+        self._is_completed = True
+        logger.info(f"执行完成: {self._execution_id} | 结果: {'成功' if result.is_success() else '失败'}")
         
         # 发布领域事件
         if result.is_success():
@@ -156,10 +137,11 @@ class ExecutionAggregate:
         Returns:
             如果允许重试返回True，否则返回False
         """
-        if not self._retry_policy.should_retry(self._record.retry_count):
+        if not self._retry_policy.should_retry(self._retry_count):
             return False
         
-        self._record.increment_retry()
+        self._retry_count += 1
+        logger.warning(f"执行重试: {self._execution_id} | 第 {self._retry_count} 次")
         return True
     
     def get_domain_events(self) -> List[object]:

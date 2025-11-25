@@ -3,7 +3,6 @@
 from abc import ABC, abstractmethod
 from typing import Optional, List
 from ..aggregates.execution_aggregate import ExecutionAggregate
-from ..entities.execution_log import ExecutionLog
 
 
 class IExecutionRepository(ABC):
@@ -30,15 +29,5 @@ class IExecutionRepository(ABC):
     @abstractmethod
     async def find_all(self) -> List[ExecutionAggregate]:
         """查找所有执行"""
-        pass
-    
-    @abstractmethod
-    async def save_log(self, log: ExecutionLog) -> None:
-        """保存执行日志"""
-        pass
-    
-    @abstractmethod
-    async def find_logs_by_execution_id(self, execution_id: str) -> List[ExecutionLog]:
-        """根据执行ID查找所有日志"""
         pass
 
