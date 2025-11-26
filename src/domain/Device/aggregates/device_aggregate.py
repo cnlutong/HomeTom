@@ -203,6 +203,8 @@ class DeviceAggregate:
         """添加领域事件"""
         self._domain_events.append(event)
     
+
+    # 构建新的设备对象
     @classmethod
     def create(
         cls,

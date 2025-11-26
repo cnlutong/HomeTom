@@ -106,7 +106,7 @@ class SceneAggregate:
         self._updated_at = datetime.utcnow()
     
     def update_definition(self, definition: SceneDefinition) -> None:
-        """更新场景定义（MVP阶段直接替换，不保留历史版本）
+        """更新场景定义
         
         Args:
             definition: 新的场景定义
