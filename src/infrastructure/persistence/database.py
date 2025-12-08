@@ -1,0 +1,133 @@
+"""数据库配置与会话管理
+
+提供异步数据库引擎创建和会话工厂，支持 SQLite 和 PostgreSQL
+"""
+
+from dataclasses import dataclass, field
+from typing import Optional
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine as sa_create_async_engine,
+)
+
+
+@dataclass
+class DatabaseConfig:
+    """数据库配置
+    
+    Attributes:
+        url: 数据库连接 URL
+            - SQLite: sqlite+aiosqlite:///./data/hometom.db
+            - PostgreSQL: postgresql+asyncpg://user:pass@localhost/hometom
+        echo: 是否打印 SQL 语句（调试用）
+        pool_size: 连接池大小（仅 PostgreSQL 有效）
+        max_overflow: 连接池最大溢出数（仅 PostgreSQL 有效）
+    """
+    url: str
+    echo: bool = False
+    pool_size: int = 5
+    max_overflow: int = 10
+    
+    @classmethod
+    def sqlite(cls, db_path: str = "./data/hometom.db", echo: bool = False) -> "DatabaseConfig":
+        """创建 SQLite 配置（开发环境）"""
+        return cls(url=f"sqlite+aiosqlite:///{db_path}", echo=echo)
+    
+    @classmethod
+    def postgresql(
+        cls,
+        host: str = "localhost",
+        port: int = 5432,
+        database: str = "hometom",
+        user: str = "postgres",
+        password: str = "",
+        echo: bool = False,
+    ) -> "DatabaseConfig":
+        """创建 PostgreSQL 配置（生产环境）"""
+        url = f"postgresql+asyncpg://{user}:{password}@{host}:{port}/{database}"
+        return cls(url=url, echo=echo)
+
+
+def create_async_engine(config: DatabaseConfig) -> AsyncEngine:
+    """创建异步数据库引擎
+    
+    Args:
+        config: 数据库配置
+        
+    Returns:
+        异步数据库引擎
+    """
+    # SQLite 不支持连接池参数
+    is_sqlite = config.url.startswith("sqlite")
+    
+    engine_kwargs = {
+        "echo": config.echo,
+    }
+    
+    if not is_sqlite:
+        engine_kwargs.update({
+            "pool_size": config.pool_size,
+            "max_overflow": config.max_overflow,
+        })
+    
+    return sa_create_async_engine(config.url, **engine_kwargs)
+
+
+def get_session_factory(engine: AsyncEngine) -> async_sessionmaker[AsyncSession]:
+    """获取异步会话工厂
+    
+    Args:
+        engine: 异步数据库引擎
+        
+    Returns:
+        异步会话工厂
+    """
+    return async_sessionmaker(
+        bind=engine,
+        class_=AsyncSession,
+        expire_on_commit=False,  # 防止提交后访问属性时触发隐式查询
+        autoflush=False,
+    )
+
+
+# 全局引擎和会话工厂（由应用启动时初始化）
+_engine: Optional[AsyncEngine] = None
+_session_factory: Optional[async_sessionmaker[AsyncSession]] = None
+
+
+async def init_database(config: DatabaseConfig) -> None:
+    """初始化数据库连接
+    
+    应在应用启动时调用
+    """
+    global _engine, _session_factory
+    _engine = create_async_engine(config)
+    _session_factory = get_session_factory(_engine)
+
+
+async def close_database() -> None:
+    """关闭数据库连接
+    
+    应在应用关闭时调用
+    """
+    global _engine, _session_factory
+    if _engine:
+        await _engine.dispose()
+        _engine = None
+        _session_factory = None
+
+
+def get_session() -> AsyncSession:
+    """获取数据库会话
+    
+    Returns:
+        新的异步数据库会话
+        
+    Raises:
+        RuntimeError: 如果数据库未初始化
+    """
+    if _session_factory is None:
+        raise RuntimeError("数据库未初始化，请先调用 init_database()")
+    return _session_factory()

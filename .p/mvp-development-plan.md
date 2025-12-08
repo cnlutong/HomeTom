@@ -22,7 +22,7 @@
 **目录结构**：
 ```
 src/
-├── interface/          # 接口层（原controller重命名）
+├── controller/          # 接口层
 │   ├── api/
 │   │   ├── device_controller.py
 │   │   ├── scene_controller.py
@@ -33,16 +33,16 @@ src/
 │   ├── scene_app_service.py
 │   └── orchestration_app_service.py
 ├── domain/             # 领域层（已存在部分）
-│   ├── Device/
+│   ├── device/
 │   │   ├── aggregates/     # 聚合根
 │   │   ├── entities/       # 实体
 │   │   ├── value_objects/  # 值对象
 │   │   ├── services/       # 领域服务
 │   │   ├── events/         # 领域事件
 │   │   └── repositories/   # 仓储接口
-│   ├── Scene/
+│   ├── scene/
 │   │   └── (同上结构)
-│   └── Execution/
+│   └── execution/
 │       └── (同上结构)
 └── infrastructure/     # 基础设施层
     ├── persistence/     # 仓储实现
