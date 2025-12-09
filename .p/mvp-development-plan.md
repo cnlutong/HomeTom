@@ -226,6 +226,41 @@ DeviceAggregate.adapter_type  →  HardwareClientRegistry  →  IHardwareClient 
 - [ ] `UnitOfWork`：实现事务管理接口
 - [ ] 集成SQLAlchemy会话管理
 
+### 2.5 日志模块
+
+> **设计原则**：使用 Python 内置 `logging` 模块，保持简单易用，不区分环境，不持久化。
+
+#### 2.5.1 日志配置
+- [ ] `LoggingConfig`：统一日志配置
+  - 基于 Python 标准库 `logging` 模块
+  - 统一的日志格式：`[时间] [级别] [模块名] - 消息`
+  - 默认输出到控制台（stdout）
+  - 支持日志级别配置（DEBUG/INFO/WARNING/ERROR）
+
+#### 2.5.2 使用方式
+```python
+# 在模块中使用
+import logging
+
+logger = logging.getLogger(__name__)
+
+# 调用示例
+logger.info("设备注册成功: %s", device_id)
+logger.warning("设备不可用: %s", entity_id)
+logger.error("场景执行失败: %s", error_message)
+```
+
+#### 2.5.3 日志初始化
+- [ ] 在应用启动时调用 `setup_logging()` 进行初始化
+- [ ] 日志级别通过环境变量 `LOG_LEVEL` 配置，默认 `INFO`
+
+**日志输出格式示例**：
+```
+2024-01-15 10:30:45 [INFO] src.application.device.DeviceService - 设备注册成功: device-001
+2024-01-15 10:30:46 [WARNING] src.infrastructure.adapters.hardware_adapter - HTTP 请求超时
+2024-01-15 10:30:47 [ERROR] src.application.orchestration.OrchestrationService - 场景执行失败: 设备离线
+```
+
 ---
 
 ## 阶段三：应用层实现（Week 3-4）
