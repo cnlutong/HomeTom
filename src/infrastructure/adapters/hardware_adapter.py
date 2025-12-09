@@ -1,37 +1,28 @@
 """HTTP 硬件客户端
 
-统一使用 HTTP 与外部智能家居系统（如 Home Assistant）通信。
+实现 IHardwareClient 接口，通过 HTTP REST API 与 Home Assistant 等系统通信。
 """
 
 import logging
-from dataclasses import dataclass
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional
 
-# 注意：实际使用时需要安装 httpx 或 aiohttp
-# 这里只定义接口，具体实现需要在应用启动时注入
+from ...domain.Device.services.hardware_client import IHardwareClient, HardwareResponse
 
 
 logger = logging.getLogger(__name__)
 
 
-@dataclass
-class HttpResponse:
-    """HTTP 响应"""
-    success: bool
-    status_code: int
-    data: Optional[Dict[str, Any]] = None
-    error: Optional[str] = None
-
-
-class HttpHardwareClient:
+class HttpHardwareClient(IHardwareClient):
     """HTTP 硬件客户端
     
-    与外部智能家居系统通信，如 Home Assistant REST API。
+    通过 HTTP REST API 与外部智能家居系统通信，如 Home Assistant。
     
     Home Assistant API 示例：
     - 获取状态: GET /api/states/{entity_id}
     - 调用服务: POST /api/services/{domain}/{service}
     """
+    
+    ADAPTER_TYPE = "homeassistant"
     
     def __init__(
         self,
@@ -51,6 +42,11 @@ class HttpHardwareClient:
         self.timeout = timeout
         self._session = None  # httpx.AsyncClient 或 aiohttp.ClientSession
     
+    @property
+    def adapter_type(self) -> str:
+        """获取适配器类型标识"""
+        return self.ADAPTER_TYPE
+    
     def _get_headers(self) -> Dict[str, str]:
         """获取请求头"""
         headers = {"Content-Type": "application/json"}
@@ -64,7 +60,7 @@ class HttpHardwareClient:
         service: str,
         entity_id: str,
         data: Optional[Dict[str, Any]] = None
-    ) -> HttpResponse:
+    ) -> HardwareResponse:
         """调用服务
         
         Args:
@@ -74,7 +70,7 @@ class HttpHardwareClient:
             data: 附加数据
             
         Returns:
-            HTTP 响应
+            HardwareResponse: 通信响应
             
         示例：
             call_service("light", "turn_on", "light.living_room", {"brightness": 128})
@@ -90,41 +86,57 @@ class HttpHardwareClient:
         
         # TODO: 实际 HTTP 请求实现
         # async with httpx.AsyncClient() as client:
-        #     response = await client.post(url, json=payload, headers=self._get_headers())
-        #     ...
+        #     response = await client.post(url, json=payload, headers=self._get_headers(), timeout=self.timeout)
+        #     if response.status_code == 200:
+        #         return HardwareResponse.ok(response.json())
+        #     else:
+        #         return HardwareResponse.failed(response.text, response.status_code)
         
         # 占位返回
-        return HttpResponse(success=True, status_code=200, data={"result": "ok"})
+        return HardwareResponse.ok({"result": "ok"})
     
-    async def get_state(self, entity_id: str) -> HttpResponse:
+    async def get_state(self, entity_id: str) -> HardwareResponse:
         """获取实体状态
         
         Args:
             entity_id: 实体ID
             
         Returns:
-            HTTP 响应，data 包含 state 和 attributes
+            HardwareResponse: 包含 state 和 attributes 的响应
         """
         url = f"{self.base_url}/api/states/{entity_id}"
         
         logger.debug(f"获取状态: {entity_id}")
         
         # TODO: 实际 HTTP 请求实现
+        # async with httpx.AsyncClient() as client:
+        #     response = await client.get(url, headers=self._get_headers(), timeout=self.timeout)
+        #     if response.status_code == 200:
+        #         return HardwareResponse.ok(response.json())
+        #     else:
+        #         return HardwareResponse.failed(response.text, response.status_code)
         
-        return HttpResponse(success=True, status_code=200, data={})
+        return HardwareResponse.ok({})
     
-    async def get_all_states(self) -> HttpResponse:
+    async def get_all_states(self) -> HardwareResponse:
         """获取所有实体状态"""
         url = f"{self.base_url}/api/states"
         
         # TODO: 实际 HTTP 请求实现
         
-        return HttpResponse(success=True, status_code=200, data={"states": []})
+        return HardwareResponse.ok({"states": []})
     
     async def check_connection(self) -> bool:
         """检查连接状态"""
         url = f"{self.base_url}/api/"
         
         # TODO: 实际 HTTP 请求实现
+        # async with httpx.AsyncClient() as client:
+        #     try:
+        #         response = await client.get(url, headers=self._get_headers(), timeout=self.timeout)
+        #         return response.status_code == 200
+        #     except Exception:
+        #         return False
         
         return True
+

@@ -15,11 +15,11 @@
 
 ### 1.1 项目结构与依赖管理
 - [ ] 创建标准目录结构（按洋葱架构分层）
-- [ ] 配置 `requirements.txt` 或 `pyproject.toml`（最小依赖：FastAPI、SQLAlchemy、pydantic）
+- [ ] 配置 `requirements.txt`（最小依赖：FastAPI、SQLAlchemy、pydantic）
 - [ ] 配置数据库连接（PostgreSQL，使用SQLAlchemy ORM）
 - [ ] 建立基础配置管理（环境变量、配置类）
 
-**目录结构**：
+**目录结构（参考）**：
 ```
 src/
 ├── controller/          # 接口层
@@ -139,20 +139,82 @@ src/
 - [ ] `SceneVersionRepository`：实现 `ISceneVersionRepository`
 - [ ] `ExecutionRepository`：实现 `IExecutionRepository`
 
-#### 2.1.3 数据库迁移
-- [ ] 使用 Alembic 创建初始迁移脚本
+#### 2.1.3 数据库（如果需要）
 - [ ] 创建数据库初始化脚本
 
-### 2.2 设备适配器实现
+### 2.2 设备通信层实现
 
-#### 2.2.1 适配器接口
-- [ ] `IDeviceAdapter`：定义统一接口（turn_on, turn_off, set_property, read_state）
+> **设计说明**：由于不同设备具有不同的能力（如灯光有 `set_brightness`，空调有 `set_temperature`），
+> 且不同智能家居平台（Home Assistant、米家、涂鸦）的 API 各不相同，
+> 因此采用**分层设计**而非固定接口的适配器模式。
 
-#### 2.2.2 HTTP适配器实现
-- [ ] `HttpDeviceAdapter`：实现HTTP REST设备通信
-  - 支持基础认证
-  - 错误处理和重试
-  - 状态读取和命令发送
+#### 2.2.1 设备能力层（已在 Domain 层实现）
+- [x] `BaseDevice`：设备基类，定义通用属性（entity_id, state, attributes）
+- [x] `Actuator` / `Sensor`：设备分类基类
+- [x] 具体设备类（`Light`, `Climate`, `Cover` 等）：
+  - 每个设备类定义自己的方法（如 `Light.set_brightness()`）
+  - 通过 `attributes` 字典暴露设备能力和状态
+
+#### 2.2.2 设备管理器（执行层调用入口）
+- [x] `IDeviceManager`：设备管理接口
+  - `get_device(entity_id)`: 获取设备实例
+  - `execute_command(entity_id, command, params)`: 动态方法调用
+  - `get_device_state(entity_id)`: 获取设备状态
+  - `get_device_attributes(entity_id)`: 获取设备属性
+- [x] `DeviceManager`：使用反射机制动态调用设备方法
+
+#### 2.2.3 硬件通信层接口（领域层）
+- [x] `IHardwareClient`：定义通用通信能力
+  - `call_service(domain, service, entity_id, data)`: 调用服务
+  - `get_state(entity_id)`: 获取设备状态
+  - `check_connection()`: 检查连接状态
+
+#### 2.2.4 硬件客户端注册表（基础设施层）
+- [x] `HardwareClientRegistry`：客户端注册表，根据 `adapter_type` 路由到正确的客户端
+  - `register(adapter_type, client)`: 注册客户端
+  - `get_client(adapter_type)`: 获取客户端
+  - 支持的 adapter_type：`homeassistant`, `tuya`, `mijia` 等
+
+#### 2.2.5 平台实现（基础设施层）
+- [x] `HttpHardwareClient`：HTTP REST 通信实现（如 Home Assistant API）
+  - 支持 Bearer Token 认证
+  - 错误处理和日志记录
+  - 可扩展支持重试机制
+- [ ] 未来可扩展：`TuyaCloudClient`、`MiHomeClient` 等
+
+**客户端路由机制**：
+```
+DeviceAggregate.adapter_type  →  HardwareClientRegistry  →  IHardwareClient 实现
+       "homeassistant"        →        注册表查找        →   HttpHardwareClient
+       "tuya"                 →        注册表查找        →   TuyaCloudClient
+       "mijia"                →        注册表查找        →   MiHomeClient
+```
+
+**完整架构图**：
+```
+┌────────────────────────────────────────────────────────────────┐
+│                  DeviceAggregate (聚合根)                       │
+│  adapter_type: "homeassistant" / "tuya" / "mijia"              │
+└────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌────────────────────────────────────────────────────────────────┐
+│              HardwareClientRegistry (客户端注册表)              │
+│  "homeassistant" → HttpHardwareClient                          │
+│  "tuya"          → TuyaCloudClient                             │
+│  "mijia"         → MiHomeClient                                │
+└────────────────────────────────────────────────────────────────┘
+                              │
+          ┌───────────────────┼───────────────────┐
+          ▼                   ▼                   ▼
+┌──────────────────┐ ┌──────────────────┐ ┌──────────────────┐
+│HttpHardwareClient│ │  TuyaCloudClient │ │   MiHomeClient   │
+│  (Home Assistant)│ │    (涂鸦云)      │ │    (米家)        │
+│                  │ │                  │ │                  │
+│ call_service()   │ │ call_service()   │ │ call_service()   │
+│ get_state()      │ │ get_state()      │ │ get_state()      │
+└──────────────────┘ └──────────────────┘ └──────────────────┘
+```
 
 ### 2.3 事件总线实现
 
@@ -163,7 +225,7 @@ src/
 - [ ] `InMemoryEventBus`：基于 `asyncio.Queue` 实现
   - 支持事件发布
   - 支持事件订阅
-  - 支持优先级队列（基础版本可忽略）
+  - 支持优先级队列
 
 ### 2.4 工作单元与事务管理
 
