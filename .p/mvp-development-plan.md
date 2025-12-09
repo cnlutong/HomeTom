@@ -73,8 +73,8 @@ src/
 
 #### 1.3.1 场景聚合根
 - [ ] `SceneAggregate`：场景聚合根
-  - 属性：scene_id, name, description, status (draft/published/disabled), current_version
-  - 方法：publish(), disable(), create_version()
+  - 属性：scene_id, name, description, status (draft/published/disabled), definition
+  - 方法：publish(), disable(), update_definition()
   - 领域事件：ScenePublished, SceneDisabled
 
 #### 1.3.2 场景值对象
@@ -83,12 +83,8 @@ src/
 - [ ] `Action`：动作（设备控制、子场景调用）
 - [ ] `SceneDefinition`：场景定义（包含触发器、条件、动作的JSON结构）
 
-#### 1.3.3 场景版本实体
-- [ ] `SceneVersion`：版本记录（version_number, definition_json, created_at, operator）
-
-#### 1.3.4 场景仓储接口
+#### 1.3.3 场景仓储接口
 - [ ] `ISceneRepository`：场景CRUD接口
-- [ ] `ISceneVersionRepository`：版本管理接口
 
 #### 1.3.5 场景领域服务
 - [ ] `SceneValidator`：场景结构校验、循环依赖检测（基础版本）
@@ -128,7 +124,6 @@ src/
 - [ ] `DeviceModel`：设备表模型
 - [ ] `DeviceStateModel`：设备状态表模型
 - [ ] `SceneModel`：场景表模型
-- [ ] `SceneVersionModel`：场景版本表模型
 - [ ] `SceneDependencyModel`：场景依赖表模型
 - [ ] `ExecutionModel`：执行表模型
 - [ ] `ExecutionLogModel`：执行日志表模型
@@ -136,7 +131,6 @@ src/
 #### 2.1.2 仓储实现
 - [ ] `DeviceRepository`：实现 `IDeviceRepository`
 - [ ] `SceneRepository`：实现 `ISceneRepository`
-- [ ] `SceneVersionRepository`：实现 `ISceneVersionRepository`
 - [ ] `ExecutionRepository`：实现 `IExecutionRepository`
 
 #### 2.1.3 数据库（如果需要）
@@ -342,19 +336,17 @@ DeviceAggregate.adapter_type  →  HardwareClientRegistry  →  IHardwareClient 
 
 ### ✅ 包含的功能
 1. **设备管理**：设备注册、启停、状态同步（HTTP适配器）
-2. **场景设计**：场景创建、编辑、发布、禁用（基础版本管理）
+2. **场景设计**：场景创建、编辑、发布、禁用
 3. **场景执行**：手动触发、顺序执行动作、执行记录
 4. **基础校验**：场景结构校验、状态机校验
 
 ### ❌ 暂不包含（后续增强）
 1. 子场景调用（场景嵌套）
-2. 并发控制（多场景并行执行）
-3. 回滚策略
-4. 告警系统
-5. 定时器触发（仅支持手动触发）
-6. 设备事件触发（仅支持手动触发）
-7. 场景版本比对
-8. 执行终止功能
+2. 回滚策略
+3. 告警系统
+4. 定时器触发（仅支持手动触发）
+5. 设备事件触发（仅支持手动触发）
+6. 执行终止功能
 
 ---
 
@@ -377,29 +369,6 @@ DeviceAggregate.adapter_type  →  HardwareClientRegistry  →  IHardwareClient 
 
 ---
 
-## 开发里程碑
-
-### Milestone 1：领域模型就绪（Week 2结束）
-- 三个限界上下文的领域模型完成
-- 仓储接口定义完成
-- 领域服务接口定义完成
-
-### Milestone 2：基础设施就绪（Week 3结束）
-- 数据库模型和仓储实现完成
-- 设备适配器（HTTP）实现完成
-- 事件总线实现完成
-
-### Milestone 3：核心功能可用（Week 5结束）
-- 设备管理API可用
-- 场景管理API可用
-- 场景执行API可用（基础版本）
-
-### Milestone 4：MVP完成（Week 6结束）
-- 集成测试通过
-- 文档完善
-- 可部署运行
-
----
 
 ## 扩展性设计要点
 
@@ -420,8 +389,8 @@ DeviceAggregate.adapter_type  →  HardwareClientRegistry  →  IHardwareClient 
 - 重试策略可配置
 - 并发策略可配置（未来）
 
-### 5. 版本管理
-- 场景版本管理为后续回滚、比对功能预留接口
+### 5. 未来扩展
+- 场景版本管理可在后续版本中添加（如需回滚、比对功能）
 
 ---
 

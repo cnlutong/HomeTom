@@ -11,7 +11,6 @@ class ExecutionContext:
     封装场景执行的上下文信息，包括输入参数、调用链等
     """
     scene_id: str
-    scene_version: int
     trigger_source: str  # 触发来源（manual, timer, device_event）
     input_parameters: Optional[Dict[str, Any]] = None  # 输入参数
     call_chain: Optional[List[str]] = None  # 调用链（父场景ID列表）
@@ -20,8 +19,6 @@ class ExecutionContext:
         """验证执行上下文数据"""
         if not self.scene_id:
             raise ValueError("场景ID不能为空")
-        if self.scene_version < 1:
-            raise ValueError("场景版本号必须大于0")
         if not self.trigger_source:
             raise ValueError("触发来源不能为空")
     
@@ -29,7 +26,6 @@ class ExecutionContext:
         """转换为字典"""
         result = {
             "scene_id": self.scene_id,
-            "scene_version": self.scene_version,
             "trigger_source": self.trigger_source
         }
         if self.input_parameters:
@@ -43,7 +39,6 @@ class ExecutionContext:
         """从字典创建"""
         return cls(
             scene_id=data["scene_id"],
-            scene_version=data["scene_version"],
             trigger_source=data["trigger_source"],
             input_parameters=data.get("input_parameters"),
             call_chain=data.get("call_chain")
@@ -55,7 +50,6 @@ class ExecutionContext:
         new_chain.append(scene_id)
         return ExecutionContext(
             scene_id=self.scene_id,
-            scene_version=self.scene_version,
             trigger_source=self.trigger_source,
             input_parameters=self.input_parameters,
             call_chain=new_chain

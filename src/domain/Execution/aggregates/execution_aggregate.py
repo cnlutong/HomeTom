@@ -52,7 +52,6 @@ class ExecutionAggregate:
         event = ExecutionStarted(
             execution_id=execution_id,
             scene_id=context.scene_id,
-            scene_version=context.scene_version,
             occurred_at=datetime.utcnow()
         )
         self._add_domain_event(event)

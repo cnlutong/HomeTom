@@ -84,7 +84,6 @@ class WorkflowEngine(IWorkflowEngine):
         await self._publish_event(ExecutionStarted(
             execution_id=execution.execution_id,
             scene_id=execution.context.scene_id,
-            scene_version=execution.context.scene_version,
             occurred_at=datetime.utcnow()
         ))
         

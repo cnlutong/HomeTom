@@ -21,7 +21,6 @@ class ExecutionModel(Base):
     
     # 执行上下文
     scene_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
-    scene_version: Mapped[int] = mapped_column(Integer, nullable=False)
     trigger_source: Mapped[str] = mapped_column(String(32), nullable=False)
     input_parameters: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
     call_chain: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
@@ -39,3 +38,4 @@ class ExecutionModel(Base):
     
     def __repr__(self) -> str:
         return f"<ExecutionModel(id={self.id}, scene_id={self.scene_id}, completed={self.is_completed})>"
+

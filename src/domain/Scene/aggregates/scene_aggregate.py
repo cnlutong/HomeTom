@@ -137,7 +137,6 @@ class SceneAggregate:
         # 发布领域事件
         event = ScenePublished(
             scene_id=self._scene_id,
-            version_number=1,  # MVP阶段始终为版本1
             definition=self._definition,
             occurred_at=datetime.utcnow()
         )

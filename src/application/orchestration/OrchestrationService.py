@@ -84,8 +84,8 @@ class OrchestrationService:
         # 创建执行上下文
         context = ExecutionContext(
             scene_id=scene_id,
-            scene_version=1,  # MVP阶段始终为版本1
-            parameters=parameters or {},
+            trigger_source="manual",
+            input_parameters=parameters or {},
             call_chain=[scene_id]  # 初始调用链包含当前场景
         )
         
@@ -209,8 +209,8 @@ class OrchestrationService:
         return {
             "execution_id": execution.execution_id,
             "scene_id": execution.context.scene_id,
-            "scene_version": execution.context.scene_version,
-            "parameters": execution.context.parameters,
+            "trigger_source": execution.context.trigger_source,
+            "input_parameters": execution.context.input_parameters,
             "is_completed": execution.is_completed,
             "retry_policy": {
                 "max_retries": execution.retry_policy.max_retries,

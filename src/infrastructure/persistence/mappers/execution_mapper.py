@@ -34,7 +34,6 @@ class ExecutionMapper:
         return ExecutionModel(
             id=aggregate.execution_id,
             scene_id=context.scene_id,
-            scene_version=context.scene_version,
             trigger_source=context.trigger_source,
             input_parameters=context.input_parameters,
             call_chain=context.call_chain,
@@ -61,7 +60,6 @@ class ExecutionMapper:
         # 重建执行上下文
         context = ExecutionContext(
             scene_id=model.scene_id,
-            scene_version=model.scene_version,
             trigger_source=model.trigger_source,
             input_parameters=model.input_parameters,
             call_chain=model.call_chain,
