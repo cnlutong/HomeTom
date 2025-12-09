@@ -1,0 +1,33 @@
+\frametitle{Infrastructure Layer - Event Bus}\framesubtitle {\small \color {white} Decouples context communication, based on asyncio.PriorityQueue.}
+
+    \begin{columns}
+        \column{0.5\textwidth}
+            \textbf{Features}
+            \vspace{0.5em}
+            % List items 1 by 1
+            \begin{itemize}[<+->]
+                \item \textbf{Priority}: HIGH $>$ NORMAL $>$ LOW
+                \item \textbf{Lifecycle}: \texttt{start()} / \texttt{stop()}
+                \item \textbf{Handlers}: Sync/Async support
+                \item \textbf{Extensibility}: Interface ready for MQ
+            \end{itemize}
+
+        \column{0.5\textwidth}
+            % Pause before Code block
+            \pause
+            \textbf{Core Interface Definition}
+            \begin{lstlisting}[language=Python]
+class IEventBus:
+    # Publish single event
+    async def publish(event, priority)
+
+    # Publish batch
+    async def publish_all(events)
+
+    # Subscribe to event type
+    def subscribe(event_type, handler)
+
+    # Unsubscribe
+    def unsubscribe(event_type, handler)
+            \end{lstlisting}
+    \end{columns}
