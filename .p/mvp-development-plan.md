@@ -94,7 +94,7 @@ src/
 
 #### 1.4.1 执行聚合根
 - [ ] `ExecutionAggregate`：执行聚合根
-  - 属性：execution_id, scene_id, scene_version, status (running/success/failed), started_at, ended_at
+  - 属性：execution_id, scene_id, status (running/success/failed), started_at, ended_at
   - 方法：start(), complete(), fail(), retry()
   - 领域事件：ExecutionStarted, ExecutionSucceeded, ExecutionFailed
 
