@@ -318,8 +318,7 @@
                     \node[phasebar] at (2, 7.0) {Execute Scene};
                     \draw[msg] ($(O)+(0,8.5)$)  -- node[lbl] {find\_by\_id(execution\_id)} ($(ER)+(0,8.5)$);
                     \draw[msg] ($(O)+(0,9.7)$)  -- node[lbl] {find\_by\_id(scene\_id)} ($(SR)+(0,9.7)$);
-                    \draw[msg] ($(O)+(0,10.9)$) -- node[lbl] {execute(execution, definition)} ($(W)+(0,10.9)$);
-                    \draw[msg] ($(O)+(0,12.1)$) -- node[lbl] {save(execution)} ($(ER)+(0,12.1)$);
+                    \draw[msg] ($(O)+(0,10.9)$) -- node[lbl] {execute()} ($(W)+(0,10.9)$);
                     \draw[msg] ($(O)+(0,13.3)$) -- node[lbl] {publish\_all(events)} ($(EB)+(0,13.3)$);
                 }
                 
@@ -397,7 +396,7 @@
                     \node[ormbox, below=of em] (emod) {Execution\\Model};
                     \node[fit=(dmod)(smod)(emod), inner sep=0.1cm, label=left:{\tiny\bfseries ORM}] (l3) {};
                     
-                    \node[draw, cylinder, shape border rotate=90, aspect=0.25, fill=gray!20, minimum height=0.8cm, minimum width=6.5cm, below=0.8cm of smod, align=center, font=\small] (db) {DB (SQLite/PG)};
+                    \node[draw, cylinder, shape border rotate=90, aspect=0.25, fill=gray!20, minimum height=0.8cm, minimum width=6.5cm, below=0.8cm of smod, align=center, font=\small] (db) {DB (SQLite/PostgreSQL)};
                     
                     \draw[biarrow] (dm) -- (dmod); \draw[arrow] (dmod) -- (db);
                     \draw[biarrow] (sm) -- (smod); \draw[arrow] (smod) -- (db);
