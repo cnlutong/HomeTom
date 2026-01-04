@@ -2,10 +2,12 @@
 
 import logging
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from ..value_objects.execution_context import ExecutionContext
 from ..value_objects.execution_result import ExecutionResult, ExecutionStatus
 from ..value_objects.retry_policy import RetryPolicy
+from ..entities.execution_log import ExecutionLog
+from ..entities.execution_record import ExecutionRecord, ExecutionRecordStatus
 from ..events.execution_started import ExecutionStarted
 from ..events.execution_succeeded import ExecutionSucceeded
 from ..events.execution_failed import ExecutionFailed
@@ -16,7 +18,8 @@ logger = logging.getLogger(__name__)
 class ExecutionAggregate:
     """执行聚合根
     
-    封装场景执行的核心业务逻辑，维护执行的一致性边界
+    封装场景执行的核心业务逻辑，维护执行的一致性边界。
+    包含执行日志列表和执行记录，支持完整的执行历史持久化。
     """
     
     def __init__(
@@ -41,9 +44,17 @@ class ExecutionAggregate:
         self._context = context
         self._retry_policy = retry_policy or RetryPolicy.default()
         
-        # 简单的重试计数
+        # 执行状态
         self._retry_count = 0
         self._is_completed = False
+        self._result: Optional[ExecutionResult] = None
+        
+        # 时间戳
+        self._started_at = datetime.utcnow()
+        self._ended_at: Optional[datetime] = None
+        
+        # 执行日志列表
+        self._logs: List[ExecutionLog] = []
         
         # 领域事件列表
         self._domain_events: List[object] = []
@@ -52,7 +63,7 @@ class ExecutionAggregate:
         event = ExecutionStarted(
             execution_id=execution_id,
             scene_id=context.scene_id,
-            occurred_at=datetime.utcnow()
+            occurred_at=self._started_at
         )
         self._add_domain_event(event)
     
@@ -76,10 +87,29 @@ class ExecutionAggregate:
         """获取重试策略"""
         return self._retry_policy
     
+    @property
+    def result(self) -> Optional[ExecutionResult]:
+        """获取执行结果"""
+        return self._result
+    
+    @property
+    def started_at(self) -> datetime:
+        """获取开始时间"""
+        return self._started_at
+    
+    @property
+    def ended_at(self) -> Optional[datetime]:
+        """获取结束时间"""
+        return self._ended_at
+    
+    @property
+    def logs(self) -> List[ExecutionLog]:
+        """获取执行日志列表"""
+        return list(self._logs)
+    
     def start(self) -> None:
         """开始执行"""
         logger.info(f"开始执行场景: {self._context.scene_id} (ExecutionID: {self._execution_id})")
-        pass
     
     def add_log(
         self,
@@ -87,11 +117,112 @@ class ExecutionAggregate:
         action_type: str,
         target: str,
         command: str,
-        parameters: Optional[dict] = None
-    ) -> None:
-        """添加执行日志"""
+        parameters: Optional[Dict[str, Any]] = None
+    ) -> ExecutionLog:
+        """添加执行日志
+        
+        创建一个新的 ExecutionLog 实体并添加到日志列表。
+        
+        Args:
+            step_number: 步骤序号
+            action_type: 动作类型
+            target: 目标设备或场景
+            command: 命令名称
+            parameters: 命令参数
+            
+        Returns:
+            创建的执行日志实体
+        """
+        log = ExecutionLog.create(
+            execution_id=self._execution_id,
+            step_number=step_number,
+            action_type=action_type,
+            target=target,
+            command=command,
+            parameters=parameters
+        )
+        self._logs.append(log)
+        
         log_msg = f"步骤 {step_number}: {action_type} -> {target} | Cmd: {command} | Params: {parameters}"
         logger.info(f"[{self._execution_id}] {log_msg}")
+        
+        return log
+    
+    def update_log(
+        self,
+        log_id: str,
+        success: bool,
+        response: Optional[Dict[str, Any]] = None,
+        duration_ms: int = 0,
+        error_message: Optional[str] = None
+    ) -> None:
+        """更新执行日志的完成状态
+        
+        Args:
+            log_id: 日志ID
+            success: 是否成功
+            response: 执行响应
+            duration_ms: 执行耗时
+            error_message: 错误信息
+        """
+        for i, log in enumerate(self._logs):
+            if log.log_id == log_id:
+                self._logs[i] = log.complete(
+                    success=success,
+                    response=response,
+                    duration_ms=duration_ms,
+                    error_message=error_message
+                )
+                break
+    
+    def get_logs(self) -> List[ExecutionLog]:
+        """获取所有执行日志
+        
+        Returns:
+            执行日志列表的副本
+        """
+        return list(self._logs)
+    
+    def get_record(self) -> ExecutionRecord:
+        """获取执行记录
+        
+        根据当前聚合根状态生成执行记录实体。
+        
+        Returns:
+            执行记录实体
+        """
+        if not self._is_completed:
+            # 执行中
+            return ExecutionRecord(
+                execution_id=self._execution_id,
+                scene_id=self._context.scene_id,
+                status=ExecutionRecordStatus.RUNNING,
+                started_at=self._started_at,
+                total_steps=len(self._logs),
+                completed_steps=sum(1 for log in self._logs if log.success)
+            )
+        
+        # 已完成
+        if self._result and self._result.is_success():
+            status = ExecutionRecordStatus.SUCCESS
+            error_message = None
+            error_code = None
+        else:
+            status = ExecutionRecordStatus.FAILED
+            error_message = self._result.error_message if self._result else "未知错误"
+            error_code = self._result.error_code if self._result else None
+        
+        return ExecutionRecord(
+            execution_id=self._execution_id,
+            scene_id=self._context.scene_id,
+            status=status,
+            started_at=self._started_at,
+            ended_at=self._ended_at,
+            error_message=error_message,
+            error_code=error_code,
+            total_steps=len(self._logs),
+            completed_steps=sum(1 for log in self._logs if log.success)
+        )
     
     def complete(self, result: ExecutionResult) -> None:
         """完成执行"""
@@ -99,6 +230,9 @@ class ExecutionAggregate:
             raise ValueError("执行已经完成")
         
         self._is_completed = True
+        self._result = result
+        self._ended_at = datetime.utcnow()
+        
         logger.info(f"执行完成: {self._execution_id} | 结果: {'成功' if result.is_success() else '失败'}")
         
         # 发布领域事件
@@ -106,14 +240,14 @@ class ExecutionAggregate:
             event = ExecutionSucceeded(
                 execution_id=self._execution_id,
                 scene_id=self._context.scene_id,
-                occurred_at=datetime.utcnow()
+                occurred_at=self._ended_at
             )
         else:
             event = ExecutionFailed(
                 execution_id=self._execution_id,
                 scene_id=self._context.scene_id,
                 error_message=result.error_message,
-                occurred_at=datetime.utcnow()
+                occurred_at=self._ended_at
             )
         self._add_domain_event(event)
     
@@ -164,4 +298,5 @@ class ExecutionAggregate:
     def __hash__(self) -> int:
         """哈希值"""
         return hash(self._execution_id)
+
 

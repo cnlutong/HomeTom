@@ -1,11 +1,14 @@
 """执行 ORM 模型"""
 
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
 from sqlalchemy import String, DateTime, JSON, Integer, Boolean
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
+
+if TYPE_CHECKING:
+    from .execution_log_model import ExecutionLogModel
 
 
 class ExecutionModel(Base):
@@ -30,12 +33,28 @@ class ExecutionModel(Base):
     retry_interval_seconds: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     
     # 执行状态
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="running")
     retry_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     is_completed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     
+    # 执行结果
+    error_message: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    error_code: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    
     # 时间戳
+    started_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.utcnow)
+    ended_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.utcnow)
     
+    # 关系：执行日志列表
+    logs: Mapped[List["ExecutionLogModel"]] = relationship(
+        "ExecutionLogModel",
+        backref="execution",
+        cascade="all, delete-orphan",
+        lazy="selectin"
+    )
+    
     def __repr__(self) -> str:
-        return f"<ExecutionModel(id={self.id}, scene_id={self.scene_id}, completed={self.is_completed})>"
+        return f"<ExecutionModel(id={self.id}, scene_id={self.scene_id}, status={self.status}, completed={self.is_completed})>"
+
 
