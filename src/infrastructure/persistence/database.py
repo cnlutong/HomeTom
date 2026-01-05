@@ -119,6 +119,24 @@ async def close_database() -> None:
         _session_factory = None
 
 
+async def create_all_tables() -> None:
+    """创建所有数据库表
+    
+    MVP 阶段使用此函数快速建表，无需 Alembic 迁移。
+    应在 init_database() 之后调用。
+    
+    Raises:
+        RuntimeError: 如果数据库未初始化
+    """
+    if _engine is None:
+        raise RuntimeError("数据库未初始化，请先调用 init_database()")
+    
+    from .models import Base
+    
+    async with _engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+
 def get_session() -> AsyncSession:
     """获取数据库会话
     
