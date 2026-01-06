@@ -1,0 +1,12 @@
+{
+  "entity_id": "device_tracker.phone_mom",
+  "state": "not_home",
+  "attributes": {
+    "friendly_name": "妈妈的手机",
+    "source_type": "gps",
+    "latitude": 31.22,
+    "longitude": 121.46
+  },
+  "last_changed": "2026-01-05T23:51:18.987561+00:00",
+  "last_updated": "2026-01-05T23:51:18.987563+00:00"
+}

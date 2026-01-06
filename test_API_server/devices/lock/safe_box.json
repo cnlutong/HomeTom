@@ -1,0 +1,10 @@
+{
+  "entity_id": "lock.safe_box",
+  "state": "locked",
+  "attributes": {
+    "friendly_name": "保险箱",
+    "is_locked": true
+  },
+  "last_changed": "2026-01-05T23:51:18.982650+00:00",
+  "last_updated": "2026-01-05T23:51:18.982653+00:00"
+}

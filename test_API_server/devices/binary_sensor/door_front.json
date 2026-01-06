@@ -1,0 +1,11 @@
+{
+  "entity_id": "binary_sensor.door_front",
+  "state": "off",
+  "attributes": {
+    "friendly_name": "前门传感器",
+    "device_class": "door",
+    "is_on": false
+  },
+  "last_changed": "2026-01-05T23:51:18.986924+00:00",
+  "last_updated": "2026-01-05T23:51:18.986927+00:00"
+}

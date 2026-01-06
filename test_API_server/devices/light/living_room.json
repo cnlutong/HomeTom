@@ -1,0 +1,17 @@
+{
+  "entity_id": "light.living_room",
+  "state": "on",
+  "attributes": {
+    "friendly_name": "客厅主灯",
+    "brightness": 200,
+    "color_temp": 300,
+    "rgb_color": [
+      255,
+      255,
+      255
+    ],
+    "supported_features": 63
+  },
+  "last_changed": "2026-01-06T12:08:58.388892+00:00",
+  "last_updated": "2026-01-06T12:08:58.388892+00:00"
+}

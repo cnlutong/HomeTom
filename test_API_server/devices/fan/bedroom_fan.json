@@ -1,0 +1,12 @@
+{
+  "entity_id": "fan.bedroom_fan",
+  "state": "off",
+  "attributes": {
+    "friendly_name": "卧室落地扇",
+    "percentage": 0,
+    "speed_count": 5,
+    "oscillating": false
+  },
+  "last_changed": "2026-01-05T23:51:18.981155+00:00",
+  "last_updated": "2026-01-05T23:51:18.981156+00:00"
+}

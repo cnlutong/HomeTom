@@ -1,0 +1,17 @@
+{
+  "entity_id": "climate.water_heater",
+  "state": "heat",
+  "attributes": {
+    "friendly_name": "热水器温控",
+    "temperature": 45,
+    "current_temperature": 42,
+    "hvac_modes": [
+      "off",
+      "heat"
+    ],
+    "min_temp": 35,
+    "max_temp": 65
+  },
+  "last_changed": "2026-01-05T23:51:18.980962+00:00",
+  "last_updated": "2026-01-05T23:51:18.980964+00:00"
+}

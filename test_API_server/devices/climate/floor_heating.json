@@ -1,0 +1,17 @@
+{
+  "entity_id": "climate.floor_heating",
+  "state": "heat",
+  "attributes": {
+    "friendly_name": "地暖温控器",
+    "temperature": 22,
+    "current_temperature": 20,
+    "hvac_modes": [
+      "off",
+      "heat"
+    ],
+    "min_temp": 16,
+    "max_temp": 28
+  },
+  "last_changed": "2026-01-05T23:51:18.980866+00:00",
+  "last_updated": "2026-01-05T23:51:18.980867+00:00"
+}

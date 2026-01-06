@@ -1,0 +1,11 @@
+{
+  "entity_id": "binary_sensor.smoke",
+  "state": "off",
+  "attributes": {
+    "friendly_name": "烟雾报警器",
+    "device_class": "smoke",
+    "is_on": false
+  },
+  "last_changed": "2026-01-05T23:51:18.987330+00:00",
+  "last_updated": "2026-01-05T23:51:18.987331+00:00"
+}

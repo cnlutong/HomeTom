@@ -1,0 +1,10 @@
+{
+  "entity_id": "light.bathroom",
+  "state": "off",
+  "attributes": {
+    "friendly_name": "浴室灯",
+    "brightness": 0
+  },
+  "last_changed": "2026-01-05T23:51:18.978432+00:00",
+  "last_updated": "2026-01-05T23:51:18.978434+00:00"
+}

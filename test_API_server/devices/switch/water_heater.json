@@ -1,0 +1,11 @@
+{
+  "entity_id": "switch.water_heater",
+  "state": "on",
+  "attributes": {
+    "friendly_name": "热水器",
+    "device_class": "switch",
+    "power_consumption": 2000
+  },
+  "last_changed": "2026-01-05T23:51:18.979023+00:00",
+  "last_updated": "2026-01-05T23:51:18.979025+00:00"
+}

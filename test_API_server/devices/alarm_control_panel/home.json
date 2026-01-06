@@ -1,0 +1,12 @@
+{
+  "entity_id": "alarm_control_panel.home",
+  "state": "disarmed",
+  "attributes": {
+    "friendly_name": "家庭安防系统",
+    "code_arm_required": true,
+    "code_format": "number",
+    "supported_features": 31
+  },
+  "last_changed": "2026-01-05T23:51:18.988313+00:00",
+  "last_updated": "2026-01-05T23:51:18.988314+00:00"
+}

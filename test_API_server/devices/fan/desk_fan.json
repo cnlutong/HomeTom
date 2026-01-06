@@ -1,0 +1,11 @@
+{
+  "entity_id": "fan.desk_fan",
+  "state": "on",
+  "attributes": {
+    "friendly_name": "书房USB小风扇",
+    "percentage": 30,
+    "speed_count": 3
+  },
+  "last_changed": "2026-01-05T23:51:18.981378+00:00",
+  "last_updated": "2026-01-05T23:51:18.981404+00:00"
+}

@@ -1,0 +1,10 @@
+{
+  "entity_id": "light.hallway",
+  "state": "on",
+  "attributes": {
+    "friendly_name": "走廊灯",
+    "brightness": 100
+  },
+  "last_changed": "2026-01-05T23:51:18.978708+00:00",
+  "last_updated": "2026-01-05T23:51:18.978710+00:00"
+}

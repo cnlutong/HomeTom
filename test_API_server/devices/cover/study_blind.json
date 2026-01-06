@@ -1,0 +1,12 @@
+{
+  "entity_id": "cover.study_blind",
+  "state": "open",
+  "attributes": {
+    "friendly_name": "书房百叶窗",
+    "position": 50,
+    "cover_type": "blind",
+    "tilt_position": 30
+  },
+  "last_changed": "2026-01-05T23:51:18.980253+00:00",
+  "last_updated": "2026-01-05T23:51:18.980257+00:00"
+}

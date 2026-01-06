@@ -1,0 +1,12 @@
+{
+  "entity_id": "media_player.bedroom_speaker",
+  "state": "idle",
+  "attributes": {
+    "friendly_name": "卧室音箱",
+    "volume_level": 0.3,
+    "is_volume_muted": false,
+    "media_content_type": "music"
+  },
+  "last_changed": "2026-01-05T23:51:18.988021+00:00",
+  "last_updated": "2026-01-05T23:51:18.988022+00:00"
+}

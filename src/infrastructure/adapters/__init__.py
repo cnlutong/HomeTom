@@ -3,8 +3,22 @@
 提供与外部硬件系统通信的客户端和注册表。
 """
 
-from .hardware_adapter import HttpHardwareClient
+from .hardware_adapter import (
+    HomeAssistantClient,
+    HttpHardwareClient,  # 别名，保持向后兼容
+    HomeAssistantClientError,
+    HomeAssistantAuthError,
+    HomeAssistantNotFoundError,
+)
 from .hardware_client_registry import HardwareClientRegistry
+from .response_types import (
+    HAStateObject,
+    HAServiceDomain,
+    HAEventType,
+    HAConfig,
+    HAHistoryEntry,
+    HALogbookEntry,
+)
 from ...domain.Device.services.hardware_client import IHardwareClient, HardwareResponse
 
 __all__ = [
@@ -13,6 +27,18 @@ __all__ = [
     'HardwareResponse',
     # 注册表
     'HardwareClientRegistry',
-    # 实现
-    'HttpHardwareClient',
+    # Home Assistant 客户端
+    'HomeAssistantClient',
+    'HttpHardwareClient',  # 别名
+    # 异常类
+    'HomeAssistantClientError',
+    'HomeAssistantAuthError',
+    'HomeAssistantNotFoundError',
+    # 响应类型
+    'HAStateObject',
+    'HAServiceDomain',
+    'HAEventType',
+    'HAConfig',
+    'HAHistoryEntry',
+    'HALogbookEntry',
 ]

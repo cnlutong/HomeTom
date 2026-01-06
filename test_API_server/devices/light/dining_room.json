@@ -1,0 +1,16 @@
+{
+  "entity_id": "light.dining_room",
+  "state": "on",
+  "attributes": {
+    "friendly_name": "餐厅吊灯",
+    "brightness": 220,
+    "color_temp": 320,
+    "rgb_color": [
+      255,
+      240,
+      220
+    ]
+  },
+  "last_changed": "2026-01-05T23:51:18.978806+00:00",
+  "last_updated": "2026-01-05T23:51:18.978808+00:00"
+}

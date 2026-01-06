@@ -1,0 +1,12 @@
+{
+  "entity_id": "cover.bedroom_blind",
+  "state": "open",
+  "attributes": {
+    "friendly_name": "卧室百叶窗",
+    "position": 80,
+    "cover_type": "blind",
+    "tilt_position": 45
+  },
+  "last_changed": "2026-01-05T23:51:18.979737+00:00",
+  "last_updated": "2026-01-05T23:51:18.979739+00:00"
+}

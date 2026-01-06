@@ -1,0 +1,10 @@
+{
+  "entity_id": "switch.humidifier",
+  "state": "off",
+  "attributes": {
+    "friendly_name": "加湿器",
+    "device_class": "switch"
+  },
+  "last_changed": "2026-01-05T23:51:18.979212+00:00",
+  "last_updated": "2026-01-05T23:51:18.979213+00:00"
+}

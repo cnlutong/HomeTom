@@ -1,0 +1,10 @@
+{
+  "entity_id": "light.balcony",
+  "state": "off",
+  "attributes": {
+    "friendly_name": "阳台灯",
+    "brightness": 0
+  },
+  "last_changed": "2026-01-05T23:51:18.978624+00:00",
+  "last_updated": "2026-01-05T23:51:18.978625+00:00"
+}

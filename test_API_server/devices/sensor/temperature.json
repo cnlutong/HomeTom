@@ -1,0 +1,11 @@
+{
+  "entity_id": "sensor.temperature",
+  "state": "23.5",
+  "attributes": {
+    "friendly_name": "室内温度",
+    "unit_of_measurement": "°C",
+    "device_class": "temperature"
+  },
+  "last_changed": "2026-01-05T23:51:18.986071+00:00",
+  "last_updated": "2026-01-05T23:51:18.986074+00:00"
+}

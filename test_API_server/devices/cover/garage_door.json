@@ -1,0 +1,11 @@
+{
+  "entity_id": "cover.garage_door",
+  "state": "closed",
+  "attributes": {
+    "friendly_name": "车库门",
+    "position": 0,
+    "cover_type": "garage_door"
+  },
+  "last_changed": "2026-01-05T23:51:18.979655+00:00",
+  "last_updated": "2026-01-05T23:51:18.979657+00:00"
+}

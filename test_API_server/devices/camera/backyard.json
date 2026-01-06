@@ -1,0 +1,12 @@
+{
+  "entity_id": "camera.backyard",
+  "state": "recording",
+  "attributes": {
+    "friendly_name": "后院摄像头",
+    "is_streaming": false,
+    "is_recording": true,
+    "motion_detection": true
+  },
+  "last_changed": "2026-01-05T23:51:18.988219+00:00",
+  "last_updated": "2026-01-05T23:51:18.988220+00:00"
+}
