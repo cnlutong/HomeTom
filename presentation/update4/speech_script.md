@@ -1,152 +1,248 @@
-
-# Presentation Speech Script
-
-## Slide 1: Overview of Work in the Past Two Weeks
-
-**English:**
-Hello everyone. I am representing Team 2 to report on our progress for Update 4.
-Over the past two weeks, we have worked on two main layers: the Application Layer and the Infrastructure Layer.
-In the Application Layer, we implemented three major services. First, the **DeviceService**, which handles device registration, enabling and disabling devices, and state synchronization. Second, the **SceneService**, responsible for scene creation, editing, publishing, and disabling. And third, the **OrchestrationService**, which manages scene execution coordination and workflow management.
-In the Infrastructure Layer, we focused on four areas. We built the **Data Persistence** module using SQLAlchemy ORM and Repositories. We implemented an **Event Bus** using asyncio for in-memory pub/sub. We developed **Hardware Communication** support with an HTTP Client and Client Registry. Finally, we established a unified **Logging Module**.
-
-**Chinese:**
-大家好。我代表第二小组进行 Update 4 的进度汇报。
-在过去的两周里，我们主要在两个层面上开展工作：应用层和基础设施层。
-在应用层，我们实现了三个主要服务。首先是**设备服务**，它处理设备注册、启用和禁用设备以及状态同步。其次是**场景服务**，负责场景的创建、编辑、发布和禁用。第三是**编排服务**，负责场景执行协调和工作流管理。
-在基础设施层，我们就四个方面进行了工作。我们使用 SQLAlchemy ORM 和仓储模式构建了**数据持久化**模块。我们使用 asyncio 实现了一个内存发布/订阅的**事件总线**。我们开发了支持 HTTP 客户端和客户端注册表的**硬件通信**模块。最后，我们建立了一个统一的**日志模块**。
+# Smart Home Demo Lab - Speech Script
+# 智能家居演示实验室 - 演讲稿
 
 ---
 
-## Slide 2: Demo Video
+## Slide 2: Recap - Recent Progress
 
-**English:**
-Before we discuss the details, let's watch a demo video.
-(Play Video)
-The video demonstrates that our system can successfully execute scenes and control devices as expected.
+### English Version
 
-**Chinese:**
-在讨论细节之前，让我们看一段演示视频。
-(播放视频)
-视频演示表明，我们的系统可以按预期成功执行场景并控制设备。
-
----
-
-## Slide 3: Application Layer - Device Service
-
-**English:**
-Let's start with the Application Layer and the **Device Service**.
-This service provides unified management of the smart device lifecycle, including registration, state synchronization, and control capabilities. Its core design concept is to act as a mediator that encapsulates device management flows, coordinates domain objects, and publishes events.
-Looking at the dependencies diagram on the left, the `DeviceService` interacts with the `IDeviceRepository` for data access, implements the `IDeviceService` interface, and publishes events to the `IEventBus`.
-On the right, we have the functional list. The `register_device` method registers a new device, generates a UUID, and publishes an event. The `enable` and `disable` methods toggle the device state and publish status changes. `sync_device_state` delegates to the domain service to sync state. We also have `get_device` to retrieve details, `list_devices` to query lists with filters, and `delete_device` to remove a device.
-
-**Chinese:**
-让我们从应用层和**设备服务**开始。
-该服务提供智能设备生命周期的统一管理，包括注册、状态同步和控制功能。其核心设计理念是作为一个中介者，封装设备管理流程，协调领域对象并发布事件。
-看左边的依赖关系图，`DeviceService` 与 `IDeviceRepository` 交互以进行数据访问，实现了 `IDeviceService` 接口，并将事件发布到 `IEventBus`。
-右边是功能列表。`register_device` 方法注册新设备，生成 UUID 并发布事件。`enable`（启用）和 `disable`（禁用）方法切换设备状态并发布状态变更。`sync_device_state` 委托领域服务同步状态。我们还有 `get_device` 用于获取详细信息，`list_devices` 用于带过滤器查询列表，以及 `delete_device` 用于删除设备。
+> Before we dive into the technical details, let me give you a **quick recap** of what we've accomplished since the last update.
+>
+> On the **Frontend** side:
+> - We designed and implemented the **Homepage** of our application.
+> - We also refactored the **Scene Editor** page with a new n8n-style DAG design.
+>
+> On the **Backend** side:
+> - We developed the **Backend API** following the specification document we defined earlier.
+> - We also built a **Mock Hardware API Server** to support testing without real hardware.
+>
+> For **Infrastructure** improvements:
+> - We optimized the **Database** module for better performance.
+> - We improved the **Logging** system for easier debugging.
+>
+> Finally, we fixed various **bugs** to improve overall system quality.
 
 ---
 
-## Slide 4: Application Layer - Scene Service
+### 中文版本
 
-**English:**
-Next is the **Scene Service**.
-It manages the full lifecycle of scenes and validates scene definitions.
-On the left, you can see the Scene State Machine. A scene begins in the **Draft** state after creation. From there, it can be **Published**. A published scene can be **Disabled**. If needed, a disabled scene can be **Republished** back to the Published state.
-On the right is the functional list matching this lifecycle. `create_scene` creates a draft. `update_scene` updates the info or definition with validation. `publish_scene` publishes the scene and triggers an event. `disable_scene` disables it, also triggering an event. Additionally, we have `get_scene` to get details or definitions, `list_scenes` to query the list, and `delete_scene` to delete a scene.
-
-**Chinese:**
-接下来是**场景服务**。
-它管理场景的完整生命周期并验证场景定义。
-在左侧，您可以看到场景状态机。场景在创建后处于**草稿**状态。从那里，它可以被**发布**。已发布的场景可以被**禁用**。如果需要，禁用的场景可以**重新发布**回已发布状态。
-右侧是与此生命周期相对应的功能列表。`create_scene` 创建草稿。`update_scene` 在验证的情况下更新信息或定义。`publish_scene` 发布场景并触发事件。`disable_scene` 禁用它，同样也会触发事件。此外，我们有 `get_scene` 来获取详细信息或定义，`list_scenes` 来查询列表，以及 `delete_scene` 来删除场景。
-
----
-
-## Slide 5: Application Layer - Orchestration Service
-
-**English:**
-The **Orchestration Service** acts as the coordinator of three contexts, triggers execution, and drives the workflow.
-The Execution Flow diagram details the process.
-In **Phase 1: Create Scene Executor**, the `OrchestrationService` calls `find_by_id` on the `SceneRepository`, then calls `save` on the `ExecutionRepository` to create a record, and finally calls `publish_all` on the `EventBus`.
-In **Phase 2: Execute Scene**, it retrieves the execution record using `find_by_id` from the `ExecutionRepository` and the scene from the `SceneRepository`. Then, it calls `execute` on the `WorkflowEngine` and reports the result via `publish_all` on the `EventBus`.
-The functional list includes `trigger_execution` to create the record, `execute_scene` to invoke the engine, and `trigger_and_execute` to do both immediately. It also provides methods to `get_execution` records, get structured `execution_details`, `list_executions`, and `list_executions_for_scene`.
-
-**Chinese:**
-**编排服务**充当三个上下文的协调者，触发执行并驱动工作流。
-执行流程图详细说明了这个过程。
-在**第一阶段：创建场景执行器**中，`OrchestrationService` 调用 `SceneRepository` 的 `find_by_id`，然后调用 `ExecutionRepository` 的 `save` 创建记录，最后调用 `EventBus` 的 `publish_all`。
-在**第二阶段：执行场景**中，它使用 `find_by_id` 从 `ExecutionRepository` 获取执行记录，并从 `SceneRepository` 获取场景。然后，它调用 `WorkflowEngine` 的 `execute`，并通过 `EventBus` 的 `publish_all` 报告结果。
-功能列表包括 `trigger_execution` 创建记录，`execute_scene` 调用引擎，以及 `trigger_and_execute` 立即执行两者。它还提供了 `get_execution` 获取记录，获取结构化 `execution_details`，`list_executions` 以及 `list_executions_for_scene` 的方法。
+> 在深入技术细节之前，让我先**快速回顾**一下我们自上次更新以来完成的工作。
+>
+> 在**前端**方面：
+> - 我们设计并实现了应用程序的**主页**。
+> - 我们还使用新的 n8n 风格 DAG 设计重构了**场景编辑器**页面。
+>
+> 在**后端**方面：
+> - 我们按照之前定义的规范文档开发了**后端 API**。
+> - 我们还构建了一个**模拟硬件 API 服务器**来支持无需真实硬件的测试。
+>
+> 在**基础设施**改进方面：
+> - 我们优化了**数据库**模块以提高性能。
+> - 我们改进了**日志**系统以便于调试。
+>
+> 最后，我们修复了多个 **Bug** 以提高整体系统质量。
 
 ---
 
-## Slide 6: Infrastructure Layer - Data Persistence
+## Slide 3: Backend System - Architecture & Functionality
 
-**English:**
-Moving to the Infrastructure Layer, we implemented **Data Persistence** based on SQLAlchemy, supporting both SQLite and PostgreSQL.
-As shown in the diagram, our architecture defines three distinct layers.
-The top **Domain** layer contains the `DeviceAggregate`, `SceneAggregate`, and `ExecutionAggregate`.
-The middle **Mapper** layer contains the corresponding `DeviceMapper`, `SceneMapper`, and `ExecutionMapper`, which handle bidirectional conversion.
-The bottom **ORM** layer contains the `DeviceModel`, `SceneModel`, and `ExecutionModel`, which interact with the Database.
-The key features are strict **Isolation** between layers, explicit **Mapping** between Domain and ORM objects, and the use of the **Repository** pattern to encapsulate data access.
+### English Version
 
-**Chinese:**
-转到基础设施层，我们基于 SQLAlchemy 实现了**数据持久化**，支持 SQLite 和 PostgreSQL。
-如图所示，我们的架构定义了三个明显的层级。
-顶部的**领域**层包含 `DeviceAggregate`（设备聚合）、`SceneAggregate`（场景聚合）和 `ExecutionAggregate`（执行聚合）。
-中间的**映射**层包含相应的 `DeviceMapper`、`SceneMapper` 和 `ExecutionMapper`，负责双向转换。
-底部的 **ORM** 层包含 `DeviceModel`、`SceneModel` 和 `ExecutionModel`，它们与数据库进行交互。
-主要特性包括层与层之间的严格**隔离**，领域对象和 ORM 对象之间的显式**映射**，以及使用**仓储**模式封装数据访问。
+> Now let's talk about the **Backend System Architecture and Functionality**.
+>
+> On the left side, we focus on the **Core Functionality** our API provides:
+> - First, **Device Lifecycle Management**. This is about a unified CRUD interface for all device types — Equipment, Sensors, and Scene Parameters. Whether you're adding a new smart light or updating a sensor, the operations are consistent and well-defined.
+> - Second, the **Automation Engine**. It follows a classic Trigger-Condition-Action model described in our API specification. Users can create rules that respond to device state changes, and dynamically enable or disable these automations as needed.
+>
+> On the right, we highlight the **Architecture Design**:
+> - We adhere to **Strict RESTful Standards**. All URLs are resource-oriented, like `/api/devices/equipment`, and we use standard HTTP verbs — GET, POST, PUT, DELETE.
+> - Every API response follows a **Standardized Envelope** format: a `code` for status, a `message` for human-readable feedback, and `data` for the actual payload.
+> - For **Security**, we implement stateless Bearer Token Authentication, exactly as specified in the documentation.
 
 ---
 
-## Slide 7: Infrastructure Layer - Event Bus
+### 中文版本
 
-**English:**
-The **Event Bus** decouples context communication and is based on Python's `asyncio.PriorityQueue`.
-Its main functionalities include three priority levels: **HIGH**, **NORMAL**, and **LOW**. It has a manageable lifecycle with `start()` and `stop()` methods. It supports both synchronous and asynchronous handlers and is designed with an interface ready for future Message Queue extensions.
-The Core Interface Definition shows methods to `publish` a single event with priority, `publish_all` for a batch of events, `subscribe` a handler to an event type, and `unsubscribe` a handler.
-
-**Chinese:**
-**事件总线**解耦了上下文通信，基于 Python 的 `asyncio.PriorityQueue`。
-其主要功能包括三个优先级：**高**、**普通**和**低**。它具有可管理的生命周期，包括 `start()` 和 `stop()` 方法。它支持同步和异步处理程序，并通过接口设计为支持未来的消息队列扩展。
-核心接口定义显示了发布带优先级的单个事件的 `publish` 方法，批量发布事件的 `publish_all` 方法，订阅事件类型的 `subscribe` 方法，以及取消订阅的 `unsubscribe` 方法。
-
----
-
-## Slide 8: Infrastructure Layer - Hardware Communication
-
-**English:**
-The **Hardware Communication** layer abstracts platform differences and provides a unified control interface.
-The diagram illustrates the layered design architecture. The **DeviceAggregate** (located in the Domain layer) uses the **HardwareClientRegistry** to find the appropriate client. The Registry delegates to the specific `HttpHardwareClient`, which can communicate with external platforms like Tuya Cloud or Mi Home.
-The table details the `HttpHardwareClient`. It handles the specific **Platform** API, manages **Auth** tokens, and provides standard methods like `call` and `get`.
-
-**Chinese:**
-**硬件通信**层抽象了平台差异，并提供了统一的控制接口。
-图表展示了分层设计架构。**DeviceAggregate**（位于领域层）使用 **HardwareClientRegistry** 来查找合适的客户端。注册表委托给特定的 `HttpHardwareClient`，后者可以与 Tuya Cloud 或 Mi Home 等外部平台进行通信。
-表格详细介绍了 `HttpHardwareClient`。它处理特定的**平台** API，管理**认证**令牌，并提供诸如 `call` 和 `get` 等标准方法。
+> 现在让我们来讲一下**后端系统的架构和功能**。
+>
+> 在左边，我们关注的是 API 提供的**核心功能**：
+> - 首先是**设备生命周期管理**。这是一个统一的 CRUD 接口，用于处理所有设备类型——设备、传感器和场景参数。无论是添加新的智能灯还是更新传感器，操作都是一致且明确定义的。
+> - 其次是**自动化引擎**。它遵循 API 规范中描述的经典触发器-条件-动作模型。用户可以创建对设备状态变化做出响应的规则，并根据需要动态启用或禁用这些自动化。
+>
+> 在右边，我们展示的是**架构设计**：
+> - 我们遵守**严格的 RESTful 标准**。所有 URL 都是面向资源的，比如 `/api/devices/equipment`，我们使用标准的 HTTP 动词——GET、POST、PUT、DELETE。
+> - 每个 API 响应都遵循**标准化信封**格式：`code` 表示状态，`message` 提供人类可读的反馈，`data` 包含实际数据载荷。
+> - 在**安全性**方面，我们实现了无状态的 Bearer Token 认证，完全按照文档规范。
 
 ---
 
-## Slide 9: Next Steps
+## Slide 3: Backend System - FastAPI Implementation
 
-**English:**
-Finally, lets look at the next steps.
-We have identified four pending tasks.
-Task 1 is the **Controllers Layer**, involving REST API implementation, DTOs, and FastAPI configuration.
-Task 2 is the **Frontend**, focusing on UI Development.
-Task 3 is **E2E Testing**, which covers full business flow verification.
-Task 4 is **Documentation**, including API docs, architecture, and guides.
-Looking further ahead, we plan to add future capabilities such as sub-scene calls (nested scenes), scene version control, and containerization support.
-This report was presented by Team 2 members: Yixue Wang, Linghao Dong, Yang Xiao, Chenxu Liu, and Tong Lu. Thank you for listening.
+### English Version
 
-**Chinese:**
-最后，我们来看看接下来的步骤。
-我们确定了四个待办任务。
-任务 1 是**控制层**，涉及 REST API 实现、DTO 和 FastAPI 配置。
-任务 2 是**前端**，专注于 UI 开发。
-任务 3 是**端到端测试**，涵盖完整的业务流程验证。
-任务 4 是**文档**，包括 API 文档、架构和指南。
-展望未来，我们计划增加未来的功能，如子场景调用（嵌套场景）、场景版本控制和容器化支持。
-本报告由第二小组成员：王一学、董凌豪、肖扬、刘晨旭和鲁通汇报。谢谢大家的聆听。
+> Moving to the next slide, let's look at **how we implement** this backend using FastAPI.
+>
+> On the left, we cover the **Technology Stack and Patterns**:
+> - We chose **FastAPI** as our framework because of its native async I/O support — critical for handling multiple concurrent device requests efficiently. It also provides auto-generated OpenAPI documentation, which is very helpful for our frontend integration.
+> - We use **Modular Routing** with FastAPI's `APIRouter`. This lets us separate endpoints by domain — `/devices` in one router, `/automations` in another. This makes the codebase clean and maintainable.
+> - For data validation, we rely on **Pydantic Models** to ensure all incoming request payloads strictly match the expected schema.
+>
+> On the right, we describe our **Implementation Logic**:
+> - We leverage **Dependency Injection** heavily. Auth checks and service layer access are all injected, making the code easier to test and mock.
+> - **Type Safety** is enforced throughout. Pydantic ensures that if a payload doesn't match the expected format, an automatic validation error is returned to the client.
+>
+> This implementation strategy allows us to build a robust, maintainable API that aligns precisely with our specification document.
+
+---
+
+### 中文版本
+
+> 接下来，让我们看看**如何使用 FastAPI 实现**这个后端。
+>
+> 在左边，我们介绍**技术栈和设计模式**：
+> - 我们选择 **FastAPI** 作为框架，因为它原生支持异步 I/O——这对于高效处理多个并发设备请求至关重要。它还提供自动生成的 OpenAPI 文档，这对前端集成非常有帮助。
+> - 我们使用 FastAPI 的 `APIRouter` 实现**模块化路由**。这让我们可以按领域分离端点——`/devices` 放在一个路由器中，`/automations` 放在另一个中。这使代码库保持清晰和可维护。
+> - 对于数据验证，我们依赖 **Pydantic Models** 确保所有传入的请求载荷严格匹配预期的模式。
+>
+> 在右边，我们描述**实现逻辑**：
+> - 我们大量使用**依赖注入**。认证检查和服务层访问都是注入的，使代码更易于测试和模拟。
+> - 全程强制执行**类型安全**。Pydantic 确保如果载荷不匹配预期格式，会自动向客户端返回验证错误。
+>
+> 这种实现策略使我们能够构建一个健壮、可维护的 API，并且与我们的规范文档精确对齐。
+
+---
+
+## Mock Hardware API Server - Introduction / Background
+
+
+
+## Slide 1: Overview & Architecture
+
+### English Version
+
+> Now I'd like to introduce the **Mock Hardware API Server** module that we developed.
+>
+> This module simulates the Home Assistant REST API to provide hardware interfaces for our development and testing workflow. Instead of relying on actual hardware devices during development, we can use this mock server to test our smart home control logic.
+>
+> Let me highlight the **key features**:
+> - First, it provides a **fully HA-compatible API**, meaning our backend can connect to it exactly as it would connect to a real Home Assistant instance.
+> - It supports **14 different device types**, including lights, switches, covers, climate controls, locks, and more.
+> - All device states are stored using **JSON persistence**, so the data survives server restarts.
+> - We built it with **FastAPI**, which gives us automatic Swagger documentation.
+> - And of course, it includes **token authentication** to simulate the real security model.
+>
+> Looking at the **architecture** on the right: we have three layers.
+> - The **API layer** handles incoming requests through FastAPI endpoints with token authentication.
+> - The **Storage layer** uses a JsonDeviceStore class with memory cache for fast access.
+> - Finally, device data is persisted to **JSON files** organized by device domain.
+
+---
+
+### 中文版本
+
+> 现在我来介绍一下我们开发的**模拟硬件 API 服务器**模块。
+>
+> 这个模块模拟了 Home Assistant 的 REST API，为我们的开发和测试流程提供硬件接口。在开发过程中，我们不需要依赖真实的硬件设备，可以使用这个模拟服务器来测试智能家居控制逻辑。
+>
+> 让我介绍一下**主要特性**：
+> - 首先，它提供**完全兼容 HA 的 API**，这意味着我们的后端可以像连接真实 Home Assistant 实例一样连接它。
+> - 它支持 **14 种不同的设备类型**，包括灯、开关、窗帘、空调、门锁等。
+> - 所有设备状态都使用 **JSON 持久化**存储，因此数据在服务器重启后仍然保留。
+> - 我们使用 **FastAPI** 构建，它自动提供 Swagger 文档。
+> - 当然，它也包含**令牌认证**来模拟真实的安全模型。
+>
+> 看右边的**架构图**：我们有三层。
+> - **API 层**通过 FastAPI 端点和令牌认证处理传入请求。
+> - **存储层**使用 JsonDeviceStore 类，配合内存缓存实现快速访问。
+> - 最后，设备数据按设备域组织，持久化到 **JSON 文件**中。
+
+---
+
+## Slide 2: API Endpoints
+
+### English Version
+
+> Moving to the second slide, let's look at the **API endpoints** we implemented.
+>
+> On the left, you can see the **core endpoints**. These follow the Home Assistant REST API specification:
+> - GET `/api/states` returns all device states
+> - We can get, set, or delete individual devices by their entity ID
+> - The `/api/services` endpoint allows us to call device services like `turn_on` or `set_temperature`
+> - And we can fire events through the events endpoint
+>
+> We also added some **helper endpoints** for testing purposes:
+> - `/test/reload` to reload all device JSON files
+> - `/test/service-calls` to view the history of service calls
+> - And filtering devices by domain
+>
+> On the right side, you can see the **10 device domains** we support, along with their available services. For example, lights support turn on, turn off, and toggle; climate devices support setting temperature and HVAC mode; and so on.
+>
+> This mock server has been essential for our development workflow, allowing us to test the complete device control pipeline without physical hardware.
+
+---
+
+### 中文版本
+
+> 接下来看第二页，让我们了解一下我们实现的 **API 端点**。
+>
+> 在左边，你可以看到**核心端点**。这些遵循 Home Assistant REST API 规范：
+> - GET `/api/states` 返回所有设备状态
+> - 我们可以通过实体 ID 获取、设置或删除单个设备
+> - `/api/services` 端点允许我们调用设备服务，比如 `turn_on` 或 `set_temperature`
+> - 我们还可以通过 events 端点触发事件
+>
+> 我们还添加了一些用于测试的**辅助端点**：
+> - `/test/reload` 用于重新加载所有设备 JSON 文件
+> - `/test/service-calls` 用于查看服务调用历史
+> - 以及按域筛选设备
+>
+> 在右侧，你可以看到我们支持的 **10 种设备域**及其可用服务。例如，灯支持开、关和切换；空调设备支持设置温度和 HVAC 模式；等等。
+>
+> 这个模拟服务器对我们的开发流程至关重要，让我们能够在没有物理硬件的情况下测试完整的设备控制流程。
+
+---
+
+**Estimated speaking time for Mock Hardware slides: 2-3 minutes**
+**模拟硬件幻灯片预计演讲时间：2-3 分钟**
+
+---
+
+## Slide 6: Development Roadmap
+
+### English Version
+
+> Finally, let me share our **Development Roadmap** for the coming weeks.
+>
+> **This week**, we are focusing on adapting our backend to the new frontend design. Our Scene Editor now uses an **n8n-style DAG (Directed Acyclic Graph)** approach. This means we need to:
+> - Optimize our automation JSON format to support this new graph-based structure.
+> - Update the backend execution logic so the automation engine can correctly interpret and run DAG-based workflows.
+>
+> **Next week**, our priority shifts to **End-to-End Testing**. We will run full integration tests across all layers — from the frontend scene editor, through the backend APIs, down to the mock hardware server — to validate complete user workflows.
+>
+> Our **Goal** is clear: by the next Update presentation, we aim to deliver a **working, demonstrable version** of the complete system. Key deliverables include:
+> - A functional scene creation interface using the DAG editor.
+> - Backend automation execution verified.
+> - Mock hardware integration tested end-to-end.
+
+---
+
+### 中文版本
+
+> 最后，让我分享一下我们接下来几周的**开发计划**。
+>
+> **本周**，我们专注于让后端适配前端的新设计。我们的场景编辑器现在采用了类似 **n8n 的 DAG（有向无环图）** 设计。这意味着我们需要：
+> - 优化自动化 JSON 格式以支持这种新的图结构。
+> - 更新后端执行逻辑，使自动化引擎能够正确解析和运行基于 DAG 的工作流。
+>
+> **下周**，我们的重点转向**端到端测试**。我们将在所有层级运行完整的集成测试——从前端场景编辑器，到后端 API，再到模拟硬件服务器——以验证完整的用户工作流程。
+>
+> 我们的**目标**很明确：在下次 Update 演示时，我们的目标是交付一个**可运行、可演示的完整系统版本**。关键交付物包括：
+> - 使用 DAG 编辑器的功能性场景创建界面。
+> - 后端自动化执行已验证。
+> - 模拟硬件集成已端到端测试。
+
+---
+
+**Total estimated speaking time: 4-5 minutes**
+**总预计演讲时间：4-5 分钟**
