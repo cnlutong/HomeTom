@@ -220,10 +220,7 @@
 >
 > **Next week**, our priority shifts to **End-to-End Testing**. We will run full integration tests across all layers — from the frontend scene editor, through the backend APIs, down to the mock hardware server — to validate complete user workflows.
 >
-> Our **Goal** is clear: by the next Update presentation, we aim to deliver a **working, demonstrable version** of the complete system. Key deliverables include:
-> - A functional scene creation interface using the DAG editor.
-> - Backend automation execution verified.
-> - Mock hardware integration tested end-to-end.
+> Our **Goal** is clear: by the next Update presentation, we aim to deliver a **working, demonstrable version** of the complete system.
 
 ---
 
@@ -237,10 +234,7 @@
 >
 > **下周**，我们的重点转向**端到端测试**。我们将在所有层级运行完整的集成测试——从前端场景编辑器，到后端 API，再到模拟硬件服务器——以验证完整的用户工作流程。
 >
-> 我们的**目标**很明确：在下次 Update 演示时，我们的目标是交付一个**可运行、可演示的完整系统版本**。关键交付物包括：
-> - 使用 DAG 编辑器的功能性场景创建界面。
-> - 后端自动化执行已验证。
-> - 模拟硬件集成已端到端测试。
+> 我们的**目标**很明确：在下次 Update 演示时，我们的目标是交付一个**可运行、可演示的完整系统版本**。
 
 ---
 
