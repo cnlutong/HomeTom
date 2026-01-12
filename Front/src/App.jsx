@@ -1,5 +1,16 @@
 import React, { useCallback, useMemo, useState, useEffect, useRef } from "react";
 import ScenesList from "./ScenesList.jsx";
+import {
+  ArrowLeft,
+  Layers,
+  Clock,
+  Server,
+  Activity,
+  CloudSun,
+  Play,
+  FileJson,
+  RotateCcw
+} from 'lucide-react';
 
 const USER_SOURCE = {
   id: "user-source",
@@ -33,33 +44,105 @@ const initialSidebarSections = [
       { icon: "💡", label: "Ceiling", type: "equipment" },
       { icon: "📺", label: "TV", type: "equipment" },
       { icon: "🪟", label: "Curtain", type: "equipment" },
-      { icon: "❄️", label: "Conditioner", type: "equipment" },  
+      { icon: "❄️", label: "Conditioner", type: "equipment" },
     ],
   },
 ];
 
 const defaultActions = [];
 
-function Header({ onReset, onPreviewJson, onImportJson, onBackToScenes }) {
+function Header({ onReset, onPreviewJson, onImportJson, onBackToScenes, sceneName }) {
+  const [localTime, setLocalTime] = useState(new Date());
+  const [uptime, setUptime] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setLocalTime(new Date());
+      setUptime(prev => prev + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatUptime = (seconds) => {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    return `${h}h ${m}m`;
+  };
+
+  const serverTimeStr = localTime.toISOString().split('T')[1].split('.')[0];
+  const localTimeStr = localTime.toLocaleTimeString('zh-CN', { hour12: false });
+
   return (
-    <header className="header">
+    <header className="header-refactored">
       <div className="header-left">
         {onBackToScenes && (
-          <button className="pill-button pill-button-back" onClick={onBackToScenes}>
-            ← Back to Scenes
+          <button className="header-back-btn" onClick={onBackToScenes}>
+            <ArrowLeft size={20} />
           </button>
         )}
-        <div className="header-title">Smart Home Demo Lab</div>
+        <div className="header-brand">
+          {!onBackToScenes ? (
+            <>
+              <div className="header-logo">
+                <Layers size={18} />
+              </div>
+              <span className="header-title-text">Home <span className="header-title-accent">Tom</span></span>
+            </>
+          ) : (
+            <div className="header-scene-info">
+              <span className="header-scene-name">
+                {sceneName || 'Workflow Editor'}
+                <span className="header-scene-badge">Active</span>
+              </span>
+              <span className="header-scene-id">Workflow ID: {Math.floor(Math.random() * 10000)}</span>
+            </div>
+          )}
+        </div>
       </div>
+
+      <div className="header-widgets">
+        <div className="header-widget">
+          <Clock size={14} className="widget-icon widget-icon-blue" />
+          <div className="widget-content">
+            <span className="widget-label">LOCAL</span>
+            <span className="widget-value">{localTimeStr}</span>
+          </div>
+        </div>
+        <div className="header-widget header-widget-lg">
+          <Server size={14} className="widget-icon widget-icon-indigo" />
+          <div className="widget-content">
+            <span className="widget-label">SERVER</span>
+            <span className="widget-value">{serverTimeStr}</span>
+          </div>
+        </div>
+        <div className="header-widget header-widget-xl">
+          <Activity size={14} className="widget-icon widget-icon-emerald" />
+          <div className="widget-content">
+            <span className="widget-label">UPTIME</span>
+            <span className="widget-value">{formatUptime(uptime)}</span>
+          </div>
+        </div>
+        <div className="header-widget">
+          <CloudSun size={16} className="widget-icon widget-icon-orange" />
+          <div className="widget-content">
+            <span className="widget-value">26°C</span>
+            <span className="widget-label-inline">多云</span>
+          </div>
+        </div>
+      </div>
+
       <div className="header-buttons">
-        <button className="pill-button pill-button-primary" onClick={onPreviewJson}>
-          Running automated scenarios
+        <button className="header-btn header-btn-primary" onClick={onPreviewJson}>
+          <Play size={16} />
+          <span>Execute</span>
         </button>
-        <button className="pill-button pill-button-purple" onClick={onImportJson}>
-          Import automated Json
+        <button className="header-btn header-btn-purple" onClick={onImportJson}>
+          <FileJson size={16} />
+          <span>Import</span>
         </button>
-        <button className="pill-button pill-button-danger" onClick={onReset}>
-          Reset canvas
+        <button className="header-btn header-btn-danger" onClick={onReset}>
+          <RotateCcw size={16} />
+          <span>Reset</span>
         </button>
       </div>
     </header>
@@ -68,7 +151,7 @@ function Header({ onReset, onPreviewJson, onImportJson, onBackToScenes }) {
 
 function SidebarSection({ title, items, onItemDragStart, onItemDoubleClick, onAddItem }) {
   const [query, setQuery] = useState("");
-  
+
   const filteredItems = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     if (!normalizedQuery) return items;
@@ -101,8 +184,8 @@ function SidebarSection({ title, items, onItemDragStart, onItemDoubleClick, onAd
     <section className="sidebar-section">
       <h2 className={getTitleClassName()}>{title}</h2>
       <div className="search-bar-container">
-      <div className="search-bar">
-        <span className="search-icon">🔍</span>
+        <div className="search-bar">
+          <span className="search-icon">🔍</span>
           <input
             placeholder="Search"
             value={query}
@@ -129,9 +212,9 @@ function SidebarSection({ title, items, onItemDragStart, onItemDoubleClick, onAd
               onDragStart={(e) => onItemDragStart?.(e, item)}
               onDoubleClick={() => onItemDoubleClick?.(item, title)}
             >
-            <div className="sidebar-item-icon">{item.icon}</div>
-            <div className="sidebar-item-label">{item.label}</div>
-          </div>
+              <div className="sidebar-item-icon">{item.icon}</div>
+              <div className="sidebar-item-label">{item.label}</div>
+            </div>
           ))
         ) : (
           <div className="sidebar-empty">No results</div>
@@ -145,7 +228,7 @@ function Sidebar({ onItemDragStart, onItemDoubleClick, sidebarSections, onAddIte
   return (
     <aside className="sidebar">
       {sidebarSections.map((section) => (
-      <SidebarSection
+        <SidebarSection
           key={section.title}
           title={section.title}
           items={section.items}
@@ -297,7 +380,7 @@ function AddItemModal({ sectionTitle, onClose, onSave }) {
 
 function ToggleRow({ label, icon, actionId, action, onUpdate, onRemove }) {
   const isEnabled = action?.isEnabled !== false;
-  
+
   const handleToggleClick = (e) => {
     e.stopPropagation();
     if (onUpdate && actionId) {
@@ -319,15 +402,15 @@ function ToggleRow({ label, icon, actionId, action, onUpdate, onRemove }) {
         {label}
       </span>
       <div className="toggle-row-actions">
-        <div 
-          className={`toggle-switch ${isEnabled ? 'toggle-switch-on' : ''}`} 
-          onClick={handleToggleClick} 
+        <div
+          className={`toggle-switch ${isEnabled ? 'toggle-switch-on' : ''}`}
+          onClick={handleToggleClick}
           style={{ cursor: 'pointer' }}
         >
           <div className="toggle-knob" />
         </div>
-        <button 
-          className="action-remove-button" 
+        <button
+          className="action-remove-button"
           onClick={handleRemove}
           title="Remove from canvas"
         >
@@ -376,8 +459,8 @@ function SliderRow({ label, compact, icon, actionId, action, onUpdate, onRemove 
             style={{ '--value': `${percentage}%` }}
           />
         </div>
-        <button 
-          className="action-remove-button" 
+        <button
+          className="action-remove-button"
           onClick={handleRemove}
           title="Remove from canvas"
         >
@@ -406,8 +489,8 @@ function SceneRow({ action, onUpdate, onRemove }) {
             {action.icon && <span className="toggle-icon">{action.icon}</span>}
             {action.label}:
           </span>
-          <button 
-            className="scene-remove-button" 
+          <button
+            className="scene-remove-button"
             onClick={handleRemove}
             title="Remove from canvas"
           >
@@ -442,8 +525,8 @@ function SceneRow({ action, onUpdate, onRemove }) {
             {action.icon && <span className="toggle-icon">{action.icon}</span>}
             {action.label}:
           </span>
-          <button 
-            className="scene-remove-button" 
+          <button
+            className="scene-remove-button"
             onClick={handleRemove}
             title="Remove from canvas"
           >
@@ -477,8 +560,8 @@ function SceneRow({ action, onUpdate, onRemove }) {
             {action.icon && <span className="toggle-icon">{action.icon}</span>}
             {action.label}:
           </span>
-          <button 
-            className="scene-remove-button" 
+          <button
+            className="scene-remove-button"
             onClick={handleRemove}
             title="Remove from canvas"
           >
@@ -518,14 +601,14 @@ function ConnectionLines({ connections, nodeRefs, connectingFrom, onConnectionDe
     const handleMouseMove = (e) => {
       const container = document.querySelector('.canvas-node-sequence');
       if (!container) return;
-      
+
       const containerRect = container.getBoundingClientRect();
       const scrollLeft = container.scrollLeft || 0;
       const scrollTop = container.scrollTop || 0;
-      
+
       const mouseX = e.clientX - containerRect.left + scrollLeft;
       const mouseY = e.clientY - containerRect.top + scrollTop;
-      
+
       setDraggingEndpoint(prev => ({
         ...prev,
         mousePos: { x: mouseX, y: mouseY }
@@ -534,38 +617,38 @@ function ConnectionLines({ connections, nodeRefs, connectingFrom, onConnectionDe
       // Check which node the mouse is over
       let targetNodeId = null;
       const allNodes = [USER_SOURCE, ...actions];
-      
+
       for (const node of allNodes) {
         const nodeRef = nodeRefs.current[node.id];
         if (!nodeRef) continue;
-        
+
         const rect = nodeRef.getBoundingClientRect();
         const nodeX = rect.left - containerRect.left + scrollLeft;
         const nodeY = rect.top - containerRect.top + scrollTop;
-        
+
         if (mouseX >= nodeX && mouseX <= nodeX + rect.width &&
-            mouseY >= nodeY && mouseY <= nodeY + rect.height) {
+          mouseY >= nodeY && mouseY <= nodeY + rect.height) {
           targetNodeId = node.id;
           break;
         }
       }
-      
+
       setDragTarget(targetNodeId);
     };
 
     const handleMouseUp = () => {
       if (draggingEndpoint && dragTarget && onConnectionUpdate) {
         const { connection, isSource } = draggingEndpoint;
-        
+
         // Get node types for validation
         const allNodes = [USER_SOURCE, ...actions];
         const sourceNode = allNodes.find(n => n.id === (isSource ? connection.from : connection.to));
         const targetNode = allNodes.find(n => n.id === dragTarget);
-        
+
         if (sourceNode && targetNode) {
           const sourceType = sourceNode.type || "user";
           const targetType = targetNode.type || "equipment";
-          
+
           // Check if connection is valid
           if (canConnect(sourceType, targetType)) {
             // Update connection
@@ -579,7 +662,7 @@ function ConnectionLines({ connections, nodeRefs, connectingFrom, onConnectionDe
           }
         }
       }
-      
+
       setDraggingEndpoint(null);
       setDragTarget(null);
     };
@@ -596,18 +679,18 @@ function ConnectionLines({ connections, nodeRefs, connectingFrom, onConnectionDe
   const getNodePosition = (nodeId, isSource = true) => {
     const nodeRef = nodeRefs.current[nodeId];
     if (!nodeRef) return null;
-    
+
     const rect = nodeRef.getBoundingClientRect();
     const container = nodeRef.closest('.canvas-node-sequence');
     if (!container) return null;
-    
+
     const containerRect = container.getBoundingClientRect();
     const scrollLeft = container.scrollLeft || 0;
     const scrollTop = container.scrollTop || 0;
-    
+
     // Get node edge position (output at right edge, input at left edge for horizontal layout)
     const edgeOffset = 0; // Directly use node edge
-    
+
     return {
       x: (isSource ? rect.right - edgeOffset : rect.left + edgeOffset) - containerRect.left + scrollLeft,
       y: rect.top + rect.height / 2 - containerRect.top + scrollTop,
@@ -617,13 +700,13 @@ function ConnectionLines({ connections, nodeRefs, connectingFrom, onConnectionDe
   const renderConnection = (connection) => {
     const fromPos = getNodePosition(connection.from, true);
     const toPos = getNodePosition(connection.to, false);
-    
+
     if (!fromPos || !toPos) return null;
 
     const isHovered = hoveredConnection === connection;
     const dx = toPos.x - fromPos.x;
     const dy = toPos.y - fromPos.y;
-    
+
     // Calculate control points for smooth bezier curve (horizontal layout)
     // Use a smoother curve with better control point positioning
     const curveOffset = Math.max(80, Math.abs(dx) * 0.4);
@@ -631,13 +714,13 @@ function ConnectionLines({ connections, nodeRefs, connectingFrom, onConnectionDe
     const cp1y = fromPos.y;
     const cp2x = toPos.x - curveOffset;
     const cp2y = toPos.y;
-    
+
     // Arrow head calculations
     const angle = Math.atan2(dy, dx);
     const arrowLength = 8;
     const arrowX = toPos.x - Math.cos(angle) * 12;
     const arrowY = toPos.y - Math.sin(angle) * 12;
-    
+
     const arrowPoints = [
       `${arrowX},${arrowY}`,
       `${arrowX - arrowLength * Math.cos(angle - Math.PI / 6)},${arrowY - arrowLength * Math.sin(angle - Math.PI / 6)}`,
@@ -647,17 +730,17 @@ function ConnectionLines({ connections, nodeRefs, connectingFrom, onConnectionDe
     const pathId = `connection-${connection.from}-${connection.to}`;
     const isDraggingThis = draggingEndpoint?.connection === connection;
     const endpointRadius = 6;
-    
+
     // Handle endpoint drag start
     const handleEndpointMouseDown = (e, isSource) => {
       e.stopPropagation();
       const container = document.querySelector('.canvas-node-sequence');
       if (!container) return;
-      
+
       const containerRect = container.getBoundingClientRect();
       const scrollLeft = container.scrollLeft || 0;
       const scrollTop = container.scrollTop || 0;
-      
+
       setDraggingEndpoint({
         connection,
         isSource,
@@ -667,7 +750,7 @@ function ConnectionLines({ connections, nodeRefs, connectingFrom, onConnectionDe
         }
       });
     };
-    
+
     return (
       <g
         key={pathId}
@@ -723,14 +806,14 @@ function ConnectionLines({ connections, nodeRefs, connectingFrom, onConnectionDe
   // Render dragging preview line
   const renderDraggingLine = () => {
     if (!draggingEndpoint) return null;
-    
+
     const { connection, isSource, mousePos } = draggingEndpoint;
-    const fixedPos = isSource 
+    const fixedPos = isSource
       ? getNodePosition(connection.to, false)
       : getNodePosition(connection.from, true);
-    
+
     if (!fixedPos) return null;
-    
+
     const dx = mousePos.x - fixedPos.x;
     const dy = mousePos.y - fixedPos.y;
     const curveOffset = Math.max(80, Math.abs(dx) * 0.4);
@@ -738,17 +821,17 @@ function ConnectionLines({ connections, nodeRefs, connectingFrom, onConnectionDe
     const cp1y = fixedPos.y;
     const cp2x = mousePos.x - (isSource ? curveOffset : 0);
     const cp2y = mousePos.y;
-    
+
     // Check if target is valid
     const allNodes = [USER_SOURCE, ...actions];
     const fixedNode = allNodes.find(n => n.id === (isSource ? connection.to : connection.from));
     const targetNode = dragTarget ? allNodes.find(n => n.id === dragTarget) : null;
-    
+
     let isValid = false;
     if (targetNode && fixedNode && fixedNode.id !== targetNode.id) {
       const fixedType = fixedNode.type || "user";
       const targetType = targetNode.type || "equipment";
-      
+
       if (isSource) {
         // Changing source - check if target can connect to fixed
         isValid = canConnect(targetType, fixedType);
@@ -757,7 +840,7 @@ function ConnectionLines({ connections, nodeRefs, connectingFrom, onConnectionDe
         isValid = canConnect(fixedType, targetType);
       }
     }
-    
+
     return (
       <g>
         <path
@@ -783,15 +866,15 @@ function ConnectionLines({ connections, nodeRefs, connectingFrom, onConnectionDe
   };
 
   return (
-    <svg 
-      className="connection-lines-svg" 
-      style={{ 
-        position: 'absolute', 
-        top: 0, 
-        left: 0, 
-        width: '100%', 
-        height: '100%', 
-        pointerEvents: 'none', 
+    <svg
+      className="connection-lines-svg"
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'none',
         zIndex: 0,
         overflow: 'visible'
       }}
@@ -804,7 +887,7 @@ function ConnectionLines({ connections, nodeRefs, connectingFrom, onConnectionDe
 
 function CanvasNodes({ actions, connections, connectingFrom, onConnectionStart, onConnectionDelete, onConnectionUpdate, nodePositions, onNodePositionChange, onRemoveAction, onUpdateAction, onOpenSettings, USER_SOURCE, userTriggerMode, onUserTriggerModeChange }) {
   const nodeRefs = useRef({});
-  
+
   const { sensors, scenes, equipment } = useMemo(() => {
     // Filter actions in the order they appear in the actions array
     // This ensures the display order matches the JSON generation order
@@ -821,22 +904,22 @@ function CanvasNodes({ actions, connections, connectingFrom, onConnectionStart, 
       delete nodeRefs.current[nodeId];
     }
   };
-  
+
   // Helper function to get default position
   const getDefaultPosition = (nodeId, index, type) => {
     if (nodePositions[nodeId]) {
       return nodePositions[nodeId];
     }
-    
+
     // Default layout: columns with more spacing to avoid overlap
     const columnSpacing = 350; // spacing between trigger / condition / equipment columns
     const rowSpacing = 200; // vertical spacing between nodes (avoid overlap)
     const startX = 100;
     const startY = 150;
-    
+
     let x = startX;
     let y = startY;
-    
+
     if (nodeId === USER_SOURCE.id) {
       x = startX;
       y = startY;
@@ -853,16 +936,16 @@ function CanvasNodes({ actions, connections, connectingFrom, onConnectionStart, 
       const eqIndex = equipment.findIndex(e => e.id === nodeId);
       y = startY + eqIndex * rowSpacing;
     }
-    
+
     return { x, y };
   };
-  
+
   if (!actions.length) {
     const defaultUserPos = getDefaultPosition(USER_SOURCE.id, 0, "user");
     return (
       <div className="canvas-node-sequence canvas-node-sequence-empty">
-        <CanvasNode 
-          action={USER_SOURCE} 
+        <CanvasNode
+          action={USER_SOURCE}
           isSelected={connectingFrom === USER_SOURCE.id}
           onConnectionClick={onConnectionStart}
           nodeRef={(el) => setNodeRef(USER_SOURCE.id, el)}
@@ -888,8 +971,8 @@ function CanvasNodes({ actions, connections, connectingFrom, onConnectionStart, 
 
   return (
     <div className="canvas-node-sequence">
-      <ConnectionLines 
-        connections={connections} 
+      <ConnectionLines
+        connections={connections}
         nodeRefs={nodeRefs}
         connectingFrom={connectingFrom}
         onConnectionDelete={onConnectionDelete}
@@ -898,7 +981,7 @@ function CanvasNodes({ actions, connections, connectingFrom, onConnectionStart, 
         USER_SOURCE={USER_SOURCE}
       />
       {allNodes.map((node) => (
-        <CanvasNode 
+        <CanvasNode
           key={node.id}
           action={node}
           isSelected={connectingFrom === node.id || (node.id === USER_SOURCE.id && connectingFrom === "user-source")}
@@ -927,27 +1010,27 @@ function canConnect(fromType, toType) {
 
 function CanvasNode({ action, isConnecting, isSelected, onConnectionClick, nodeRef, position, onPositionChange, onRemove, onUpdate, onOpenSettings, userTriggerMode, onUserTriggerModeChange }) {
   const nodeClass = action.type === "user" ? "canvas-node-user" :
-                    action.type === "sensor" ? "canvas-node-sensor" :
-                    action.type === "scene" ? "canvas-node-scene" :
-                    "canvas-node-equipment";
-  
+    action.type === "sensor" ? "canvas-node-sensor" :
+      action.type === "scene" ? "canvas-node-scene" :
+        "canvas-node-equipment";
+
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const nodeElementRef = useRef(null);
 
   const handleMouseDown = (e) => {
     if (e.button !== 0) return; // Only left mouse button
-    
+
     // Don't start dragging if clicking on interactive elements
-    if (e.target.tagName === 'INPUT' || 
-        e.target.tagName === 'BUTTON' || 
-        e.target.tagName === 'SELECT' ||
-        e.target.closest('button') || 
-        e.target.closest('input') ||
-        e.target.closest('select')) {
+    if (e.target.tagName === 'INPUT' ||
+      e.target.tagName === 'BUTTON' ||
+      e.target.tagName === 'SELECT' ||
+      e.target.closest('button') ||
+      e.target.closest('input') ||
+      e.target.closest('select')) {
       return;
     }
-    
+
     setIsDragging(true);
     const rect = nodeElementRef.current?.getBoundingClientRect();
     if (rect) {
@@ -965,14 +1048,14 @@ function CanvasNode({ action, isConnecting, isSelected, onConnectionClick, nodeR
     const handleMouseMove = (e) => {
       const container = nodeElementRef.current?.closest('.canvas-node-sequence');
       if (!container) return;
-      
+
       const containerRect = container.getBoundingClientRect();
       const scrollLeft = container.scrollLeft || 0;
       const scrollTop = container.scrollTop || 0;
-      
+
       const newX = e.clientX - containerRect.left - dragStart.x + scrollLeft;
       const newY = e.clientY - containerRect.top - dragStart.y + scrollTop;
-      
+
       onPositionChange?.({ x: newX, y: newY });
     };
 
@@ -1006,7 +1089,7 @@ function CanvasNode({ action, isConnecting, isSelected, onConnectionClick, nodeR
   };
 
   return (
-    <div 
+    <div
       ref={(el) => {
         nodeElementRef.current = el;
         if (nodeRef) nodeRef(el);
@@ -1020,7 +1103,7 @@ function CanvasNode({ action, isConnecting, isSelected, onConnectionClick, nodeR
           <div className="canvas-node-header-start">
             <div className="start-trigger-icon">
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <path d="M2 2L10 6L2 10V2Z" fill="currentColor"/>
+                <path d="M2 2L10 6L2 10V2Z" fill="currentColor" />
               </svg>
             </div>
             <div className="start-trigger-label">Start Trigger</div>
@@ -1032,7 +1115,7 @@ function CanvasNode({ action, isConnecting, isSelected, onConnectionClick, nodeR
             </div>
             <div className="canvas-node-mode-field">
               <span className="mode-label">Mode:</span>
-              <select 
+              <select
                 className="mode-select"
                 value={userTriggerMode || "manual"}
                 onChange={(e) => {
@@ -1057,7 +1140,7 @@ function CanvasNode({ action, isConnecting, isSelected, onConnectionClick, nodeR
             <div className="canvas-node-header-icon">{action.icon ?? (action.type === "sensor" ? "🌡️" : action.type === "scene" ? "⏰" : "💡")}</div>
             <div className="canvas-node-header-title">{action.label}</div>
             {onRemove && action.type !== "user" && (
-              <button 
+              <button
                 className="canvas-node-close-btn"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -1078,8 +1161,8 @@ function CanvasNode({ action, isConnecting, isSelected, onConnectionClick, nodeR
                 })()}
               </div>
               <label className="canvas-node-toggle">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   checked={action.isEnabled !== false}
                   onChange={(e) => {
                     e.stopPropagation();
@@ -1123,7 +1206,7 @@ function CanvasNode({ action, isConnecting, isSelected, onConnectionClick, nodeR
                 })()}
               </span>
               {action.type === "scene" && (
-                <button 
+                <button
                   className="canvas-node-gear-button"
                   onClick={(e) => {
                     e.stopPropagation();
@@ -1175,7 +1258,7 @@ function SceneSettingsModal({ action, onUpdate, onClose }) {
 
   const handleSave = () => {
     const updates = {};
-    
+
     if (action.label === "Temperature Threshold" || action.label === "Temperature") {
       updates.temperatureValue = tempValue;
     } else if (action.label === "Time") {
@@ -1192,7 +1275,7 @@ function SceneSettingsModal({ action, onUpdate, onClose }) {
     } else if (action.label === "Humidity Threshold" || action.label === "Humidity") {
       updates.humidityValue = humidityValue;
     }
-    
+
     onUpdate?.(action.id, updates);
     onClose();
   };
@@ -1341,7 +1424,7 @@ function SidebarModal({ sidebarSections, onItemDragStart, onItemDoubleClick, onA
         const x = e.clientX;
         const y = e.clientY;
         const rect = modalElement.getBoundingClientRect();
-        
+
         // Check if mouse is outside modal bounds
         if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
           // Make overlay and modal non-interactive to allow drop on canvas
@@ -1392,14 +1475,14 @@ function SidebarModal({ sidebarSections, onItemDragStart, onItemDoubleClick, onA
   };
 
   return (
-    <div 
+    <div
       ref={overlayRef}
-      className="sidebar-modal-overlay" 
+      className="sidebar-modal-overlay"
       onClick={onClose}
     >
-      <div 
+      <div
         ref={modalRef}
-        className="sidebar-modal-content" 
+        className="sidebar-modal-content"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="sidebar-modal-header">
@@ -1542,7 +1625,7 @@ function Canvas({ actions, connections, connectingFrom, onDropItem, automationNa
     event.preventDefault();
     event.stopPropagation();
     setIsDragOver(false);
-    
+
     const payload = event.dataTransfer.getData("application/json");
     if (payload) {
       try {
@@ -1579,7 +1662,7 @@ function Canvas({ actions, connections, connectingFrom, onDropItem, automationNa
 
   return (
     <main className="canvas-wrapper">
-      <div 
+      <div
         className={`canvas-board ${isDragOver ? "canvas-board-drag-over" : ""}`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -1595,14 +1678,14 @@ function Canvas({ actions, connections, connectingFrom, onDropItem, automationNa
               className="automation-name-input"
             />
           </div>
-          <button 
+          <button
             className="canvas-add-button"
             onClick={() => setShowSidebarModal(true)}
             title="Add components"
           >
             <span className="canvas-add-icon">+</span>
           </button>
-          <button 
+          <button
             className="execute-workflow-button"
             onClick={handleExecuteWorkflow}
             title="Execute and save workflow"
@@ -1611,8 +1694,8 @@ function Canvas({ actions, connections, connectingFrom, onDropItem, automationNa
           </button>
         </div>
         <div className="canvas-content-wrapper">
-          <CanvasNodes 
-            actions={actions} 
+          <CanvasNodes
+            actions={actions}
             connections={connections}
             connectingFrom={connectingFrom}
             onConnectionStart={onConnectionStart}
@@ -1630,7 +1713,7 @@ function Canvas({ actions, connections, connectingFrom, onDropItem, automationNa
         </div>
       </div>
       <div className="action-panel-wrapper">
-        <button 
+        <button
           className="action-panel-toggle"
           onClick={() => setShowActionPanel(!showActionPanel)}
           title={showActionPanel ? "Hide Action Panel" : "Show Action Panel"}
@@ -1671,7 +1754,7 @@ function JsonPreviewModal({ json, onClose, onImport, isImportMode = false, valid
     const link = document.createElement("a");
     link.href = url;
     // Use automation name as filename, or default to "automation"
-    const fileName = json.name 
+    const fileName = json.name
       ? `${json.name.replace(/\s+/g, "_")}.json`
       : `automation_${Date.now()}.json`;
     link.download = fileName;
@@ -1754,7 +1837,7 @@ function AlertModal({ message, onClose }) {
         </div>
         <div className="alert-modal-body">
           <p>{message}</p>
-          </div>
+        </div>
         <div className="alert-modal-footer">
           <button className="pill-button" onClick={onClose}>
             OK
@@ -1839,19 +1922,19 @@ export default function App() {
       setLastActionCount(actions.length);
       return;
     }
-    
+
     // Find the newly added action (the last one)
     const newAction = actions[actions.length - 1];
     if (!newAction) {
       setLastActionCount(actions.length);
       return;
     }
-    
+
     const itemType = newAction.type ?? "equipment";
-    
+
     // Find the appropriate source node to connect from
     let sourceId = null;
-    
+
     if (itemType === "sensor") {
       // Sensor should connect from USER_SOURCE
       sourceId = USER_SOURCE.id;
@@ -1878,7 +1961,7 @@ export default function App() {
         }
       }
     }
-    
+
     // Create connection if source is found and connection is valid
     if (sourceId) {
       const sourceAction = sourceId === USER_SOURCE.id ? USER_SOURCE : actions.find(a => a.id === sourceId);
@@ -1889,7 +1972,7 @@ export default function App() {
           const connectionExists = prevConnections.some(
             conn => conn.from === sourceId && conn.to === newAction.id
           );
-          
+
           if (!connectionExists) {
             return [
               ...prevConnections,
@@ -1900,7 +1983,7 @@ export default function App() {
         });
       }
     }
-    
+
     setLastActionCount(actions.length);
   }, [actions, lastActionCount]);
 
@@ -1911,14 +1994,14 @@ export default function App() {
 
   const handleDropItem = useCallback((item, dropPosition) => {
     const itemType = item.type ?? "equipment";
-    
+
     // Check if it's a sensor or scene type
     if (itemType === "sensor" || itemType === "scene") {
       // Check if the same label already exists in actions
       const existingItem = actions.find(
         (action) => action.type === itemType && action.label === item.label
       );
-      
+
       if (existingItem) {
         const typeName = itemType === "sensor" ? "Triggers" : "Conditions";
         setAlertMessage(
@@ -1927,7 +2010,7 @@ export default function App() {
         return;
       }
     }
-    
+
     // Create new action
     const newActionId = `action-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     const newAction = {
@@ -1938,7 +2021,7 @@ export default function App() {
       control: "toggle",
       isEnabled: true, // Default to enabled for equipment
     };
-    
+
     // Set default lastValue for sensors based on type
     if (itemType === "sensor") {
       if (item.label === "Temperature Sensor" || item.label === "Temp") {
@@ -1949,7 +2032,7 @@ export default function App() {
         newAction.lastValue = 45; // Default sound level in dB
       }
     }
-    
+
     // Set default values for scene types
     if (itemType === "scene") {
       if (item.label === "Time") {
@@ -1961,7 +2044,7 @@ export default function App() {
         newAction.humidityValue = 60; // Default humidity
       }
     }
-    
+
     // If drop position is provided, set it for the new node
     if (dropPosition) {
       setNodePositions(prev => ({
@@ -1972,10 +2055,10 @@ export default function App() {
         }
       }));
     }
-    
+
     // Find the appropriate source node to connect from (before adding new action)
     let sourceId = null;
-    
+
     if (itemType === "sensor") {
       // Sensor should connect from USER_SOURCE
       sourceId = USER_SOURCE.id;
@@ -2000,7 +2083,7 @@ export default function App() {
         }
       }
     }
-    
+
     // Add the new action (connection will be created automatically via useEffect)
     setActions((prev) => [...prev, newAction]);
   }, [actions]);
@@ -2023,7 +2106,7 @@ export default function App() {
   const handleConnectionStart = useCallback((actionId) => {
     const fromId = connectingFrom === "user-source" ? USER_SOURCE.id : connectingFrom;
     const toId = actionId === "user-source" ? USER_SOURCE.id : actionId;
-    
+
     if (fromId === toId) {
       // Cancel connection if clicking the same node
       setConnectingFrom(null);
@@ -2031,15 +2114,15 @@ export default function App() {
       // Complete connection
       const fromAction = connectingFrom === USER_SOURCE.id ? USER_SOURCE : actions.find(a => a.id === connectingFrom);
       const toAction = actionId === USER_SOURCE.id ? USER_SOURCE : actions.find(a => a.id === actionId);
-      
+
       if (!fromAction || !toAction) return;
-      
+
       if (canConnect(fromAction.type || "user", toAction.type || "equipment")) {
         // Check if connection already exists
         const exists = connections.some(
           conn => conn.from === fromId && conn.to === toId
         );
-        
+
         if (!exists) {
           setConnections(prev => [...prev, { from: fromId, to: toId }]);
         }
@@ -2069,17 +2152,17 @@ export default function App() {
       const filtered = prev.filter(
         conn => !(conn.from === oldConnection.from && conn.to === oldConnection.to)
       );
-      
+
       // Check if new connection already exists
       const exists = filtered.some(
         conn => conn.from === newConnection.from && conn.to === newConnection.to
       );
-      
+
       // Add new connection if it doesn't exist
       if (!exists) {
         return [...filtered, newConnection];
       }
-      
+
       return filtered;
     });
   }, []);
@@ -2090,14 +2173,14 @@ export default function App() {
     const sensors = currentActions.filter(a => a.type === "sensor");
     const scenes = currentActions.filter(a => a.type === "scene");
     const equipment = currentActions.filter(a => a.type === "equipment" || !a.type);
-    
+
     const requiredConnections = [];
-    
+
     // Helper function to check if connection was manually deleted
     const isDeleted = (fromId, toId) => {
       return deletedConnections.has(`${fromId}-${toId}`);
     };
-    
+
     // 1. Connect all sensors from USER_SOURCE
     sensors.forEach(sensor => {
       const exists = currentConnections.some(
@@ -2107,7 +2190,7 @@ export default function App() {
         requiredConnections.push({ from: USER_SOURCE.id, to: sensor.id });
       }
     });
-    
+
     // 2. Connect scenes from sensors (connect each scene to first sensor, representing trigger group)
     if (sensors.length > 0 && scenes.length > 0) {
       const firstSensorId = sensors[0].id;
@@ -2120,7 +2203,7 @@ export default function App() {
         }
       });
     }
-    
+
     // 3. Connect equipment from scenes (connect each equipment to last scene, representing all conditions met)
     // Each equipment connects independently from the scene/sensor, not from other equipment
     if (scenes.length > 0 && equipment.length > 0) {
@@ -2145,7 +2228,7 @@ export default function App() {
         }
       });
     }
-    
+
     // Add missing connections
     if (requiredConnections.length > 0) {
       setConnections(prev => {
@@ -2192,20 +2275,20 @@ export default function App() {
     input.type = 'file';
     input.accept = '.json';
     input.style.display = 'none';
-    
+
     input.onchange = (e) => {
       const file = e.target.files[0];
       if (!file) return;
-      
+
       const reader = new FileReader();
       reader.onload = (event) => {
         try {
           const jsonContent = JSON.parse(event.target.result);
-          
+
           // Show preview FIRST, before any validation
           setPreviewJson(jsonContent);
           setAlertMessage(null);
-          
+
           // Store JSON for later validation (when user clicks Confirm Import)
           setImportJson({
             json: jsonContent,
@@ -2217,14 +2300,14 @@ export default function App() {
           setAlertMessage('Failed to parse JSON file: ' + error.message);
         }
       };
-      
+
       reader.onerror = () => {
         setAlertMessage('Failed to read file');
       };
-      
+
       reader.readAsText(file);
     };
-    
+
     document.body.appendChild(input);
     input.click();
     document.body.removeChild(input);
@@ -2292,8 +2375,8 @@ export default function App() {
       capability: eq.label.toLowerCase().includes("light") || eq.label.toLowerCase().includes("lamp") || eq.label.toLowerCase().includes("ceiling")
         ? "onOff"
         : eq.label.toLowerCase().includes("conditioner")
-        ? "temperature"
-        : "onOff",
+          ? "temperature"
+          : "onOff",
       value: eq.label.toLowerCase().includes("conditioner") ? 26 : true,
     }));
 
@@ -2398,7 +2481,7 @@ export default function App() {
     const importedActions = [];
     const importedConnections = [];
     const importedNodePositions = {};
-    
+
     // Process triggers (sensors)
     if (Array.isArray(automation.triggers)) {
       automation.triggers.forEach((trigger, idx) => {
@@ -2409,10 +2492,10 @@ export default function App() {
             .split('_')
             .map(word => word.charAt(0).toUpperCase() + word.slice(1))
             .join(' ');
-          
+
           const sensorSection = sidebarSections.find(s => s.title === "Triggers");
           const capability = trigger.capability?.toLowerCase() || '';
-          
+
           const sensorItem = sensorSection?.items.find(item => {
             const itemLabelLower = item.label.toLowerCase();
             const sensorNameLower = sensorNameFromId.toLowerCase();
@@ -2420,12 +2503,12 @@ export default function App() {
             if (itemLabelLower === capability) return true;
             if (itemLabelLower.includes(capability) || capability.includes(itemLabelLower)) return true;
             if ((itemLabelLower === 'temp' && (capability === 'temperature' || capability === 'temp')) ||
-                (itemLabelLower === 'temperature' && capability === 'temp')) return true;
+              (itemLabelLower === 'temperature' && capability === 'temp')) return true;
             // 特殊处理：temp传感器
             if (capability === 'temp' && itemLabelLower === 'temp') return true;
             return false;
           });
-          
+
           if (sensorItem) {
             const actionId = `imported-sensor-${idx}-${Date.now()}`;
             const sensorAction = {
@@ -2435,7 +2518,7 @@ export default function App() {
               type: 'sensor',
               control: 'toggle',
             };
-            
+
             // Set default lastValue based on sensor type
             if (sensorItem.label === "Temperature Sensor" || sensorItem.label === "Temp") {
               sensorAction.lastValue = 24;
@@ -2444,20 +2527,20 @@ export default function App() {
             } else if (sensorItem.label === "Sound Sensor" || sensorItem.label === "Sound") {
               sensorAction.lastValue = 45;
             }
-            
+
             importedActions.push(sensorAction);
           }
         }
       });
     }
-    
+
     // Process conditions (scenes)
     if (Array.isArray(automation.conditions)) {
       automation.conditions.forEach((condition, idx) => {
         if (condition.type === 'time') {
           const sceneSection = sidebarSections.find(s => s.title === "Conditions");
           const timeItem = sceneSection?.items.find(item => item.label === "Time");
-          
+
           if (timeItem) {
             const actionId = `imported-scene-time-${idx}-${Date.now()}`;
             // Check if it's a time range (has both after and before) or fixed time
@@ -2486,7 +2569,7 @@ export default function App() {
           const capability = condition.capability?.toLowerCase();
           let sceneLabel = '';
           let sceneValue = null;
-          
+
           if (capability === 'temperature') {
             sceneLabel = 'Temperature Threshold';
             const match = condition.state?.match(/>=?\s*(\d+)/);
@@ -2496,16 +2579,16 @@ export default function App() {
             const match = condition.state?.match(/>=?\s*(\d+)/);
             sceneValue = match ? parseInt(match[1]) : 60;
           }
-          
+
           if (sceneLabel) {
             const sceneSection = sidebarSections.find(s => s.title === "Conditions");
             // Try to find item with new label first, then fallback to old label
-            const sceneItem = sceneSection?.items.find(item => 
-              item.label === sceneLabel || 
+            const sceneItem = sceneSection?.items.find(item =>
+              item.label === sceneLabel ||
               (sceneLabel === 'Temperature Threshold' && item.label === 'Temperature') ||
               (sceneLabel === 'Humidity Threshold' && item.label === 'Humidity')
             ) || sceneSection?.items.find(item => item.label === sceneLabel);
-            
+
             if (sceneItem) {
               const actionId = `imported-scene-${sceneLabel.toLowerCase().replace(/\s+/g, '-')}-${idx}-${Date.now()}`;
               importedActions.push({
@@ -2521,7 +2604,7 @@ export default function App() {
         }
       });
     }
-    
+
     // Process actions (equipment)
     if (Array.isArray(automation.actions)) {
       automation.actions.forEach((action, idx) => {
@@ -2532,10 +2615,10 @@ export default function App() {
             .split('_')
             .map(word => word.charAt(0).toUpperCase() + word.slice(1))
             .join(' ');
-          
+
           const equipmentSection = sidebarSections.find(s => s.title === "Equipment List");
           const capability = action.capability?.toLowerCase() || '';
-          
+
           const equipmentItem = equipmentSection?.items.find(item => {
             const itemLabelLower = item.label.toLowerCase();
             const equipmentNameLower = equipmentNameFromId.toLowerCase();
@@ -2545,7 +2628,7 @@ export default function App() {
             if (capability === 'temperature' && itemLabelLower.includes('conditioner')) return true;
             return false;
           });
-          
+
           if (equipmentItem) {
             const actionId = `imported-equipment-${idx}-${Date.now()}`;
             importedActions.push({
@@ -2559,19 +2642,19 @@ export default function App() {
         }
       });
     }
-    
+
     // Build connections based on restored actions order
     // Logic: User -> Sensors -> Scenes -> Equipment
     const restoredConnections = [];
     const sensors = importedActions.filter(a => a.type === 'sensor');
     const scenes = importedActions.filter(a => a.type === 'scene');
     const equipment = importedActions.filter(a => a.type === 'equipment' || !a.type);
-    
+
     // Connect all sensors from USER_SOURCE
     sensors.forEach(sensor => {
       restoredConnections.push({ from: USER_SOURCE.id, to: sensor.id });
     });
-    
+
     // Connect scenes from sensors (connect each scene to first sensor, representing trigger group)
     if (sensors.length > 0 && scenes.length > 0) {
       const firstSensorId = sensors[0].id;
@@ -2579,7 +2662,7 @@ export default function App() {
         restoredConnections.push({ from: firstSensorId, to: scene.id });
       });
     }
-    
+
     // Connect equipment from scenes (connect each equipment to last scene, representing all conditions met)
     // Each equipment connects independently from the scene/sensor, not from other equipment
     if (scenes.length > 0 && equipment.length > 0) {
@@ -2594,16 +2677,16 @@ export default function App() {
         restoredConnections.push({ from: lastSensorId, to: eq.id });
       });
     }
-    
+
     // Set default node positions (spread them out more to avoid overlap)
     const startX = 100;
     const startY = 150;
     const columnSpacing = 350; // Increased horizontal spacing
     const rowSpacing = 200; // Increased vertical spacing to prevent overlap
-    
+
     let currentX = startX;
     let currentY = startY;
-    
+
     // Position sensors (Triggers) - first column
     sensors.forEach((sensor, idx) => {
       importedNodePositions[sensor.id] = {
@@ -2611,7 +2694,7 @@ export default function App() {
         y: startY + idx * rowSpacing
       };
     });
-    
+
     // Position scenes (Conditions) - second column
     if (sensors.length > 0) {
       currentX = startX + columnSpacing * 2;
@@ -2626,7 +2709,7 @@ export default function App() {
         y: currentY + idx * rowSpacing
       };
     });
-    
+
     // Position equipment (Actions) - third column
     if (scenes.length > 0) {
       currentX = startX + columnSpacing * 3;
@@ -2642,7 +2725,7 @@ export default function App() {
         y: currentY + idx * rowSpacing
       };
     });
-    
+
     return {
       actions: importedActions,
       connections: restoredConnections,
@@ -2656,7 +2739,7 @@ export default function App() {
       // If there is saved automation data, restore actions to canvas
       const automation = scene.automationData;
       setAutomationName(automation.name || scene.name);
-      
+
       // Restore actions, connections, and node positions from automation data
       const restored = restoreActionsFromAutomation(automation, sidebarSections);
       setActions(restored.actions);
@@ -2751,9 +2834,9 @@ export default function App() {
         />
       ) : (
         <>
-          <Header 
-            onReset={handleResetClick} 
-            onPreviewJson={handlePreviewJson} 
+          <Header
+            onReset={handleResetClick}
+            onPreviewJson={handlePreviewJson}
             onImportJson={handleImportJson}
             onBackToScenes={handleBackToScenes}
           />
@@ -2801,7 +2884,7 @@ export default function App() {
             // Validate and import when user clicks Confirm Import
             const jsonContent = importJson.json;
             let validationError = null;
-            
+
             // Validate JSON structure
             if (!jsonContent || typeof jsonContent !== 'object') {
               validationError = 'Invalid JSON file format: Root must be an object';
@@ -2850,7 +2933,7 @@ export default function App() {
                       break;
                     }
                   }
-                  
+
                   if (!validationError) {
                     // Validate conditions structure
                     for (let i = 0; i < jsonContent.conditions.length; i++) {
@@ -2883,7 +2966,7 @@ export default function App() {
                       }
                     }
                   }
-                  
+
                   if (!validationError) {
                     // Validate actions structure
                     for (let i = 0; i < jsonContent.actions.length; i++) {
@@ -2919,17 +3002,17 @@ export default function App() {
                 }
               }
             }
-            
+
             // If validation failed, show error
             if (validationError) {
               setAlertMessage(validationError);
               return;
             }
-            
+
             // Validation passed, reconstruct actions from JSON
             const importedActions = [];
             const actionIdMap = new Map();
-            
+
             // Process triggers (sensors)
             if (Array.isArray(jsonContent.triggers)) {
               jsonContent.triggers.forEach((trigger, idx) => {
@@ -2940,10 +3023,10 @@ export default function App() {
                     .split('_')
                     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
                     .join(' ');
-                  
+
                   const sensorSection = sidebarSections.find(s => s.title === "Triggers");
                   const capability = trigger.capability?.toLowerCase() || '';
-                  
+
                   const sensorItem = sensorSection?.items.find(item => {
                     const itemLabelLower = item.label.toLowerCase();
                     const sensorNameLower = sensorNameFromId.toLowerCase();
@@ -2951,10 +3034,10 @@ export default function App() {
                     if (itemLabelLower === capability) return true;
                     if (itemLabelLower.includes(capability) || capability.includes(itemLabelLower)) return true;
                     if ((itemLabelLower === 'temp' && capability === 'temperature') ||
-                        (itemLabelLower === 'temperature' && capability === 'temp')) return true;
+                      (itemLabelLower === 'temperature' && capability === 'temp')) return true;
                     return false;
                   });
-                  
+
                   if (sensorItem) {
                     const actionId = `imported-sensor-${idx}-${Date.now()}`;
                     actionIdMap.set(trigger.deviceId, actionId);
@@ -2969,14 +3052,14 @@ export default function App() {
                 }
               });
             }
-            
+
             // Process conditions (scenes)
             if (Array.isArray(jsonContent.conditions)) {
               jsonContent.conditions.forEach((condition, idx) => {
                 if (condition.type === 'time') {
                   const sceneSection = sidebarSections.find(s => s.title === "Conditions");
                   const timeItem = sceneSection?.items.find(item => item.label === "Time");
-                  
+
                   if (timeItem) {
                     const actionId = `imported-scene-time-${idx}-${Date.now()}`;
                     importedActions.push({
@@ -2991,7 +3074,7 @@ export default function App() {
                   const capability = condition.capability?.toLowerCase();
                   let sceneLabel = '';
                   let sceneValue = null;
-                  
+
                   if (capability === 'temperature') {
                     sceneLabel = 'Temperature';
                     const match = condition.state?.match(/>=?\s*(\d+)/);
@@ -3001,16 +3084,16 @@ export default function App() {
                     const match = condition.state?.match(/>=?\s*(\d+)/);
                     sceneValue = match ? parseInt(match[1]) : 60;
                   }
-                  
+
                   if (sceneLabel) {
                     const sceneSection = sidebarSections.find(s => s.title === "Conditions");
                     // Try to find item with new label first, then fallback to old label
-                    const sceneItem = sceneSection?.items.find(item => 
-                      item.label === sceneLabel || 
+                    const sceneItem = sceneSection?.items.find(item =>
+                      item.label === sceneLabel ||
                       (sceneLabel === 'Temperature Threshold' && item.label === 'Temperature') ||
                       (sceneLabel === 'Humidity Threshold' && item.label === 'Humidity')
                     ) || sceneSection?.items.find(item => item.label === sceneLabel);
-                    
+
                     if (sceneItem) {
                       const actionId = `imported-scene-${sceneLabel.toLowerCase().replace(/\s+/g, '-')}-${idx}-${Date.now()}`;
                       importedActions.push({
@@ -3026,7 +3109,7 @@ export default function App() {
                 }
               });
             }
-            
+
             // Process actions (equipment)
             if (Array.isArray(jsonContent.actions)) {
               jsonContent.actions.forEach((action, idx) => {
@@ -3037,10 +3120,10 @@ export default function App() {
                     .split('_')
                     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
                     .join(' ');
-                  
+
                   const equipmentSection = sidebarSections.find(s => s.title === "Equipment List");
                   const capability = action.capability?.toLowerCase() || '';
-                  
+
                   const equipmentItem = equipmentSection?.items.find(item => {
                     const itemLabelLower = item.label.toLowerCase();
                     const equipmentNameLower = equipmentNameFromId.toLowerCase();
@@ -3050,7 +3133,7 @@ export default function App() {
                     if (capability === 'temperature' && itemLabelLower.includes('conditioner')) return true;
                     return false;
                   });
-                  
+
                   if (equipmentItem) {
                     const actionId = `imported-equipment-${idx}-${Date.now()}`;
                     importedActions.push({
@@ -3064,7 +3147,7 @@ export default function App() {
                 }
               });
             }
-            
+
             // Execute the actual import
             setActions(importedActions);
             setConnections([]);

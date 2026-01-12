@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Layers, Clock, Server, MapPin, Activity, CloudSun, Plus } from 'lucide-react';
 
 // home1 scene data
 const getHome1Scene = () => {
@@ -68,7 +69,7 @@ const translateSceneName = (name) => {
     "早晨模式": "Morning Routine",
     "晚上模式": "Evening Relax",
   };
-  
+
   // Check if name contains Chinese characters
   if (/[\u4e00-\u9fa5]/.test(name)) {
     // Try to find exact match
@@ -100,12 +101,12 @@ const loadScenesFromStorage = () => {
         ...scene,
         name: translateSceneName(scene.name)
       }));
-      
+
       // Save updated scenes back to localStorage
       if (scenes.some((scene, idx) => scene.name !== updatedScenes[idx].name)) {
         localStorage.setItem("smart-home-scenes", JSON.stringify(updatedScenes));
       }
-      
+
       const hasHome1 = updatedScenes.some(scene => scene.id === "auto_home1");
       if (!hasHome1) {
         return [getHome1Scene(), ...updatedScenes];
@@ -153,7 +154,7 @@ const fetchDeviceStatus = async () => {
     // });
     // const result = await response.json();
     // return result.data;
-    
+
     // Mock data for now - replace with actual API call
     return {
       devices: [
@@ -218,13 +219,13 @@ const getLocationName = async (latitude, longitude) => {
         }
       }
     );
-    
+
     if (!response.ok) {
       throw new Error(`Geocoding API error: ${response.status}`);
     }
-    
+
     const data = await response.json();
-    
+
     // Extract location name in English
     if (data.address) {
       // Try to get city, town, or village name
@@ -232,7 +233,7 @@ const getLocationName = async (latitude, longitude) => {
       const city = data.address.city || data.address.town || data.address.village || data.address.municipality;
       const state = data.address.state || data.address.region;
       const country = data.address.country;
-      
+
       let locationName = '';
       if (city) {
         locationName = city;
@@ -251,10 +252,10 @@ const getLocationName = async (latitude, longitude) => {
       } else {
         locationName = `${latitude.toFixed(2)}, ${longitude.toFixed(2)}`;
       }
-      
+
       return locationName;
     }
-    
+
     return `${latitude.toFixed(2)}, ${longitude.toFixed(2)}`;
   } catch (error) {
     console.error("Failed to get location name:", error);
@@ -267,32 +268,32 @@ const fetchWeatherData = async () => {
   try {
     // Get user's location
     const location = await getCurrentLocation();
-    
+
     // Get location name
     const locationName = await getLocationName(location.latitude, location.longitude);
-    
+
     // OpenWeatherMap API (free tier)
     // Note: You need to get a free API key from https://openweathermap.org/api
     // For demo purposes, we'll use a public API that doesn't require a key
     // If you have an API key, replace the URL below
-    
+
     // Option 1: Using OpenWeatherMap (requires API key)
     // const API_KEY = 'YOUR_API_KEY_HERE'; // Replace with your OpenWeatherMap API key
     // const response = await fetch(
     //   `https://api.openweathermap.org/data/2.5/weather?lat=${location.latitude}&lon=${location.longitude}&appid=${API_KEY}&units=metric`
     // );
-    
+
     // Option 2: Using a free public API (no key required)
     const response = await fetch(
       `https://api.open-meteo.com/v1/forecast?latitude=${location.latitude}&longitude=${location.longitude}&current=temperature_2m,relative_humidity_2m,weather_code&timezone=auto`
     );
-    
+
     if (!response.ok) {
       throw new Error(`Weather API error: ${response.status}`);
     }
-    
+
     const data = await response.json();
-    
+
     // Parse Open-Meteo API response
     if (data.current) {
       const weatherCode = data.current.weather_code;
@@ -321,7 +322,7 @@ const fetchWeatherData = async () => {
         96: "Thunderstorm with slight hail",
         99: "Thunderstorm with heavy hail"
       };
-      
+
       return {
         temperature: Math.round(data.current.temperature_2m),
         condition: weatherConditions[weatherCode] || "Unknown",
@@ -329,7 +330,7 @@ const fetchWeatherData = async () => {
         location: locationName
       };
     }
-    
+
     // Fallback for OpenWeatherMap format (if using that API)
     // return {
     //   temperature: Math.round(data.main.temp),
@@ -337,7 +338,7 @@ const fetchWeatherData = async () => {
     //   humidity: data.main.humidity,
     //   location: locationName
     // };
-    
+
     throw new Error("Unexpected API response format");
   } catch (error) {
     console.error("Failed to fetch weather data:", error);
@@ -412,11 +413,11 @@ function ScenesList({ onSelectScene, onCreateNew }) {
   }, [scenes]);
 
   const formatTime = (date) => {
-    return date.toLocaleTimeString('en-US', { 
-      hour12: false, 
-      hour: '2-digit', 
-      minute: '2-digit', 
-      second: '2-digit' 
+    return date.toLocaleTimeString('en-US', {
+      hour12: false,
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
     });
   };
 
@@ -466,29 +467,46 @@ function ScenesList({ onSelectScene, onCreateNew }) {
   return (
     <div className="scenes-dashboard">
       {/* Header */}
-      <header className="dashboard-header">
+      <header className="header-refactored">
         <div className="header-left">
-          <div className="logo">
-            <div className="logo-icon">☰</div>
-            <span className="logo-text">SceneMaster</span>
+          <div className="header-brand">
+            <div className="header-logo">
+              <Layers size={18} />
+            </div>
+            <span className="header-title-text">Home <span className="header-title-accent">Tom</span></span>
           </div>
         </div>
-        <div className="header-right">
-          <div className="status-item">
-            <span className="status-icon">🕐</span>
-            <span className="status-label">LOCAL</span>
-            <span className="status-value">{formatTime(currentTime)}</span>
+        <div className="header-widgets">
+          <div className="header-widget">
+            <Clock size={14} className="widget-icon widget-icon-blue" />
+            <div className="widget-content">
+              <span className="widget-label">LOCAL</span>
+              <span className="widget-value">{formatTime(currentTime)}</span>
+            </div>
           </div>
-          <div className="status-item">
-            <span className="status-icon">🖥️</span>
-            <span className="status-label">SERVER</span>
-            <span className="status-value">{formatTime(serverTime)}</span>
+          <div className="header-widget header-widget-lg">
+            <Server size={14} className="widget-icon widget-icon-indigo" />
+            <div className="widget-content">
+              <span className="widget-label">SERVER</span>
+              <span className="widget-value">{formatTime(serverTime)}</span>
+            </div>
           </div>
-          <div className="status-item">
-            <span className="status-icon">📍</span>
-            <span className="status-label">LOCATION</span>
-            <span className="status-value">{environmentData.location}</span>
+          <div className="header-widget header-widget-xl">
+            <Activity size={14} className="widget-icon widget-icon-emerald" />
+            <div className="widget-content">
+              <span className="widget-label">UPTIME</span>
+              <span className="widget-value">0h 0m</span>
+            </div>
           </div>
+          <div className="header-widget">
+            <CloudSun size={16} className="widget-icon widget-icon-orange" />
+            <div className="widget-content">
+              <span className="widget-value">{environmentData.averageTemp}°C</span>
+              <span className="widget-label-inline">{environmentData.weatherCondition}</span>
+            </div>
+          </div>
+        </div>
+        <div className="header-buttons">
         </div>
       </header>
 
@@ -570,8 +588,8 @@ function ScenesList({ onSelectScene, onCreateNew }) {
                       title="Delete scenario"
                     >
                       <svg width="14" height="16" viewBox="0 0 14 16" fill="none">
-                        <path d="M1 4H13M11 4V13C11 13.5304 10.7893 14.0391 10.4142 14.4142C10.0391 14.7893 9.53043 15 9 15H5C4.46957 15 3.96086 14.7893 3.58579 14.4142C3.21071 14.0391 3 13.5304 3 13V4M5 4V2C5 1.46957 5.21071 0.96086 5.58579 0.585786C5.96086 0.210714 6.46957 0 7 0C7.53043 0 8.03914 0.210714 8.41421 0.585786C8.78929 0.96086 9 1.46957 9 2V4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                        <path d="M6 7V12M8 7V12" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+                        <path d="M1 4H13M11 4V13C11 13.5304 10.7893 14.0391 10.4142 14.4142C10.0391 14.7893 9.53043 15 9 15H5C4.46957 15 3.96086 14.7893 3.58579 14.4142C3.21071 14.0391 3 13.5304 3 13V4M5 4V2C5 1.46957 5.21071 0.96086 5.58579 0.585786C5.96086 0.210714 6.46957 0 7 0C7.53043 0 8.03914 0.210714 8.41421 0.585786C8.78929 0.96086 9 1.46957 9 2V4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M6 7V12M8 7V12" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
                       </svg>
                     </button>
                     <div className="scenario-card-header">
@@ -635,8 +653,8 @@ function ScenesList({ onSelectScene, onCreateNew }) {
                       title="Delete scenario"
                     >
                       <svg width="14" height="16" viewBox="0 0 14 16" fill="none">
-                        <path d="M1 4H13M11 4V13C11 13.5304 10.7893 14.0391 10.4142 14.4142C10.0391 14.7893 9.53043 15 9 15H5C4.46957 15 3.96086 14.7893 3.58579 14.4142C3.21071 14.0391 3 13.5304 3 13V4M5 4V2C5 1.46957 5.21071 0.96086 5.58579 0.585786C5.96086 0.210714 6.46957 0 7 0C7.53043 0 8.03914 0.210714 8.41421 0.585786C8.78929 0.96086 9 1.46957 9 2V4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                        <path d="M6 7V12M8 7V12" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+                        <path d="M1 4H13M11 4V13C11 13.5304 10.7893 14.0391 10.4142 14.4142C10.0391 14.7893 9.53043 15 9 15H5C4.46957 15 3.96086 14.7893 3.58579 14.4142C3.21071 14.0391 3 13.5304 3 13V4M5 4V2C5 1.46957 5.21071 0.96086 5.58579 0.585786C5.96086 0.210714 6.46957 0 7 0C7.53043 0 8.03914 0.210714 8.41421 0.585786C8.78929 0.96086 9 1.46957 9 2V4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M6 7V12M8 7V12" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
                       </svg>
                     </button>
                     <div className="scenario-card-header">
