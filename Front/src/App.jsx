@@ -1,5 +1,7 @@
 import React, { useCallback, useMemo, useState, useEffect, useRef } from "react";
 import ScenesList from "./ScenesList.jsx";
+import DeviceList from "./DeviceList.jsx";
+import "./styles.css";
 import {
   ArrowLeft,
   Layers,
@@ -66,7 +68,7 @@ function Header({ onReset, onPreviewJson, onImportJson, onBackToScenes, sceneNam
   const formatUptime = (seconds) => {
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
-    return `${h}h ${m}m`;
+    return `${h}h ${m} m`;
   };
 
   const serverTimeStr = localTime.toISOString().split('T')[1].split('.')[0];
@@ -202,7 +204,7 @@ function SidebarSection({ title, items, onItemDragStart, onItemDoubleClick, onAd
           </button>
         )}
       </div>
-      <div className={`sidebar-items ${isScrollable ? "sidebar-items-scrollable" : ""}`}>
+      <div className={`sidebar - items ${isScrollable ? "sidebar-items-scrollable" : ""} `}>
         {filteredItems.length ? (
           filteredItems.map((item, idx) => (
             <div
@@ -259,7 +261,7 @@ function EditItemModal({ item, sectionTitle, onClose, onSave, onDelete }) {
   };
 
   const handleDelete = () => {
-    if (window.confirm(`Are you sure you want to delete "${item.label}"?`)) {
+    if (window.confirm(`Are you sure you want to delete "${item.label}" ? `)) {
       onDelete?.(item);
       onClose();
     }
@@ -403,7 +405,7 @@ function ToggleRow({ label, icon, actionId, action, onUpdate, onRemove }) {
       </span>
       <div className="toggle-row-actions">
         <div
-          className={`toggle-switch ${isEnabled ? 'toggle-switch-on' : ''}`}
+          className={`toggle -switch ${isEnabled ? 'toggle-switch-on' : ''}`}
           onClick={handleToggleClick}
           style={{ cursor: 'pointer' }}
         >
@@ -456,7 +458,7 @@ function SliderRow({ label, compact, icon, actionId, action, onUpdate, onRemove 
             value={value}
             onChange={handleSliderChange}
             className={compact ? "slider slider-compact" : "slider"}
-            style={{ '--value': `${percentage}%` }}
+            style={{ '--value': `${percentage}% ` }}
           />
         </div>
         <button
@@ -506,7 +508,7 @@ function SceneRow({ action, onUpdate, onRemove }) {
               value={value}
               onChange={(e) => onUpdate?.(action.id, { temperatureValue: parseInt(e.target.value) })}
               className="temperature-slider"
-              style={{ '--value': `${percentage}%` }}
+              style={{ '--value': `${percentage}% ` }}
             />
           </div>
           <span className="scene-value">{value}°C</span>
@@ -542,7 +544,7 @@ function SceneRow({ action, onUpdate, onRemove }) {
               value={value}
               onChange={(e) => onUpdate?.(action.id, { humidityValue: parseInt(e.target.value) })}
               className="humidity-slider"
-              style={{ '--value': `${percentage}%` }}
+              style={{ '--value': `${percentage}% ` }}
             />
           </div>
           <span className="scene-value">{value}%</span>
@@ -583,7 +585,7 @@ function SceneRow({ action, onUpdate, onRemove }) {
   // Default toggle for other scene types
   return (
     <ToggleRow
-      label={`${action.label}:`}
+      label={`${action.label}: `}
       icon={action.icon}
     />
   );
@@ -722,12 +724,12 @@ function ConnectionLines({ connections, nodeRefs, connectingFrom, onConnectionDe
     const arrowY = toPos.y - Math.sin(angle) * 12;
 
     const arrowPoints = [
-      `${arrowX},${arrowY}`,
-      `${arrowX - arrowLength * Math.cos(angle - Math.PI / 6)},${arrowY - arrowLength * Math.sin(angle - Math.PI / 6)}`,
-      `${arrowX - arrowLength * Math.cos(angle + Math.PI / 6)},${arrowY - arrowLength * Math.sin(angle + Math.PI / 6)}`,
+      `${arrowX},${arrowY} `,
+      `${arrowX - arrowLength * Math.cos(angle - Math.PI / 6)},${arrowY - arrowLength * Math.sin(angle - Math.PI / 6)} `,
+      `${arrowX - arrowLength * Math.cos(angle + Math.PI / 6)},${arrowY - arrowLength * Math.sin(angle + Math.PI / 6)} `,
     ].join(' ');
 
-    const pathId = `connection-${connection.from}-${connection.to}`;
+    const pathId = `connection - ${connection.from} -${connection.to} `;
     const isDraggingThis = draggingEndpoint?.connection === connection;
     const endpointRadius = 6;
 
@@ -766,7 +768,7 @@ function ConnectionLines({ connections, nodeRefs, connectingFrom, onConnectionDe
         style={{ cursor: 'pointer', pointerEvents: 'all' }}
       >
         <path
-          d={`M ${fromPos.x} ${fromPos.y} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${toPos.x} ${toPos.y}`}
+          d={`M ${fromPos.x} ${fromPos.y} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${toPos.x} ${toPos.y} `}
           fill="none"
           stroke={isHovered ? "#4a90e2" : "#6b7280"}
           strokeWidth={isHovered ? 2.5 : 2}
@@ -844,7 +846,7 @@ function ConnectionLines({ connections, nodeRefs, connectingFrom, onConnectionDe
     return (
       <g>
         <path
-          d={`M ${fixedPos.x} ${fixedPos.y} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${mousePos.x} ${mousePos.y}`}
+          d={`M ${fixedPos.x} ${fixedPos.y} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${mousePos.x} ${mousePos.y} `}
           fill="none"
           stroke={isValid ? "#10b981" : "#ef4444"}
           strokeWidth={2.5}
@@ -1074,8 +1076,8 @@ function CanvasNode({ action, isConnecting, isSelected, onConnectionClick, nodeR
 
   const nodeStyle = {
     position: 'absolute',
-    left: `${position?.x || 0}px`,
-    top: `${position?.y || 0}px`,
+    left: `${position?.x || 0} px`,
+    top: `${position?.y || 0} px`,
     cursor: isDragging ? 'grabbing' : 'grab',
   };
 
@@ -1094,7 +1096,7 @@ function CanvasNode({ action, isConnecting, isSelected, onConnectionClick, nodeR
         nodeElementRef.current = el;
         if (nodeRef) nodeRef(el);
       }}
-      className={`canvas-node ${nodeClass} ${isSelected ? "canvas-node-connecting" : ""} ${isDragging ? "canvas-node-dragging" : ""}`}
+      className={`canvas - node ${nodeClass} ${isSelected ? "canvas-node-connecting" : ""} ${isDragging ? "canvas-node-dragging" : ""} `}
       style={nodeStyle}
       onMouseDown={handleMouseDown}
     >
@@ -1136,7 +1138,7 @@ function CanvasNode({ action, isConnecting, isSelected, onConnectionClick, nodeR
         </>
       ) : (
         <>
-          <div className={`canvas-node-header ${action.type === "sensor" ? "header-sensor" : action.type === "scene" ? "header-scene" : "header-equipment"}`}>
+          <div className={`canvas - node - header ${action.type === "sensor" ? "header-sensor" : action.type === "scene" ? "header-scene" : "header-equipment"} `}>
             <div className="canvas-node-header-icon">{action.icon ?? (action.type === "sensor" ? "🌡️" : action.type === "scene" ? "⏰" : "💡")}</div>
             <div className="canvas-node-header-title">{action.label}</div>
             {onRemove && action.type !== "user" && (
@@ -1191,12 +1193,12 @@ function CanvasNode({ action, isConnecting, isSelected, onConnectionClick, nodeR
                     }
                     if (action.label === "Time") {
                       if (action.timeType === "range") {
-                        return `${action.timeStart ?? "00:00"} - ${action.timeEnd ?? "23:59"}`;
+                        return `${action.timeStart ?? "00:00"} - ${action.timeEnd ?? "23:59"} `;
                       }
                       return action.timeValue ?? "17:00";
                     }
                     if (action.label === "Humidity Threshold" || action.label === "Humidity") {
-                      return `${action.humidityValue ?? 60}%`;
+                      return `${action.humidityValue ?? 60}% `;
                     }
                     return "Active";
                   }
@@ -1230,7 +1232,7 @@ function CanvasNode({ action, isConnecting, isSelected, onConnectionClick, nodeR
                   }
                   if (action.label === "Motion Sensor" || action.label === "Motion") {
                     const motionValue = action.lastValue ?? "No motion";
-                    return `Last value: ${motionValue}`;
+                    return `Last value: ${motionValue} `;
                   }
                   if (action.label === "Sound Sensor" || action.label === "Sound") {
                     const soundValue = action.lastValue ?? 45;
@@ -1306,7 +1308,7 @@ function SceneSettingsModal({ action, onUpdate, onClose }) {
                   value={tempValue}
                   onChange={(e) => setTempValue(parseInt(e.target.value))}
                   className="temperature-slider"
-                  style={{ '--value': `${tempPercentage}%` }}
+                  style={{ '--value': `${tempPercentage}% ` }}
                 />
               </div>
               <div className="scene-settings-range">
@@ -1388,7 +1390,7 @@ function SceneSettingsModal({ action, onUpdate, onClose }) {
                   value={humidityValue}
                   onChange={(e) => setHumidityValue(parseInt(e.target.value))}
                   className="humidity-slider"
-                  style={{ '--value': `${humidityPercentage}%` }}
+                  style={{ '--value': `${humidityPercentage}% ` }}
                 />
               </div>
               <div className="scene-settings-range">
@@ -1533,7 +1535,7 @@ function ActionPanel({ actions, onUpdateAction, onRemoveAction }) {
                 action.control === "slider" ? (
                   <SliderRow
                     key={action.id}
-                    label={`${action.label}:`}
+                    label={`${action.label}: `}
                     icon={action.icon}
                     compact={action.compact}
                     actionId={action.id}
@@ -1544,7 +1546,7 @@ function ActionPanel({ actions, onUpdateAction, onRemoveAction }) {
                 ) : (
                   <ToggleRow
                     key={action.id}
-                    label={`${action.label}:`}
+                    label={`${action.label}: `}
                     icon={action.icon}
                     actionId={action.id}
                     action={action}
@@ -1575,7 +1577,7 @@ function ActionPanel({ actions, onUpdateAction, onRemoveAction }) {
                 action.control === "slider" ? (
                   <SliderRow
                     key={action.id}
-                    label={`${action.label}:`}
+                    label={`${action.label}: `}
                     icon={action.icon}
                     compact={action.compact}
                     actionId={action.id}
@@ -1586,7 +1588,7 @@ function ActionPanel({ actions, onUpdateAction, onRemoveAction }) {
                 ) : (
                   <ToggleRow
                     key={action.id}
-                    label={`${action.label}:`}
+                    label={`${action.label}: `}
                     icon={action.icon}
                     actionId={action.id}
                     action={action}
@@ -1663,7 +1665,7 @@ function Canvas({ actions, connections, connectingFrom, onDropItem, automationNa
   return (
     <main className="canvas-wrapper">
       <div
-        className={`canvas-board ${isDragOver ? "canvas-board-drag-over" : ""}`}
+        className={`canvas - board ${isDragOver ? "canvas-board-drag-over" : ""} `}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -1915,6 +1917,35 @@ export default function App() {
   const [userTriggerMode, setUserTriggerMode] = useState("manual"); // "manual" or "automatic"
   const [deletedConnections, setDeletedConnections] = useState(new Set()); // Track manually deleted connections
 
+  // Fetch devices from backend on startup
+  useEffect(() => {
+    const fetchDevices = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/api/devices/equipment');
+        if (response.ok) {
+          const devices = await response.json();
+          if (devices.length > 0) {
+            const fetchedEquipment = devices.filter(d => d.type === 'equipment');
+            const fetchedSensors = devices.filter(d => d.type === 'sensor');
+
+            setSidebarSections(prev => prev.map(section => {
+              if (section.title === "Equipment List" && fetchedEquipment.length > 0) {
+                return { ...section, items: fetchedEquipment };
+              }
+              if (section.title === "Triggers" && fetchedSensors.length > 0) {
+                return { ...section, items: fetchedSensors };
+              }
+              return section;
+            }));
+          }
+        }
+      } catch (error) {
+        console.error("Failed to sync devices from backend:", error);
+      }
+    };
+    fetchDevices();
+  }, []);
+
   // Auto-connect newly added actions
   useEffect(() => {
     // Only process if actions count increased (new action added)
@@ -2005,14 +2036,14 @@ export default function App() {
       if (existingItem) {
         const typeName = itemType === "sensor" ? "Triggers" : "Conditions";
         setAlertMessage(
-          `The element "${item.label}" from ${typeName} has already been added to the canvas. Each ${typeName} element can only be added once.`
+          `The element "${item.label}" from ${typeName} has already been added to the canvas.Each ${typeName} element can only be added once.`
         );
         return;
       }
     }
 
     // Create new action
-    const newActionId = `action-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const newActionId = `action - ${Date.now()} -${Math.floor(Math.random() * 1000)} `;
     const newAction = {
       id: newActionId,
       label: item.label,
@@ -2128,7 +2159,7 @@ export default function App() {
         }
         setConnectingFrom(null);
       } else {
-        setAlertMessage(`Cannot connect ${fromAction.type || "user"} to ${toAction.type || "equipment"}`);
+        setAlertMessage(`Cannot connect ${fromAction.type || "user"} to ${toAction.type || "equipment"} `);
         setConnectingFrom(null);
       }
     } else {
@@ -2139,7 +2170,7 @@ export default function App() {
 
   const handleConnectionDelete = useCallback((fromId, toId) => {
     // Mark this connection as manually deleted
-    setDeletedConnections(prev => new Set([...prev, `${fromId}-${toId}`]));
+    setDeletedConnections(prev => new Set([...prev, `${fromId} -${toId} `]));
     // Remove the connection
     setConnections(prev => prev.filter(
       conn => !(conn.from === fromId && conn.to === toId)
@@ -2178,7 +2209,7 @@ export default function App() {
 
     // Helper function to check if connection was manually deleted
     const isDeleted = (fromId, toId) => {
-      return deletedConnections.has(`${fromId}-${toId}`);
+      return deletedConnections.has(`${fromId} -${toId} `);
     };
 
     // 1. Connect all sensors from USER_SOURCE
@@ -2322,7 +2353,7 @@ export default function App() {
     // Generate triggers from sensors (in the same order as displayed on canvas)
     const triggers = sensors.map((sensor) => ({
       type: "deviceState",
-      deviceId: `sensor_${sensor.label.toLowerCase().replace(/\s+/g, "_")}_01`,
+      deviceId: `sensor_${sensor.label.toLowerCase().replace(/\s+/g, "_")} _01`,
       capability: sensor.label.toLowerCase(),
       state: "detected",
     }));
@@ -2349,7 +2380,7 @@ export default function App() {
           type: "deviceState",
           deviceId: `sensor_temp_01`,
           capability: "temperature",
-          state: `>= ${tempValue}`,
+          state: `>= ${tempValue} `,
         };
       } else if (scene.label === "Humidity Threshold" || scene.label === "Humidity") {
         const humidityValue = scene.humidityValue ?? 60;
@@ -2357,12 +2388,12 @@ export default function App() {
           type: "deviceState",
           deviceId: `sensor_humidity_01`,
           capability: "humidity",
-          state: `>= ${humidityValue}`,
+          state: `>= ${humidityValue} `,
         };
       }
       return {
         type: "deviceState",
-        deviceId: `sensor_${scene.label.toLowerCase().replace(/\s+/g, "_")}_01`,
+        deviceId: `sensor_${scene.label.toLowerCase().replace(/\s+/g, "_")} _01`,
         capability: scene.label.toLowerCase(),
         state: "active",
       };
@@ -2371,7 +2402,7 @@ export default function App() {
     // Generate actions from equipment (in the same order as displayed on canvas)
     const actionsList = equipment.map((eq) => ({
       type: "deviceCommand",
-      deviceId: `device_${eq.label.toLowerCase().replace(/\s+/g, "_")}_01`,
+      deviceId: `device_${eq.label.toLowerCase().replace(/\s+/g, "_")} _01`,
       capability: eq.label.toLowerCase().includes("light") || eq.label.toLowerCase().includes("lamp") || eq.label.toLowerCase().includes("ceiling")
         ? "onOff"
         : eq.label.toLowerCase().includes("conditioner")
@@ -2381,8 +2412,8 @@ export default function App() {
     }));
 
     const automationId = automationName
-      ? `auto_${automationName.toLowerCase().replace(/\s+/g, "_")}`
-      : `auto_${Date.now()}`;
+      ? `auto_${automationName.toLowerCase().replace(/\s+/g, "_")} `
+      : `auto_${Date.now()} `;
 
     return {
       automationId,
@@ -2510,7 +2541,7 @@ export default function App() {
           });
 
           if (sensorItem) {
-            const actionId = `imported-sensor-${idx}-${Date.now()}`;
+            const actionId = `imported - sensor - ${idx} -${Date.now()} `;
             const sensorAction = {
               id: actionId,
               label: sensorItem.label,
@@ -2542,7 +2573,7 @@ export default function App() {
           const timeItem = sceneSection?.items.find(item => item.label === "Time");
 
           if (timeItem) {
-            const actionId = `imported-scene-time-${idx}-${Date.now()}`;
+            const actionId = `imported - scene - time - ${idx} -${Date.now()} `;
             // Check if it's a time range (has both after and before) or fixed time
             if (condition.after && condition.before) {
               importedActions.push({
@@ -2590,7 +2621,7 @@ export default function App() {
             ) || sceneSection?.items.find(item => item.label === sceneLabel);
 
             if (sceneItem) {
-              const actionId = `imported-scene-${sceneLabel.toLowerCase().replace(/\s+/g, '-')}-${idx}-${Date.now()}`;
+              const actionId = `imported - scene - ${sceneLabel.toLowerCase().replace(/\s+/g, '-')} -${idx} -${Date.now()} `;
               importedActions.push({
                 id: actionId,
                 label: sceneItem.label, // Use the actual item label from sidebar
@@ -2630,7 +2661,7 @@ export default function App() {
           });
 
           if (equipmentItem) {
-            const actionId = `imported-equipment-${idx}-${Date.now()}`;
+            const actionId = `imported - equipment - ${idx} -${Date.now()} `;
             importedActions.push({
               id: actionId,
               label: equipmentItem.label,
@@ -2777,7 +2808,7 @@ export default function App() {
     try {
       const scenes = loadScenesFromStorage();
       const sceneData = {
-        id: json.automationId || `scene_${Date.now()}`,
+        id: json.automationId || `scene_${Date.now()} `,
         name: json.name || "Untitled Automation",
         description: json.description || `Automation with ${json.triggers?.length || 0} trigger(s), ${json.conditions?.length || 0} condition(s), and ${json.actions?.length || 0} action(s)`,
         icon: "🎯",
@@ -2831,7 +2862,10 @@ export default function App() {
         <ScenesList
           onSelectScene={handleSelectScene}
           onCreateNew={handleCreateNewScene}
+          onViewDevices={() => setCurrentPage("devices")}
         />
+      ) : currentPage === "devices" ? (
+        <DeviceList onBack={() => setCurrentPage("scenes")} />
       ) : (
         <>
           <Header
@@ -2893,7 +2927,7 @@ export default function App() {
               const requiredFields = ['automationId', 'name', 'triggers', 'conditions', 'actions'];
               const missingFields = requiredFields.filter(field => !(field in jsonContent));
               if (missingFields.length > 0) {
-                validationError = `Invalid JSON format: Missing required fields: ${missingFields.join(', ')}`;
+                validationError = `Invalid JSON format: Missing required fields: ${missingFields.join(', ')} `;
               } else {
                 // Validate field types
                 if (typeof jsonContent.automationId !== 'string') {
@@ -3039,7 +3073,7 @@ export default function App() {
                   });
 
                   if (sensorItem) {
-                    const actionId = `imported-sensor-${idx}-${Date.now()}`;
+                    const actionId = `imported - sensor - ${idx} -${Date.now()} `;
                     actionIdMap.set(trigger.deviceId, actionId);
                     importedActions.push({
                       id: actionId,
@@ -3061,7 +3095,7 @@ export default function App() {
                   const timeItem = sceneSection?.items.find(item => item.label === "Time");
 
                   if (timeItem) {
-                    const actionId = `imported-scene-time-${idx}-${Date.now()}`;
+                    const actionId = `imported - scene - time - ${idx} -${Date.now()} `;
                     importedActions.push({
                       id: actionId,
                       label: 'Time',
@@ -3095,7 +3129,7 @@ export default function App() {
                     ) || sceneSection?.items.find(item => item.label === sceneLabel);
 
                     if (sceneItem) {
-                      const actionId = `imported-scene-${sceneLabel.toLowerCase().replace(/\s+/g, '-')}-${idx}-${Date.now()}`;
+                      const actionId = `imported - scene - ${sceneLabel.toLowerCase().replace(/\s+/g, '-')} -${idx} -${Date.now()} `;
                       importedActions.push({
                         id: actionId,
                         label: sceneItem.label, // Use the actual item label from sidebar
@@ -3135,7 +3169,7 @@ export default function App() {
                   });
 
                   if (equipmentItem) {
-                    const actionId = `imported-equipment-${idx}-${Date.now()}`;
+                    const actionId = `imported - equipment - ${idx} -${Date.now()} `;
                     importedActions.push({
                       id: actionId,
                       label: equipmentItem.label,
@@ -3155,7 +3189,7 @@ export default function App() {
             if (jsonContent.name) {
               setAutomationName(jsonContent.name);
             }
-            setAlertMessage(`Successfully imported automation: ${jsonContent.name || 'Untitled'}`);
+            setAlertMessage(`Successfully imported automation: ${jsonContent.name || 'Untitled'} `);
             setPreviewJson(null);
             setImportJson(null);
           } : undefined}

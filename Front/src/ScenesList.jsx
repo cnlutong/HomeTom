@@ -352,7 +352,7 @@ const fetchWeatherData = async () => {
   }
 };
 
-function ScenesList({ onSelectScene, onCreateNew }) {
+function ScenesList({ onSelectScene, onCreateNew, onViewDevices }) {
   const [scenes, setScenes] = useState([]);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [environmentData, setEnvironmentData] = useState({
@@ -400,9 +400,21 @@ function ScenesList({ onSelectScene, onCreateNew }) {
         location: weatherData.location || "Unknown Location"
       });
 
+      // Fetch total devices from backend
+      let totalCount = 5;
+      try {
+        const devResponse = await fetch('http://localhost:8000/api/devices/equipment');
+        if (devResponse.ok) {
+          const devices = await devResponse.json();
+          totalCount = devices.length;
+        }
+      } catch (err) {
+        console.error("Failed to fetch total count from backend:", err);
+      }
+
       setActiveDevices({
         active: active,
-        total: 5
+        total: totalCount
       });
     };
 
@@ -519,11 +531,15 @@ function ScenesList({ onSelectScene, onCreateNew }) {
             <div className="summary-card-value">{totalScenes}</div>
           </div>
         </div>
-        <div className="summary-card">
+        <div
+          className="summary-card clickable"
+          onClick={onViewDevices}
+          title="View all device details"
+        >
           <div className="summary-card-icon">⚡</div>
           <div className="summary-card-content">
             <div className="summary-card-title">Active Devices</div>
-            <div className="summary-card-value">{activeDevices.active}/{activeDevices.total}</div>
+            <div className="summary-card-value font-bold">{activeDevices.active}/{activeDevices.total}</div>
           </div>
         </div>
         <div className="summary-card">

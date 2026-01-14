@@ -200,3 +200,54 @@ class DeviceService:
             raise ValueError(f"设备不存在: {device_id}")
         
         await self._device_repository.delete(device_id)
+
+    async def sync_devices_from_hardware(
+        self,
+        adapter_type: str,
+        hardware_registry: Any
+    ) -> List[str]:
+        """从硬件适配器同步全部设备
+        
+        获取外部系统的所有实体，并将其注册到本地数据库（如果尚未存在）。
+        
+        Args:
+            adapter_type: 适配器类型（如 "homeassistant"）
+            hardware_registry: 硬件客户端注册表实例
+            
+        Returns:
+            新注册的设备ID列表
+        """
+        try:
+            client = hardware_registry.get_client_or_raise(adapter_type)
+            response = await client.get_all_states()
+            
+            if not response.success:
+                print(f"[{adapter_type}] 获取状态失败: {response.message}")
+                return []
+            
+            new_device_ids = []
+            skipped_count = 0
+            states = response.data.get("states", [])
+            
+            for state in states:
+                # 检查是否已存在
+                existing = await self._device_repository.find_by_entity_id(state.entity_id)
+                if not existing:
+                    # 获取友好名称，如果没有则使用 entity_id
+                    friendly_name = state.attributes.get("friendly_name") or state.entity_id
+                    
+                    # 注册新设备
+                    device_id = await self.register_device(
+                        entity_id=state.entity_id,
+                        name=friendly_name,
+                        adapter_type=adapter_type
+                    )
+                    new_device_ids.append(device_id)
+                else:
+                    skipped_count += 1
+            
+            print(f"[{adapter_type}] 设备同步完成: 新增 {len(new_device_ids)} 个，跳过 {skipped_count} 个已存在设备。")
+            return new_device_ids
+        except Exception as e:
+            print(f"[{adapter_type}] 同步设备失败: {e}")
+            return []

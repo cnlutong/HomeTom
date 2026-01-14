@@ -4200,3 +4200,24 @@ body,
   min-width: 60px;
   text-align: center;
 }
+
+.summary-card.clickable {
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.summary-card.clickable:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  background-color: #f8fafc;
+}
+
+.summary-card.clickable:active {
+  transform: translateY(-2px);
+  background-color: #f1f5f9;
+}
+
+.font-bold {
+  font-weight: 700;
+}
+

@@ -97,14 +97,23 @@ _engine: Optional[AsyncEngine] = None
 _session_factory: Optional[async_sessionmaker[AsyncSession]] = None
 
 
-async def init_database(config: DatabaseConfig) -> None:
+async def init_database(config: Optional[DatabaseConfig] = None) -> None:
     """初始化数据库连接
     
-    应在应用启动时调用
+    应在应用启动时调用。如果未提供 config，则默认使用 SQLite。
     """
     global _engine, _session_factory
+    if config is None:
+        config = DatabaseConfig.sqlite()
     _engine = create_async_engine(config)
     _session_factory = get_session_factory(_engine)
+
+
+def get_current_session_factory() -> async_sessionmaker[AsyncSession]:
+    """导出全局会话工厂"""
+    if _session_factory is None:
+        raise RuntimeError("数据库未初始化，请先调用 init_database()")
+    return _session_factory
 
 
 async def close_database() -> None:
