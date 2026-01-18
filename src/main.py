@@ -2,15 +2,31 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.api.routers import device_router
+from src.api.routers import device_router, scene_router
 from src.infrastructure.persistence.database import init_database, create_all_tables
 
 app = FastAPI(title="HomeTom API", version="1.0.0")
 
-# 配置 CORS，允许前端开发服务器跨域访问
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 开发阶段允许所有源，生产环境应限制
+    allow_origins=[
+        "http://localhost:8080",
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "http://localhost:5175",
+        "http://localhost:5176",
+        "http://localhost:5177",
+        "http://localhost:5178",
+        "http://localhost:5179",
+        "http://127.0.0.1:8080",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:5174",
+        "http://127.0.0.1:5175",
+        "http://127.0.0.1:5176",
+        "http://127.0.0.1:5177",
+        "http://127.0.0.1:5178",
+        "http://127.0.0.1:5179",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -18,6 +34,7 @@ app.add_middleware(
 
 # 注册路由
 app.include_router(device_router.router)
+app.include_router(scene_router.router)
 
 @app.on_event("startup")
 async def startup_event():
@@ -35,6 +52,76 @@ async def startup_event():
     await init_database(config)
     await create_all_tables()
     await sync_initial_devices()
+    await sync_initial_scenes()
+
+async def sync_initial_scenes():
+    """初始化样板场景"""
+    from src.infrastructure.persistence.database import get_current_session_factory
+    from src.infrastructure.persistence.repositories.scene_repository_impl import SceneRepositoryImpl
+    from src.infrastructure.persistence.repositories.device_repository_impl import DeviceRepositoryImpl
+    from src.domain.Scene.aggregates.scene_aggregate import SceneAggregate, SceneStatus
+    from src.domain.Scene.value_objects.scene_definition import SceneDefinition
+    from src.domain.Scene.value_objects.trigger import Trigger, TriggerType
+    from src.domain.Scene.value_objects.action import Action, ActionType
+    from src.domain.Scene.value_objects.condition import Condition
+
+    session_factory = get_current_session_factory()
+    async with session_factory() as session:
+        scene_repo = SceneRepositoryImpl(session)
+        device_repo = DeviceRepositoryImpl(session)
+        
+        # 检查是否已有场景
+        existing_scenes = await scene_repo.find_all()
+        if existing_scenes:
+            print(f"Database already has {len(existing_scenes)} scenes. Skipping seed.")
+            return
+
+        print("Seeding sample scene...")
+        
+        # 获取一些设备用于样板
+        devices = await device_repo.find_all()
+        if not devices:
+            print("No devices found. Cannot seed scene.")
+            return
+
+        # 找到一个灯和一个传感器（如果有）
+        light = next((d for d in devices if "light" in d.entity_id), devices[0])
+        sensor = next((d for d in devices if "sensor" in d.entity_id or "binary_sensor" in d.entity_id), devices[0])
+
+        # 创建样板场景：当传感器检测到动作时，打开灯
+        trigger = Trigger(
+            type=TriggerType.DEVICE_EVENT,
+            config={
+                "entity_id": sensor.entity_id,
+                "event_type": "state_changed",
+                "to_state": "on"
+            }
+        )
+        
+        action = Action(
+            type=ActionType.DEVICE_CONTROL,
+            target=light.entity_id,
+            command="turn_on",
+            parameters={"brightness": 255}
+        )
+        
+        definition = SceneDefinition(
+            triggers=[trigger],
+            actions=[action],
+            conditions=[]
+        )
+        
+        scene = SceneAggregate(
+            scene_id="sample-scene-001",
+            name="Sample: Light on Motion",
+            description="Automatically turn on the light when motion is detected.",
+            status=SceneStatus.PUBLISHED,
+            definition=definition
+        )
+        
+        await scene_repo.save(scene)
+        await session.commit()
+        print("Sample scene seeded successfully.")
 
 async def sync_initial_devices():
     """从模拟 HASS 服务器同步初始设备"""

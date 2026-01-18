@@ -28,6 +28,7 @@ class SceneAggregate:
         description: Optional[str] = None,
         status: SceneStatus = SceneStatus.DRAFT,
         definition: Optional[SceneDefinition] = None,
+        ui_metadata: Optional[dict] = None,
         created_at: Optional[datetime] = None,
         updated_at: Optional[datetime] = None
     ):
@@ -52,6 +53,7 @@ class SceneAggregate:
         self._description = description
         self._status = status
         self._definition = definition
+        self._ui_metadata = ui_metadata
         self._created_at = created_at or datetime.utcnow()
         self._updated_at = updated_at or datetime.utcnow()
         
@@ -82,6 +84,11 @@ class SceneAggregate:
     def definition(self) -> Optional[SceneDefinition]:
         """获取场景定义"""
         return self._definition
+    
+    @property
+    def ui_metadata(self) -> Optional[dict]:
+        """获取UI元数据"""
+        return self._ui_metadata
     
     @property
     def created_at(self) -> datetime:
@@ -115,6 +122,11 @@ class SceneAggregate:
             raise ValueError("场景定义不能为空")
         
         self._definition = definition
+        self._updated_at = datetime.utcnow()
+        
+    def update_ui_metadata(self, ui_metadata: Optional[dict]) -> None:
+        """更新UI元数据"""
+        self._ui_metadata = ui_metadata
         self._updated_at = datetime.utcnow()
     
     def publish(self) -> None:
@@ -156,6 +168,22 @@ class SceneAggregate:
             occurred_at=datetime.utcnow()
         )
         self._add_domain_event(event)
+    
+    def enable(self) -> None:
+        """启用场景（从禁用状态恢复到草稿）"""
+        if self._status != SceneStatus.DISABLED:
+            return
+        
+        self._status = SceneStatus.DRAFT
+        self._updated_at = datetime.utcnow()
+        
+    def revert_to_draft(self) -> None:
+        """将场景设回草稿状态（从发布状态撤回）"""
+        if self._status != SceneStatus.PUBLISHED:
+            return
+            
+        self._status = SceneStatus.DRAFT
+        self._updated_at = datetime.utcnow()
     
     def get_domain_events(self) -> List[object]:
         """获取领域事件列表"""

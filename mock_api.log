@@ -1,0 +1,12 @@
+INFO:     Will watch for changes in these directories: ['/Users/tong/Desktop/code/HomeTom']
+INFO:     Uvicorn running on http://127.0.0.1:8123 (Press CTRL+C to quit)
+INFO:     Started reloader process [49066] using StatReload
+INFO:     Started server process [49069]
+INFO:     Waiting for application startup.
+23:45:11 | INFO     | 📂 从 JSON 文件加载了 54 个设备
+23:45:11 | INFO     | 🚀 Home Assistant 测试服务器启动
+23:45:11 | INFO     | 📖 Swagger 文档: http://localhost:8123/docs
+23:45:11 | INFO     | 🏠 已加载 54 个设备 (JSON 持久化)
+INFO:     Application startup complete.
+23:45:17 | INFO     | ✅ GET    /api/states                                        200 (3ms)
+INFO:     127.0.0.1:57186 - "GET /api/states HTTP/1.1" 200 OK

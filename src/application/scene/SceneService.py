@@ -40,7 +40,8 @@ class SceneService:
     async def create_scene(
         self,
         name: str,
-        description: Optional[str] = None
+        description: Optional[str] = None,
+        **kwargs
     ) -> str:
         """创建场景（草稿状态）
         
@@ -61,6 +62,11 @@ class SceneService:
             description=description
         )
         
+        # 如果有 UI 元数据，则更新
+        ui_metadata = kwargs.get("ui_metadata")
+        if ui_metadata:
+            scene.update_ui_metadata(ui_metadata)
+        
         # 持久化场景
         await self._scene_repository.save(scene)
         
@@ -70,7 +76,8 @@ class SceneService:
         self,
         scene_id: str,
         name: Optional[str] = None,
-        description: Optional[str] = None
+        description: Optional[str] = None,
+        **kwargs
     ) -> None:
         """更新场景基本信息
         
@@ -137,6 +144,19 @@ class SceneService:
         
         return []
     
+    async def update_ui_metadata(
+        self,
+        scene_id: str,
+        ui_metadata: Optional[dict]
+    ) -> None:
+        """更新场景 UI 元数据"""
+        scene = await self._scene_repository.find_by_id(scene_id)
+        if not scene:
+            raise ValueError(f"场景不存在: {scene_id}")
+            
+        scene.update_ui_metadata(ui_metadata)
+        await self._scene_repository.save(scene)
+    
     async def publish_scene(self, scene_id: str) -> List[str]:
         """发布场景
         
@@ -197,6 +217,26 @@ class SceneService:
         events = scene.get_domain_events()
         await self._event_bus.publish_all(events)
         scene.clear_domain_events()
+
+    async def enable_scene(self, scene_id: str) -> None:
+        """启用场景（回到草稿状态）"""
+        scene = await self._scene_repository.find_by_id(scene_id)
+        if not scene:
+            raise ValueError(f"场景不存在: {scene_id}")
+        
+        scene.enable()
+        await self._scene_repository.save(scene)
+        
+        # 目前 enable 没有专门的领域事件，如果需要可在此添加
+        
+    async def revert_to_draft(self, scene_id: str) -> None:
+        """从发布状态撤回到草稿"""
+        scene = await self._scene_repository.find_by_id(scene_id)
+        if not scene:
+            raise ValueError(f"场景不存在: {scene_id}")
+            
+        scene.revert_to_draft()
+        await self._scene_repository.save(scene)
     
     async def get_scene(self, scene_id: str) -> Optional[SceneAggregate]:
         """获取场景详情

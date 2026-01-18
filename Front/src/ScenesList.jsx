@@ -1,64 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { Layers, Clock, Server, MapPin, Activity, CloudSun, Plus } from 'lucide-react';
-
-// home1 scene data
-const getHome1Scene = () => {
-  const home1Data = {
-    automationId: "auto_home1",
-    name: "home1",
-    description: "Automation with 2 trigger(s), 2 condition(s), and 1 action(s)",
-    isEnabled: true,
-    triggers: [
-      {
-        type: "deviceState",
-        deviceId: "sensor_temp_01",
-        capability: "temp",
-        state: "detected"
-      },
-      {
-        type: "deviceState",
-        deviceId: "sensor_motion_01",
-        capability: "motion",
-        state: "detected"
-      }
-    ],
-    conditions: [
-      {
-        type: "time",
-        time: "17:00"
-      },
-      {
-        type: "deviceState",
-        deviceId: "sensor_temp_01",
-        capability: "temperature",
-        state: ">= 30"
-      }
-    ],
-    actions: [
-      {
-        type: "deviceCommand",
-        deviceId: "device_lamp_01",
-        capability: "onOff",
-        value: true
-      }
-    ]
-  };
-
-  return {
-    id: home1Data.automationId,
-    name: "Welcome Home",
-    description: "Automation with 2 trigger(s), 2 condition(s), and 1 action(s)",
-    icon: "🏠",
-    isEnabled: true,
-    triggerCount: home1Data.triggers.length,
-    conditionCount: home1Data.conditions.length,
-    actionCount: home1Data.actions.length,
-    nodeCount: 3,
-    activeCount: 1,
-    createdAt: new Date().toISOString(),
-    automationData: home1Data,
-  };
-};
+import {
+  Layers,
+  Clock,
+  Server,
+  MapPin,
+  Activity,
+  CloudSun,
+  Plus,
+  Edit2,
+  Trash2,
+  Power,
+  CheckCircle,
+  FileText,
+  MoreVertical,
+  Zap
+} from 'lucide-react';
 
 // Helper function to translate Chinese scene names to English
 const translateSceneName = (name) => {
@@ -90,48 +46,35 @@ const translateSceneName = (name) => {
   return name;
 };
 
-// Load scene data from localStorage
-const loadScenesFromStorage = () => {
+// Load scene data from backend API and localStorage
+const loadScenesFromStorage = async () => {
   try {
+    // Fetch from backend API
+    const response = await fetch('http://localhost:8000/api/scenes');
+    if (response.ok) {
+      const backendScenes = await response.json();
+      if (backendScenes && backendScenes.length > 0) {
+        // Map backend scenes to frontend format
+        return backendScenes.map(scene => ({
+          ...scene,
+          name: translateSceneName(scene.name)
+        }));
+      }
+    }
+
+    // Fallback to localStorage if backend is empty or unavailable
     const saved = localStorage.getItem("smart-home-scenes");
     if (saved) {
       const scenes = JSON.parse(saved);
-      // Update scene names to English if they contain Chinese
-      const updatedScenes = scenes.map(scene => ({
+      return scenes.map(scene => ({
         ...scene,
         name: translateSceneName(scene.name)
       }));
-
-      // Save updated scenes back to localStorage
-      if (scenes.some((scene, idx) => scene.name !== updatedScenes[idx].name)) {
-        localStorage.setItem("smart-home-scenes", JSON.stringify(updatedScenes));
-      }
-
-      const hasHome1 = updatedScenes.some(scene => scene.id === "auto_home1");
-      if (!hasHome1) {
-        return [getHome1Scene(), ...updatedScenes];
-      }
-      return updatedScenes;
     }
   } catch (error) {
-    console.error("Failed to load scenes from localStorage:", error);
+    console.error("Failed to load scenes:", error);
   }
-  return [
-    getHome1Scene(),
-    {
-      id: "scene_002",
-      name: "Movie Night",
-      description: "Dim lights and close curtains",
-      icon: "🎬",
-      isEnabled: true,
-      triggerCount: 1,
-      conditionCount: 1,
-      actionCount: 2,
-      nodeCount: 2,
-      activeCount: 2,
-      createdAt: "2024-01-01T18:00:00Z",
-    },
-  ];
+  return []; // Return empty list instead of hardcoded data
 };
 
 const saveScenesToStorage = (scenes) => {
@@ -352,7 +295,7 @@ const fetchWeatherData = async () => {
   }
 };
 
-function ScenesList({ onSelectScene, onCreateNew, onViewDevices }) {
+function ScenesList({ onSelectScene, onCreateNew, onViewDevices, onUpdateSceneStatus, onDeleteScene }) {
   const [scenes, setScenes] = useState([]);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [environmentData, setEnvironmentData] = useState({
@@ -365,8 +308,13 @@ function ScenesList({ onSelectScene, onCreateNew, onViewDevices }) {
   const [activeDevices, setActiveDevices] = useState({ active: 3, total: 5 });
 
   useEffect(() => {
-    const loadedScenes = loadScenesFromStorage();
-    setScenes(loadedScenes);
+    const loadData = async () => {
+      const loadedScenes = await loadScenesFromStorage();
+      if (loadedScenes) {
+        setScenes(loadedScenes);
+      }
+    };
+    loadData();
   }, []);
 
   useEffect(() => {
@@ -437,23 +385,42 @@ function ScenesList({ onSelectScene, onCreateNew, onViewDevices }) {
 
   const totalScenes = scenes.length;
 
-  const handleToggleEnabled = (sceneId) => {
-    setScenes((prev) => {
-      const updated = prev.map((scene) =>
-        scene.id === sceneId ? { ...scene, isEnabled: !scene.isEnabled } : scene
-      );
-      saveScenesToStorage(updated);
-      return updated;
-    });
+  const handleStatusChange = async (sceneId, newStatus) => {
+    if (onUpdateSceneStatus) {
+      const success = await onUpdateSceneStatus(sceneId, newStatus);
+      if (success) {
+        // Refresh scenes list
+        const loadedScenes = await loadScenesFromStorage();
+        if (loadedScenes) {
+          setScenes(loadedScenes);
+        }
+      }
+    }
   };
 
-  const handleDeleteScene = (sceneId) => {
-    if (window.confirm("Are you sure you want to delete this scene?")) {
-      setScenes((prev) => {
-        const updated = prev.filter((scene) => scene.id !== sceneId);
-        saveScenesToStorage(updated);
-        return updated;
-      });
+  const handleToggleEnabled = async (sceneId, currentStatus) => {
+    const nextStatus = currentStatus === "published" ? "disabled" : "published";
+    await handleStatusChange(sceneId, nextStatus);
+  };
+
+  const handleDeleteScene = async (sceneId) => {
+    if (onDeleteScene) {
+      const success = await onDeleteScene(sceneId);
+      if (success) {
+        setScenes((prev) => {
+          const updated = prev.filter((scene) => scene.id !== sceneId);
+          return updated;
+        });
+      }
+    } else {
+      // Fallback for local-only deletion if no prop provided
+      if (window.confirm("Are you sure you want to delete this scene?")) {
+        setScenes((prev) => {
+          const updated = prev.filter((scene) => scene.id !== sceneId);
+          saveScenesToStorage(updated);
+          return updated;
+        });
+      }
     }
   };
 
@@ -472,9 +439,10 @@ function ScenesList({ onSelectScene, onCreateNew, onViewDevices }) {
     return icons;
   };
 
-  // Separate scenes into active and disabled
-  const activeScenes = scenes.filter(scene => scene.isEnabled);
-  const disabledScenes = scenes.filter(scene => !scene.isEnabled);
+  // Group scenes by status
+  const activeScenes = scenes.filter(scene => scene.status === "published");
+  const disabledScenes = scenes.filter(scene => scene.status === "disabled");
+  const draftScenes = scenes.filter(scene => scene.status === "draft" || !scene.status);
 
   return (
     <div className="scenes-dashboard">
@@ -577,7 +545,7 @@ function ScenesList({ onSelectScene, onCreateNew, onViewDevices }) {
             <div className="scenarios-section">
               <div className="scenarios-section-header">
                 <span className="section-dot section-dot-active"></span>
-                <h3 className="scenarios-section-title">ACTIVE SCENARIOS</h3>
+                <h3 className="scenarios-section-title">已启动场景</h3>
               </div>
               <div className="scenarios-grid">
                 {activeScenes.map((scene) => (
@@ -586,50 +554,146 @@ function ScenesList({ onSelectScene, onCreateNew, onViewDevices }) {
                     className="scenario-card scenario-card-active"
                     onClick={() => onSelectScene && onSelectScene(scene)}
                   >
-                    <button
-                      className="scenario-delete-icon-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteScene(scene.id);
-                      }}
-                      onMouseDown={(e) => {
-                        e.currentTarget.classList.add('scenario-delete-active');
-                      }}
-                      onMouseUp={(e) => {
-                        e.currentTarget.classList.remove('scenario-delete-active');
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.classList.remove('scenario-delete-active');
-                      }}
-                      title="Delete scenario"
-                    >
-                      <svg width="14" height="16" viewBox="0 0 14 16" fill="none">
-                        <path d="M1 4H13M11 4V13C11 13.5304 10.7893 14.0391 10.4142 14.4142C10.0391 14.7893 9.53043 15 9 15H5C4.46957 15 3.96086 14.7893 3.58579 14.4142C3.21071 14.0391 3 13.5304 3 13V4M5 4V2C5 1.46957 5.21071 0.96086 5.58579 0.585786C5.96086 0.210714 6.46957 0 7 0C7.53043 0 8.03914 0.210714 8.41421 0.585786C8.78929 0.96086 9 1.46957 9 2V4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                        <path d="M6 7V12M8 7V12" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
-                      </svg>
-                    </button>
-                    <div className="scenario-card-header">
-                      <h4 className="scenario-card-title">{scene.name}</h4>
-                      <div className="scenario-card-meta">
-                        {scene.nodeCount || (scene.triggerCount + scene.conditionCount + scene.actionCount)} Nodes · {scene.triggerCount + scene.conditionCount + scene.actionCount} Connections
-                      </div>
-                    </div>
-                    <div className="scenario-card-footer">
-                      <div className="scenario-card-icons">
-                        {getNodeIcons(scene).map((icon, idx) => (
-                          <span key={idx} className="scenario-icon-badge">{icon}</span>
-                        ))}
-                      </div>
+                    <div className="scenario-card-glow"></div>
+                    <div className="scenario-card-actions">
                       <button
-                        className={`scenario-toggle-btn scenario-toggle-active`}
+                        className="scenario-action-icon-btn edit-btn"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleToggleEnabled(scene.id);
+                          onSelectScene && onSelectScene(scene);
                         }}
+                        title="Edit scenario"
                       >
-                        <span className="toggle-icon">🔌</span>
-                        <span className="toggle-text">ON</span>
+                        <Edit2 size={14} />
                       </button>
+                      <button
+                        className="scenario-action-icon-btn delete-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteScene(scene.id);
+                        }}
+                        title="Delete scenario"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+
+                    <div className="scenario-card-body no-icon">
+                      <div className="scenario-card-info">
+                        <h4 className="scenario-card-title">{scene.name}</h4>
+                        <div className="scenario-card-stats">
+                          <span className="stat-item">
+                            {scene.nodeCount || 0} 节点
+                          </span>
+                          <span className="stat-divider"></span>
+                          <span className="stat-item">
+                            {scene.activeCount || 0} 运行中
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="scenario-card-footer">
+                      <div className="scenario-card-button-group">
+                        <button className="card-btn btn-active" disabled>已启动</button>
+                        <button
+                          className="card-btn btn-secondary"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStatusChange(scene.id, "disabled");
+                          }}
+                        >
+                          禁用
+                        </button>
+                        <button
+                          className="card-btn btn-secondary"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStatusChange(scene.id, "draft");
+                          }}
+                        >
+                          转为草稿
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Draft Scenarios */}
+          {draftScenes.length > 0 && (
+            <div className="scenarios-section">
+              <div className="scenarios-section-header">
+                <span className="section-dot section-dot-draft"></span>
+                <h3 className="scenarios-section-title">草稿场景</h3>
+              </div>
+              <div className="scenarios-grid">
+                {draftScenes.map((scene) => (
+                  <div
+                    key={scene.id}
+                    className="scenario-card scenario-card-draft"
+                    onClick={() => onSelectScene && onSelectScene(scene)}
+                  >
+                    <div className="scenario-card-actions">
+                      <button
+                        className="scenario-action-icon-btn edit-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSelectScene && onSelectScene(scene);
+                        }}
+                        title="Edit scenario"
+                      >
+                        <Edit2 size={14} />
+                      </button>
+                      <button
+                        className="scenario-action-icon-btn delete-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteScene(scene.id);
+                        }}
+                        title="Delete draft"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+
+                    <div className="scenario-card-body no-icon">
+                      <div className="scenario-card-info">
+                        <h4 className="scenario-card-title">{scene.name}</h4>
+                        <div className="scenario-card-stats">
+                          <span className="stat-item">
+                            {scene.nodeCount || 0} 节点
+                          </span>
+                          <span className="stat-divider"></span>
+                          <span className="stat-item draft-badge">草稿箱</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="scenario-card-footer">
+                      <div className="scenario-card-button-group">
+                        <button className="card-btn btn-draft" disabled>草稿箱</button>
+                        <button
+                          className="card-btn btn-primary"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStatusChange(scene.id, "published");
+                          }}
+                        >
+                          启动
+                        </button>
+                        <button
+                          className="card-btn btn-secondary"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStatusChange(scene.id, "disabled");
+                          }}
+                        >
+                          禁用
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -642,7 +706,7 @@ function ScenesList({ onSelectScene, onCreateNew, onViewDevices }) {
             <div className="scenarios-section">
               <div className="scenarios-section-header">
                 <span className="section-dot section-dot-disabled"></span>
-                <h3 className="scenarios-section-title">DISABLED SCENARIOS</h3>
+                <h3 className="scenarios-section-title">已禁用场景</h3>
               </div>
               <div className="scenarios-grid">
                 {disabledScenes.map((scene) => (
@@ -651,50 +715,64 @@ function ScenesList({ onSelectScene, onCreateNew, onViewDevices }) {
                     className="scenario-card scenario-card-disabled"
                     onClick={() => onSelectScene && onSelectScene(scene)}
                   >
-                    <button
-                      className="scenario-delete-icon-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteScene(scene.id);
-                      }}
-                      onMouseDown={(e) => {
-                        e.currentTarget.classList.add('scenario-delete-active');
-                      }}
-                      onMouseUp={(e) => {
-                        e.currentTarget.classList.remove('scenario-delete-active');
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.classList.remove('scenario-delete-active');
-                      }}
-                      title="Delete scenario"
-                    >
-                      <svg width="14" height="16" viewBox="0 0 14 16" fill="none">
-                        <path d="M1 4H13M11 4V13C11 13.5304 10.7893 14.0391 10.4142 14.4142C10.0391 14.7893 9.53043 15 9 15H5C4.46957 15 3.96086 14.7893 3.58579 14.4142C3.21071 14.0391 3 13.5304 3 13V4M5 4V2C5 1.46957 5.21071 0.96086 5.58579 0.585786C5.96086 0.210714 6.46957 0 7 0C7.53043 0 8.03914 0.210714 8.41421 0.585786C8.78929 0.96086 9 1.46957 9 2V4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                        <path d="M6 7V12M8 7V12" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
-                      </svg>
-                    </button>
-                    <div className="scenario-card-header">
-                      <h4 className="scenario-card-title">{scene.name}</h4>
-                      <div className="scenario-card-meta">
-                        {scene.nodeCount || (scene.triggerCount + scene.conditionCount + scene.actionCount)} Nodes · {scene.triggerCount + scene.conditionCount + scene.actionCount} Connections
-                      </div>
-                    </div>
-                    <div className="scenario-card-footer">
-                      <div className="scenario-card-icons">
-                        {getNodeIcons(scene).map((icon, idx) => (
-                          <span key={idx} className="scenario-icon-badge scenario-icon-disabled">{icon}</span>
-                        ))}
-                      </div>
+                    <div className="scenario-card-actions">
                       <button
-                        className={`scenario-toggle-btn scenario-toggle-disabled`}
+                        className="scenario-action-icon-btn edit-btn"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleToggleEnabled(scene.id);
+                          onSelectScene && onSelectScene(scene);
                         }}
+                        title="Edit scenario"
                       >
-                        <span className="toggle-icon">⭕</span>
-                        <span className="toggle-text">OFF</span>
+                        <Edit2 size={14} />
                       </button>
+                      <button
+                        className="scenario-action-icon-btn delete-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteScene(scene.id);
+                        }}
+                        title="Delete scenario"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+
+                    <div className="scenario-card-body no-icon">
+                      <div className="scenario-card-info">
+                        <h4 className="scenario-card-title">{scene.name}</h4>
+                        <div className="scenario-card-stats">
+                          <span className="stat-item">
+                            {scene.nodeCount || 0} 节点
+                          </span>
+                          <span className="stat-divider"></span>
+                          <span className="stat-item disabled-badge">已禁用</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="scenario-card-footer">
+                      <div className="scenario-card-button-group">
+                        <button className="card-btn btn-disabled" disabled>已禁用</button>
+                        <button
+                          className="card-btn btn-primary"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStatusChange(scene.id, "published");
+                          }}
+                        >
+                          启用
+                        </button>
+                        <button
+                          className="card-btn btn-secondary"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStatusChange(scene.id, "draft");
+                          }}
+                        >
+                          草稿
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}

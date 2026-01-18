@@ -33,6 +33,7 @@ class SceneMapper:
             description=aggregate.description,
             status=aggregate.status.value,
             definition=definition_data,
+            ui_metadata=aggregate.ui_metadata,
             created_at=aggregate.created_at,
             updated_at=aggregate.updated_at,
         )
@@ -62,6 +63,7 @@ class SceneMapper:
             description=model.description,
             status=SceneStatus(model.status),
             definition=definition,
+            ui_metadata=model.ui_metadata,
             created_at=model.created_at,
             updated_at=model.updated_at,
         )
@@ -82,4 +84,5 @@ class SceneMapper:
         model.description = aggregate.description
         model.status = aggregate.status.value
         model.definition = definition_data
+        model.ui_metadata = aggregate.ui_metadata
         model.updated_at = aggregate.updated_at

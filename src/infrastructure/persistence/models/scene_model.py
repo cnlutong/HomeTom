@@ -29,6 +29,9 @@ class SceneModel(Base):
     # 场景定义（JSON 存储触发器、条件、动作）
     definition: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
     
+    # UI 元数据（存储前端编辑器状态，如节点位置、连接线等）
+    ui_metadata: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+    
     # 时间戳
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)

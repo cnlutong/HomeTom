@@ -44,6 +44,7 @@ class SceneRepositoryImpl(ISceneRepository):
             # 新增记录
             model = self._mapper.to_model(scene)
             self._session.add(model)
+            await self._session.flush() # Ensure it has an identity and is visible to get()
     
     async def find_by_id(self, scene_id: str) -> Optional[SceneAggregate]:
         """根据 ID 查找场景"""

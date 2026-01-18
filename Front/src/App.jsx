@@ -11,7 +11,8 @@ import {
   CloudSun,
   Play,
   FileJson,
-  RotateCcw
+  RotateCcw,
+  Save
 } from 'lucide-react';
 
 const USER_SOURCE = {
@@ -53,7 +54,7 @@ const initialSidebarSections = [
 
 const defaultActions = [];
 
-function Header({ onReset, onPreviewJson, onImportJson, onBackToScenes, sceneName }) {
+function Header({ onReset, onPreviewJson, onImportJson, onBackToScenes, onSave, sceneName }) {
   const [localTime, setLocalTime] = useState(new Date());
   const [uptime, setUptime] = useState(0);
 
@@ -134,6 +135,10 @@ function Header({ onReset, onPreviewJson, onImportJson, onBackToScenes, sceneNam
       </div>
 
       <div className="header-buttons">
+        <button className="header-btn header-btn-emerald" onClick={onSave}>
+          <Save size={16} />
+          <span>Save</span>
+        </button>
         <button className="header-btn header-btn-primary" onClick={onPreviewJson}>
           <Play size={16} />
           <span>Execute</span>
@@ -151,7 +156,7 @@ function Header({ onReset, onPreviewJson, onImportJson, onBackToScenes, sceneNam
   );
 }
 
-function SidebarSection({ title, items, onItemDragStart, onItemDoubleClick, onAddItem }) {
+function SidebarSection({ title, items, onItemDragStart, onItemDoubleClick, onAddItem, onAddItemClick }) {
   const [query, setQuery] = useState("");
 
   const filteredItems = useMemo(() => {
@@ -213,6 +218,7 @@ function SidebarSection({ title, items, onItemDragStart, onItemDoubleClick, onAd
               draggable
               onDragStart={(e) => onItemDragStart?.(e, item)}
               onDoubleClick={() => onItemDoubleClick?.(item, title)}
+              onClick={() => onAddItemClick?.(item, title)}
             >
               <div className="sidebar-item-icon">{item.icon}</div>
               <div className="sidebar-item-label">{item.label}</div>
@@ -226,7 +232,7 @@ function SidebarSection({ title, items, onItemDragStart, onItemDoubleClick, onAd
   );
 }
 
-function Sidebar({ onItemDragStart, onItemDoubleClick, sidebarSections, onAddItem }) {
+function Sidebar({ onItemDragStart, onItemDoubleClick, sidebarSections, onAddItem, onAddItemClick }) {
   return (
     <aside className="sidebar">
       {sidebarSections.map((section) => (
@@ -237,6 +243,7 @@ function Sidebar({ onItemDragStart, onItemDoubleClick, sidebarSections, onAddIte
           onItemDragStart={onItemDragStart}
           onItemDoubleClick={onItemDoubleClick}
           onAddItem={onAddItem}
+          onAddItemClick={onAddItemClick}
         />
       ))}
     </aside>
@@ -1076,8 +1083,8 @@ function CanvasNode({ action, isConnecting, isSelected, onConnectionClick, nodeR
 
   const nodeStyle = {
     position: 'absolute',
-    left: `${position?.x || 0} px`,
-    top: `${position?.y || 0} px`,
+    left: `${position?.x || 0}px`,
+    top: `${position?.y || 0}px`,
     cursor: isDragging ? 'grabbing' : 'grab',
   };
 
@@ -1096,7 +1103,7 @@ function CanvasNode({ action, isConnecting, isSelected, onConnectionClick, nodeR
         nodeElementRef.current = el;
         if (nodeRef) nodeRef(el);
       }}
-      className={`canvas - node ${nodeClass} ${isSelected ? "canvas-node-connecting" : ""} ${isDragging ? "canvas-node-dragging" : ""} `}
+      className={`canvas-node ${nodeClass} ${isSelected ? "canvas-node-connecting" : ""} ${isDragging ? "canvas-node-dragging" : ""} `}
       style={nodeStyle}
       onMouseDown={handleMouseDown}
     >
@@ -1138,7 +1145,7 @@ function CanvasNode({ action, isConnecting, isSelected, onConnectionClick, nodeR
         </>
       ) : (
         <>
-          <div className={`canvas - node - header ${action.type === "sensor" ? "header-sensor" : action.type === "scene" ? "header-scene" : "header-equipment"} `}>
+          <div className={`canvas-node-header ${action.type === "sensor" ? "header-sensor" : action.type === "scene" ? "header-scene" : "header-equipment"} `}>
             <div className="canvas-node-header-icon">{action.icon ?? (action.type === "sensor" ? "🌡️" : action.type === "scene" ? "⏰" : "💡")}</div>
             <div className="canvas-node-header-title">{action.label}</div>
             {onRemove && action.type !== "user" && (
@@ -1413,7 +1420,7 @@ function SceneSettingsModal({ action, onUpdate, onClose }) {
   );
 }
 
-function SidebarModal({ sidebarSections, onItemDragStart, onItemDoubleClick, onAddItem, onClose }) {
+function SidebarModal({ sidebarSections, onItemDragStart, onItemDoubleClick, onAddItem, onAddItemClick, onClose }) {
   const modalRef = useRef(null);
   const overlayRef = useRef(null);
   const isDraggingRef = useRef(false);
@@ -1497,6 +1504,7 @@ function SidebarModal({ sidebarSections, onItemDragStart, onItemDoubleClick, onA
             onItemDoubleClick={onItemDoubleClick}
             sidebarSections={sidebarSections}
             onAddItem={onAddItem}
+            onAddItemClick={onAddItemClick}
           />
         </div>
       </div>
@@ -1607,7 +1615,7 @@ function ActionPanel({ actions, onUpdateAction, onRemoveAction }) {
   );
 }
 
-function Canvas({ actions, connections, connectingFrom, onDropItem, automationName, onAutomationNameChange, onUpdateAction, onRemoveAction, onConnectionStart, onConnectionDelete, onConnectionUpdate, nodePositions, onNodePositionChange, sidebarSections, onItemDragStart, onItemDoubleClick, onAddItem, USER_SOURCE, onExecuteWorkflow, userTriggerMode, onUserTriggerModeChange }) {
+function Canvas({ actions, connections, connectingFrom, onDropItem, automationName, onAutomationNameChange, onUpdateAction, onRemoveAction, onConnectionStart, onConnectionDelete, onConnectionUpdate, nodePositions, onNodePositionChange, sidebarSections, onItemDragStart, onItemDoubleClick, onAddItem, onAddItemClick, USER_SOURCE, onExecuteWorkflow, userTriggerMode, onUserTriggerModeChange }) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [showSidebarModal, setShowSidebarModal] = useState(false);
   const [sceneSettingsModal, setSceneSettingsModal] = useState(null);
@@ -1665,7 +1673,7 @@ function Canvas({ actions, connections, connectingFrom, onDropItem, automationNa
   return (
     <main className="canvas-wrapper">
       <div
-        className={`canvas - board ${isDragOver ? "canvas-board-drag-over" : ""} `}
+        className={`canvas-board ${isDragOver ? "canvas-board-drag-over" : ""} `}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -1732,6 +1740,7 @@ function Canvas({ actions, connections, connectingFrom, onDropItem, automationNa
           onItemDragStart={onItemDragStart}
           onItemDoubleClick={onItemDoubleClick}
           onAddItem={onAddItem}
+          onAddItemClick={onAddItemClick}
           onClose={() => setShowSidebarModal(false)}
         />
       )}
@@ -1916,6 +1925,7 @@ export default function App() {
   const [lastActionCount, setLastActionCount] = useState(0);
   const [userTriggerMode, setUserTriggerMode] = useState("manual"); // "manual" or "automatic"
   const [deletedConnections, setDeletedConnections] = useState(new Set()); // Track manually deleted connections
+  const [editingSceneId, setEditingSceneId] = useState(null); // Track the ID of the scene being edited
 
   // Fetch devices from backend on startup
   useEffect(() => {
@@ -2043,11 +2053,12 @@ export default function App() {
     }
 
     // Create new action
-    const newActionId = `action - ${Date.now()} -${Math.floor(Math.random() * 1000)} `;
+    const newActionId = `action-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     const newAction = {
       id: newActionId,
       label: item.label,
       icon: item.icon,
+      entity_id: item.entity_id || item.id, // Preserve real entity ID if available
       type: itemType,
       control: "toggle",
       isEnabled: true, // Default to enabled for equipment
@@ -2350,13 +2361,23 @@ export default function App() {
     const scenes = actions.filter((a) => a.type === "scene");
     const equipment = actions.filter((a) => a.type === "equipment" || !a.type);
 
-    // Generate triggers from sensors (in the same order as displayed on canvas)
     const triggers = sensors.map((sensor) => ({
       type: "deviceState",
-      deviceId: `sensor_${sensor.label.toLowerCase().replace(/\s+/g, "_")} _01`,
+      deviceId: sensor.entity_id || sensor.id || (sensor.label.toLowerCase().includes("motion") ? "binary_sensor.motion_living_room" : "sensor.temperature"),
       capability: sensor.label.toLowerCase(),
       state: "detected",
     }));
+
+    // Add a manual trigger if User Trigger is connected and no other triggers exist
+    const hasManualTrigger = connections.some(conn => conn.from === "user-source");
+    if (hasManualTrigger && triggers.length === 0) {
+      triggers.push({
+        type: "manual",
+        deviceId: "user",
+        capability: "trigger",
+        state: "pressed"
+      });
+    }
 
     // Generate conditions from scenes (in the same order as displayed on canvas)
     const conditions = scenes.map((scene) => {
@@ -2378,7 +2399,7 @@ export default function App() {
         const tempValue = scene.temperatureValue ?? 20;
         return {
           type: "deviceState",
-          deviceId: `sensor_temp_01`,
+          deviceId: scene.entity_id || `sensor.temperature`,
           capability: "temperature",
           state: `>= ${tempValue} `,
         };
@@ -2386,23 +2407,22 @@ export default function App() {
         const humidityValue = scene.humidityValue ?? 60;
         return {
           type: "deviceState",
-          deviceId: `sensor_humidity_01`,
+          deviceId: scene.entity_id || `sensor.humidity`,
           capability: "humidity",
           state: `>= ${humidityValue} `,
         };
       }
       return {
         type: "deviceState",
-        deviceId: `sensor_${scene.label.toLowerCase().replace(/\s+/g, "_")} _01`,
+        deviceId: scene.entity_id || scene.id || `binary_sensor.motion_living_room`,
         capability: scene.label.toLowerCase(),
         state: "active",
       };
     });
 
-    // Generate actions from equipment (in the same order as displayed on canvas)
     const actionsList = equipment.map((eq) => ({
       type: "deviceCommand",
-      deviceId: `device_${eq.label.toLowerCase().replace(/\s+/g, "_")} _01`,
+      deviceId: eq.entity_id || eq.id || (eq.label.toLowerCase().includes("light") ? "light.living_room" : "switch.air_purifier"),
       capability: eq.label.toLowerCase().includes("light") || eq.label.toLowerCase().includes("lamp") || eq.label.toLowerCase().includes("ceiling")
         ? "onOff"
         : eq.label.toLowerCase().includes("conditioner")
@@ -2411,9 +2431,9 @@ export default function App() {
       value: eq.label.toLowerCase().includes("conditioner") ? 26 : true,
     }));
 
-    const automationId = automationName
-      ? `auto_${automationName.toLowerCase().replace(/\s+/g, "_")} `
-      : `auto_${Date.now()} `;
+    const automationId = editingSceneId || (automationName
+      ? `auto_${automationName.toLowerCase().replace(/\s+/g, "_")}`
+      : `auto_${Date.now()}`);
 
     return {
       automationId,
@@ -2423,8 +2443,13 @@ export default function App() {
       triggers: triggers,
       conditions: conditions,
       actions: actionsList,
+      uiMetadata: {
+        actions,
+        connections,
+        nodePositions
+      }
     };
-  }, [actions, automationName]);
+  }, [actions, connections, nodePositions, automationName, editingSceneId]);
 
   const handlePreviewJson = useCallback(() => {
     const json = generateAutomationJson();
@@ -2541,7 +2566,7 @@ export default function App() {
           });
 
           if (sensorItem) {
-            const actionId = `imported - sensor - ${idx} -${Date.now()} `;
+            const actionId = `imported-sensor-${idx}-${Date.now()}`;
             const sensorAction = {
               id: actionId,
               label: sensorItem.label,
@@ -2573,7 +2598,7 @@ export default function App() {
           const timeItem = sceneSection?.items.find(item => item.label === "Time");
 
           if (timeItem) {
-            const actionId = `imported - scene - time - ${idx} -${Date.now()} `;
+            const actionId = `imported-scene-time-${idx}-${Date.now()}`;
             // Check if it's a time range (has both after and before) or fixed time
             if (condition.after && condition.before) {
               importedActions.push({
@@ -2621,7 +2646,7 @@ export default function App() {
             ) || sceneSection?.items.find(item => item.label === sceneLabel);
 
             if (sceneItem) {
-              const actionId = `imported - scene - ${sceneLabel.toLowerCase().replace(/\s+/g, '-')} -${idx} -${Date.now()} `;
+              const actionId = `imported-scene-${sceneLabel.toLowerCase().replace(/\s+/g, '-')}-${idx}-${Date.now()}`;
               importedActions.push({
                 id: actionId,
                 label: sceneItem.label, // Use the actual item label from sidebar
@@ -2661,7 +2686,7 @@ export default function App() {
           });
 
           if (equipmentItem) {
-            const actionId = `imported - equipment - ${idx} -${Date.now()} `;
+            const actionId = `imported-equipment-${idx}-${Date.now()}`;
             importedActions.push({
               id: actionId,
               label: equipmentItem.label,
@@ -2770,14 +2795,20 @@ export default function App() {
       // If there is saved automation data, restore actions to canvas
       const automation = scene.automationData;
       setAutomationName(automation.name || scene.name);
+      setEditingSceneId(scene.id);
 
-      // Restore actions, connections, and node positions from automation data
-      const restored = restoreActionsFromAutomation(automation, sidebarSections);
-      setActions(restored.actions);
-      setConnections(restored.connections);
-      setNodePositions(restored.nodePositions);
+      if (automation.uiMetadata) {
+        setActions(automation.uiMetadata.actions || []);
+        setConnections(automation.uiMetadata.connections || []);
+        setNodePositions(automation.uiMetadata.nodePositions || {});
+      } else {
+        // Restore actions, connections, and node positions from automation data (fallback)
+        const restored = restoreActionsFromAutomation(automation, sidebarSections);
+        setActions(restored.actions);
+        setConnections(restored.connections);
+        setNodePositions(restored.nodePositions);
+      }
       setConnectingFrom(null);
-      // Clear deleted connections when loading a new scene
       setDeletedConnections(new Set());
     } else {
       setAutomationName(scene.name);
@@ -2787,6 +2818,7 @@ export default function App() {
       setConnectingFrom(null);
       // Clear deleted connections when creating a new scene
       setDeletedConnections(new Set());
+      setEditingSceneId(scene.id);
     }
     // Switch to editor page
     setCurrentPage("editor");
@@ -2799,16 +2831,41 @@ export default function App() {
     setConnectingFrom(null);
     setAutomationName("");
     setDeletedConnections(new Set()); // Clear deleted connections
+    setEditingSceneId(null); // Not editing any existing scene
     // Switch to editor page
     setCurrentPage("editor");
   }, []);
 
-  const handleSaveScene = useCallback((json) => {
-    // Save scene to localStorage
+  const handleSaveScene = useCallback(async (json) => {
+    // Save scene to backend API and localStorage fallback
     try {
+      console.log("Saving scene to backend...", json);
+      const response = await fetch("http://localhost:8000/api/scenes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(json),
+      });
+
+      if (!response.ok) {
+        let errorMsg = "Failed to save scene to backend";
+        try {
+          const errorData = await response.json();
+          errorMsg = errorData.detail || errorMsg;
+        } catch (e) {
+          // ignore parse error
+        }
+        throw new Error(errorMsg);
+      }
+
+      const result = await response.json();
+      console.log("Backend save result:", result);
+
+      // Now update localStorage for fallback and instant UI synchronization
       const scenes = loadScenesFromStorage();
       const sceneData = {
-        id: json.automationId || `scene_${Date.now()} `,
+        id: result.id || json.automationId || `scene_${Date.now()}`,
         name: json.name || "Untitled Automation",
         description: json.description || `Automation with ${json.triggers?.length || 0} trigger(s), ${json.conditions?.length || 0} condition(s), and ${json.actions?.length || 0} action(s)`,
         icon: "🎯",
@@ -2819,11 +2876,12 @@ export default function App() {
         nodeCount: (json.triggers?.length || 0) + (json.conditions?.length || 0) + (json.actions?.length || 0),
         activeCount: (json.actions?.length || 0),
         createdAt: new Date().toISOString(),
-        automationData: json, // Save complete automation data
+        automationData: { ...json, automationId: result.id || json.automationId }, // Save complete automation data with final ID
       };
 
       // Check if scene with same ID already exists
-      const existingIndex = scenes.findIndex(s => s.id === sceneData.id);
+      // Use both previous temporary ID and new backend ID to find duplicate
+      const existingIndex = scenes.findIndex(s => s.id === sceneData.id || s.id === json.automationId);
       if (existingIndex >= 0) {
         // Update existing scene
         scenes[existingIndex] = { ...scenes[existingIndex], ...sceneData, updatedAt: new Date().toISOString() };
@@ -2833,9 +2891,99 @@ export default function App() {
       }
 
       localStorage.setItem("smart-home-scenes", JSON.stringify(scenes));
+      return result;
     } catch (error) {
       console.error("Failed to save scene:", error);
       alert("Failed to save scene: " + error.message);
+      // Fallback: still save to localStorage if backend fails? 
+      // User might prefer it being saved locally at least.
+    }
+  }, []);
+
+  const handleSaveClick = useCallback(async () => {
+    try {
+      const json = generateAutomationJson();
+      await handleSaveScene(json);
+      setAlertMessage("Scene saved successfully!");
+      setTimeout(() => setAlertMessage(null), 3000);
+    } catch (error) {
+      setAlertMessage(`Failed to save scene: ${error.message}`);
+    }
+  }, [generateAutomationJson, handleSaveScene]);
+
+  const handleUpdateSceneStatus = useCallback(async (sceneId, newStatus) => {
+    try {
+      const response = await fetch(`http://localhost:8000/api/scenes/${sceneId}/status?status=${newStatus}`, {
+        method: 'PUT',
+      });
+
+      if (!response.ok) {
+        let errorMsg = "Failed to update scene status";
+        try {
+          const errorData = await response.json();
+          errorMsg = errorData.detail || errorMsg;
+        } catch (e) { }
+        throw new Error(errorMsg);
+      }
+
+      // Sync localStorage
+      try {
+        const saved = localStorage.getItem("smart-home-scenes");
+        if (saved) {
+          const scenes = JSON.parse(saved);
+          const updated = scenes.map(s =>
+            s.id === sceneId ? { ...s, status: newStatus, isEnabled: newStatus === "published" } : s
+          );
+          localStorage.setItem("smart-home-scenes", JSON.stringify(updated));
+        }
+      } catch (e) {
+        console.warn("Failed to sync localStorage for status update:", e);
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Failed to update scene status:", error);
+      alert("Failed to update status: " + error.message);
+      return false;
+    }
+  }, []);
+
+  const handleDeleteScene = useCallback(async (sceneId) => {
+    if (!window.confirm("Are you sure you want to delete this scene?")) {
+      return false;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:8000/api/scenes/${sceneId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        let errorMsg = "Failed to delete scene";
+        try {
+          const errorData = await response.json();
+          errorMsg = errorData.detail || errorMsg;
+        } catch (e) { }
+        throw new Error(errorMsg);
+      }
+
+      // Sync localStorage
+      try {
+        const saved = localStorage.getItem("smart-home-scenes");
+        if (saved) {
+          const scenes = JSON.parse(saved);
+          const updated = scenes.filter(s => s.id !== sceneId);
+          localStorage.setItem("smart-home-scenes", JSON.stringify(updated));
+        }
+      } catch (e) {
+        console.warn("Failed to sync localStorage for deletion:", e);
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Failed to delete scene:", error);
+      alert("Failed to delete scene: " + error.message);
+      return false;
     }
   }, []);
 
@@ -2863,6 +3011,8 @@ export default function App() {
           onSelectScene={handleSelectScene}
           onCreateNew={handleCreateNewScene}
           onViewDevices={() => setCurrentPage("devices")}
+          onUpdateSceneStatus={handleUpdateSceneStatus}
+          onDeleteScene={handleDeleteScene}
         />
       ) : currentPage === "devices" ? (
         <DeviceList onBack={() => setCurrentPage("scenes")} />
@@ -2873,6 +3023,8 @@ export default function App() {
             onPreviewJson={handlePreviewJson}
             onImportJson={handleImportJson}
             onBackToScenes={handleBackToScenes}
+            onSave={handleSaveClick}
+            sceneName={automationName}
           />
           <div className="body">
             <Canvas
@@ -2893,14 +3045,17 @@ export default function App() {
               onItemDragStart={handleItemDragStart}
               onItemDoubleClick={handleItemDoubleClick}
               onAddItem={handleAddItem}
+              onAddItemClick={(item) => handleDropItem(item, { x: 400, y: 300 })}
               USER_SOURCE={USER_SOURCE}
               userTriggerMode={userTriggerMode}
               onUserTriggerModeChange={setUserTriggerMode}
-              onExecuteWorkflow={() => {
+              onExecuteWorkflow={async () => {
                 const json = generateAutomationJson();
-                handleSaveScene(json);
-                setAlertMessage("Workflow executed and saved successfully!");
-                setTimeout(() => setAlertMessage(null), 3000);
+                const result = await handleSaveScene(json);
+                if (result) {
+                  setAlertMessage("Workflow executed and saved successfully!");
+                  setTimeout(() => setAlertMessage(null), 3000);
+                }
               }}
             />
           </div>

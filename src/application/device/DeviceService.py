@@ -222,7 +222,7 @@ class DeviceService:
             response = await client.get_all_states()
             
             if not response.success:
-                print(f"[{adapter_type}] 获取状态失败: {response.message}")
+                print(f"[{adapter_type}] 获取状态失败: {response.error}")
                 return []
             
             new_device_ids = []
