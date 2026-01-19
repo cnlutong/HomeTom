@@ -10,6 +10,7 @@ import {
   Activity,
   CloudSun,
   Play,
+  Braces,
   FileJson,
   RotateCcw,
   Save
@@ -54,7 +55,7 @@ const initialSidebarSections = [
 
 const defaultActions = [];
 
-function Header({ onReset, onPreviewJson, onImportJson, onBackToScenes, onSave, sceneName }) {
+function Header({ onReset, onPreviewJson, onImportJson, onBackToScenes, onSave, onExecute, sceneName }) {
   const [localTime, setLocalTime] = useState(new Date());
   const [uptime, setUptime] = useState(0);
 
@@ -140,6 +141,10 @@ function Header({ onReset, onPreviewJson, onImportJson, onBackToScenes, onSave, 
           <span>Save</span>
         </button>
         <button className="header-btn header-btn-primary" onClick={onPreviewJson}>
+          <Braces size={16} />
+          <span>JSON</span>
+        </button>
+        <button className="header-btn header-btn-success" onClick={onExecute}>
           <Play size={16} />
           <span>Execute</span>
         </button>
@@ -894,7 +899,7 @@ function ConnectionLines({ connections, nodeRefs, connectingFrom, onConnectionDe
   );
 }
 
-function CanvasNodes({ actions, connections, connectingFrom, onConnectionStart, onConnectionDelete, onConnectionUpdate, nodePositions, onNodePositionChange, onRemoveAction, onUpdateAction, onOpenSettings, USER_SOURCE, userTriggerMode, onUserTriggerModeChange }) {
+function CanvasNodes({ actions, connections, connectingFrom, onConnectionStart, onConnectionDelete, onConnectionUpdate, nodePositions, onNodePositionChange, onRemoveAction, onUpdateAction, onOpenSettings, USER_SOURCE, userTriggerMode, onUserTriggerModeChange, onNodeClick }) {
   const nodeRefs = useRef({});
 
   const { sensors, scenes, equipment } = useMemo(() => {
@@ -1003,6 +1008,7 @@ function CanvasNodes({ actions, connections, connectingFrom, onConnectionStart, 
           onOpenSettings={onOpenSettings}
           userTriggerMode={node.id === USER_SOURCE.id ? userTriggerMode : undefined}
           onUserTriggerModeChange={node.id === USER_SOURCE.id ? onUserTriggerModeChange : undefined}
+          onNodeClick={onNodeClick}
         />
       ))}
     </div>
@@ -1017,7 +1023,7 @@ function canConnect(fromType, toType) {
   return false;
 }
 
-function CanvasNode({ action, isConnecting, isSelected, onConnectionClick, nodeRef, position, onPositionChange, onRemove, onUpdate, onOpenSettings, userTriggerMode, onUserTriggerModeChange }) {
+function CanvasNode({ action, isConnecting, isSelected, onConnectionClick, nodeRef, position, onPositionChange, onRemove, onUpdate, onOpenSettings, userTriggerMode, onUserTriggerModeChange, onNodeClick }) {
   const nodeClass = action.type === "user" ? "canvas-node-user" :
     action.type === "sensor" ? "canvas-node-sensor" :
       action.type === "scene" ? "canvas-node-scene" :
@@ -1026,6 +1032,7 @@ function CanvasNode({ action, isConnecting, isSelected, onConnectionClick, nodeR
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const nodeElementRef = useRef(null);
+  const hasMoved = useRef(false); // Track if actual movement occurred
 
   const handleMouseDown = (e) => {
     if (e.button !== 0) return; // Only left mouse button
@@ -1040,6 +1047,7 @@ function CanvasNode({ action, isConnecting, isSelected, onConnectionClick, nodeR
       return;
     }
 
+    hasMoved.current = false; // Reset movement tracking
     setIsDragging(true);
     const rect = nodeElementRef.current?.getBoundingClientRect();
     if (rect) {
@@ -1055,6 +1063,7 @@ function CanvasNode({ action, isConnecting, isSelected, onConnectionClick, nodeR
     if (!isDragging) return;
 
     const handleMouseMove = (e) => {
+      hasMoved.current = true; // Mark that movement occurred
       const container = nodeElementRef.current?.closest('.canvas-node-sequence');
       if (!container) return;
 
@@ -1070,6 +1079,10 @@ function CanvasNode({ action, isConnecting, isSelected, onConnectionClick, nodeR
 
     const handleMouseUp = () => {
       setIsDragging(false);
+      // If no movement occurred, treat as a click and open popup
+      if (!hasMoved.current && onNodeClick && action.type !== 'user') {
+        onNodeClick(action, position);
+      }
     };
 
     document.addEventListener('mousemove', handleMouseMove);
@@ -1079,7 +1092,7 @@ function CanvasNode({ action, isConnecting, isSelected, onConnectionClick, nodeR
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDragging, dragStart, onPositionChange]);
+  }, [isDragging, dragStart, onPositionChange, onNodeClick, action, position]);
 
   const nodeStyle = {
     position: 'absolute',
@@ -1420,6 +1433,210 @@ function SceneSettingsModal({ action, onUpdate, onClose }) {
   );
 }
 
+// N8N-style popup card for editing node properties
+function NodeEditPopup({ action, position, onUpdate, onRemove, onClose, onOpenSettings }) {
+  const popupRef = useRef(null);
+
+  // Close popup when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (popupRef.current && !popupRef.current.contains(e.target)) {
+        // Check if click is on a canvas node - if so, don't close (will switch to that node)
+        if (e.target.closest('.canvas-node')) {
+          return;
+        }
+        onClose();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [onClose]);
+
+  if (!action || action.type === 'user') return null;
+
+  // Calculate popup position (offset from node position)
+  const popupStyle = {
+    position: 'absolute',
+    left: `${(position?.x || 0) + 220}px`,
+    top: `${(position?.y || 0)}px`,
+    zIndex: 1000,
+  };
+
+  const getHeaderClass = () => {
+    if (action.type === 'sensor') return 'node-popup-header-sensor';
+    if (action.type === 'scene') return 'node-popup-header-scene';
+    return 'node-popup-header-equipment';
+  };
+
+  const handleToggleChange = (e) => {
+    e.stopPropagation();
+    if (onUpdate && action.id) {
+      onUpdate(action.id, { isEnabled: e.target.checked });
+    }
+  };
+
+  const handleSliderChange = (e, field) => {
+    e.stopPropagation();
+    if (onUpdate && action.id) {
+      onUpdate(action.id, { [field]: parseInt(e.target.value) });
+    }
+  };
+
+  const handleRemove = () => {
+    if (onRemove && action.id) {
+      onRemove(action.id);
+      onClose();
+    }
+  };
+
+  // Render controls based on action type
+  const renderControls = () => {
+    // Scene type with specific controls
+    if (action.type === 'scene') {
+      if (action.label === 'Temperature Threshold' || action.label === 'Temperature') {
+        const minTemp = -15;
+        const maxTemp = 45;
+        const tempValue = action.temperatureValue ?? 20;
+        const percentage = ((tempValue - minTemp) / (maxTemp - minTemp)) * 100;
+        return (
+          <div className="node-popup-control-group">
+            <label className="node-popup-label">Temperature: {tempValue}°C</label>
+            <div className="slider-wrapper">
+              <input
+                type="range"
+                min={minTemp}
+                max={maxTemp}
+                value={tempValue}
+                onChange={(e) => handleSliderChange(e, 'temperatureValue')}
+                className="temperature-slider"
+                style={{ '--value': `${percentage}%` }}
+              />
+            </div>
+            <div className="node-popup-range-labels">
+              <span>{minTemp}°C</span>
+              <span>{maxTemp}°C</span>
+            </div>
+          </div>
+        );
+      }
+
+      if (action.label === 'Humidity Threshold' || action.label === 'Humidity') {
+        const humidityValue = action.humidityValue ?? 60;
+        const percentage = humidityValue;
+        return (
+          <div className="node-popup-control-group">
+            <label className="node-popup-label">Humidity: {humidityValue}%</label>
+            <div className="slider-wrapper">
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={humidityValue}
+                onChange={(e) => handleSliderChange(e, 'humidityValue')}
+                className="humidity-slider"
+                style={{ '--value': `${percentage}%` }}
+              />
+            </div>
+            <div className="node-popup-range-labels">
+              <span>0%</span>
+              <span>100%</span>
+            </div>
+          </div>
+        );
+      }
+
+      if (action.label === 'Time') {
+        return (
+          <div className="node-popup-control-group">
+            <label className="node-popup-label">Time</label>
+            <button
+              className="node-popup-settings-btn"
+              onClick={() => {
+                if (onOpenSettings) {
+                  onOpenSettings(action);
+                  onClose();
+                }
+              }}
+            >
+              ⚙️ Configure Time Settings
+            </button>
+          </div>
+        );
+      }
+
+      // Default scene control
+      return (
+        <div className="node-popup-control-group">
+          <label className="node-popup-label">Status</label>
+          <div className="node-popup-status">Active</div>
+        </div>
+      );
+    }
+
+    // Sensor or Equipment with toggle
+    const isEnabled = action.isEnabled !== false;
+    if (action.control === 'slider') {
+      const value = action.value ?? 50;
+      const percentage = ((value - (action.min ?? 0)) / ((action.max ?? 100) - (action.min ?? 0))) * 100;
+      return (
+        <div className="node-popup-control-group">
+          <label className="node-popup-label">
+            {action.type === 'sensor' ? 'Sensor Value' : 'Level'}: {value}
+          </label>
+          <div className="slider-wrapper">
+            <input
+              type="range"
+              min={action.min ?? 0}
+              max={action.max ?? 100}
+              value={value}
+              onChange={(e) => handleSliderChange(e, 'value')}
+              className="slider"
+              style={{ '--value': `${percentage}%` }}
+            />
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="node-popup-control-group">
+        <label className="node-popup-label">
+          {action.type === 'sensor' ? 'Enabled' : 'Power'}
+        </label>
+        <label className="node-popup-toggle">
+          <input
+            type="checkbox"
+            checked={isEnabled}
+            onChange={handleToggleChange}
+          />
+          <span className="node-popup-toggle-slider"></span>
+          <span className="node-popup-toggle-text">{isEnabled ? 'On' : 'Off'}</span>
+        </label>
+      </div>
+    );
+  };
+
+  return (
+    <div ref={popupRef} className="node-edit-popup" style={popupStyle}>
+      <div className={`node-popup-header ${getHeaderClass()}`}>
+        <span className="node-popup-icon">{action.icon ?? '📦'}</span>
+        <span className="node-popup-title">{action.label}</span>
+        <button className="node-popup-close" onClick={onClose}>×</button>
+      </div>
+      <div className="node-popup-body">
+        {renderControls()}
+      </div>
+      <div className="node-popup-footer">
+        <button className="node-popup-delete-btn" onClick={handleRemove}>
+          🗑️ Delete
+        </button>
+      </div>
+      <div className="node-popup-arrow"></div>
+    </div>
+  );
+}
+
 function SidebarModal({ sidebarSections, onItemDragStart, onItemDoubleClick, onAddItem, onAddItemClick, onClose }) {
   const modalRef = useRef(null);
   const overlayRef = useRef(null);
@@ -1619,7 +1836,8 @@ function Canvas({ actions, connections, connectingFrom, onDropItem, automationNa
   const [isDragOver, setIsDragOver] = useState(false);
   const [showSidebarModal, setShowSidebarModal] = useState(false);
   const [sceneSettingsModal, setSceneSettingsModal] = useState(null);
-  const [showActionPanel, setShowActionPanel] = useState(false);
+  const [selectedNode, setSelectedNode] = useState(null); // Node being edited via popup
+  const [selectedNodePosition, setSelectedNodePosition] = useState(null);
 
   const handleDragOver = (event) => {
     event.preventDefault();
@@ -1670,6 +1888,26 @@ function Canvas({ actions, connections, connectingFrom, onDropItem, automationNa
     onExecuteWorkflow?.();
   };
 
+  // Handle node click to open popup
+  const handleNodeClick = (action, position) => {
+    // If clicking the same node, close popup (toggle behavior)
+    if (selectedNode?.id === action.id) {
+      setSelectedNode(null);
+      setSelectedNodePosition(null);
+    } else {
+      setSelectedNode(action);
+      setSelectedNodePosition(position);
+    }
+  };
+
+  // Close popup when clicking on canvas (not on a node)
+  const handleCanvasClick = (e) => {
+    if (!e.target.closest('.canvas-node') && !e.target.closest('.node-edit-popup')) {
+      setSelectedNode(null);
+      setSelectedNodePosition(null);
+    }
+  };
+
   return (
     <main className="canvas-wrapper">
       <div
@@ -1677,6 +1915,7 @@ function Canvas({ actions, connections, connectingFrom, onDropItem, automationNa
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
+        onClick={handleCanvasClick}
       >
         <div className="canvas-top-controls">
           <div className="canvas-title-input">
@@ -1695,13 +1934,6 @@ function Canvas({ actions, connections, connectingFrom, onDropItem, automationNa
           >
             <span className="canvas-add-icon">+</span>
           </button>
-          <button
-            className="execute-workflow-button"
-            onClick={handleExecuteWorkflow}
-            title="Execute and save workflow"
-          >
-            Execute Workflow
-          </button>
         </div>
         <div className="canvas-content-wrapper">
           <CanvasNodes
@@ -1719,20 +1951,34 @@ function Canvas({ actions, connections, connectingFrom, onDropItem, automationNa
             USER_SOURCE={USER_SOURCE}
             userTriggerMode={userTriggerMode}
             onUserTriggerModeChange={onUserTriggerModeChange}
+            onNodeClick={handleNodeClick}
           />
+          {/* N8N-style node edit popup */}
+          {selectedNode && (
+            <NodeEditPopup
+              action={selectedNode}
+              position={selectedNodePosition}
+              onUpdate={(id, updates) => {
+                onUpdateAction(id, updates);
+                // Keep the popup open with updated data - find the updated action
+                const updatedAction = { ...selectedNode, ...updates };
+                setSelectedNode(updatedAction);
+              }}
+              onRemove={(id) => {
+                onRemoveAction(id);
+                setSelectedNode(null);
+                setSelectedNodePosition(null);
+              }}
+              onClose={() => {
+                setSelectedNode(null);
+                setSelectedNodePosition(null);
+              }}
+              onOpenSettings={(action) => {
+                setSceneSettingsModal(action);
+              }}
+            />
+          )}
         </div>
-      </div>
-      <div className="action-panel-wrapper">
-        <button
-          className="action-panel-toggle"
-          onClick={() => setShowActionPanel(!showActionPanel)}
-          title={showActionPanel ? "Hide Action Panel" : "Show Action Panel"}
-        >
-          <span className="action-panel-toggle-icon">{showActionPanel ? "→" : "←"}</span>
-        </button>
-        {showActionPanel && (
-          <ActionPanel actions={actions} onUpdateAction={onUpdateAction} onRemoveAction={onRemoveAction} />
-        )}
       </div>
       {showSidebarModal && (
         <SidebarModal
@@ -3024,6 +3270,14 @@ export default function App() {
             onImportJson={handleImportJson}
             onBackToScenes={handleBackToScenes}
             onSave={handleSaveClick}
+            onExecute={async () => {
+              const json = generateAutomationJson();
+              const result = await handleSaveScene(json);
+              if (result) {
+                setAlertMessage("Workflow executed and saved successfully!");
+                setTimeout(() => setAlertMessage(null), 3000);
+              }
+            }}
             sceneName={automationName}
           />
           <div className="body">
