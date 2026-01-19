@@ -1,12 +1,12 @@
-from ..Actuator import Actuator
+from ..BaseDevice import BaseDevice
+from ..Capabilities import SwitchableMixin, DimmableMixin
 
 
-class Light(Actuator):
+class Light(BaseDevice, SwitchableMixin, DimmableMixin):
     """灯光设备 - 控制开关、亮度、颜色 (RGB/色温)"""
     
     def __init__(self, entity_id: str, name: str):
         super().__init__(entity_id, name)
-        self._brightness = 0  # 0-255
         self._color_rgb = (255, 255, 255)  # RGB颜色
         self._color_temp = None  # 色温值
     

@@ -1,9 +1,6 @@
 """设备聚合模块 - 包含所有设备类的定义"""
 
 from .BaseDevice import BaseDevice
-from .Actuator import Actuator
-from .Sensor import Sensor
-from .MediaSecurityBase import MediaSecurityBase as MediaSecurity
 
 # 控制类设备
 from .Actuators.Light import Light
@@ -28,9 +25,6 @@ from .MediaSecurity.AlarmControlPanel import AlarmControlPanel
 __all__ = [
     # 基类
     'BaseDevice',
-    'Actuator',
-    'Sensor',
-    'MediaSecurity',
     # 控制类设备
     'Light',
     'Switch',

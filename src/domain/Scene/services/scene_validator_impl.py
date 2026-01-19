@@ -1,11 +1,10 @@
-"""场景校验器实现"""
-
-from typing import List, Set
+from typing import List, Set, Optional
 from .scene_validator import ISceneValidator
 from ..value_objects.scene_definition import SceneDefinition
 from ..value_objects.trigger import TriggerType
 from ..value_objects.action import ActionType
 from ..value_objects.condition import Condition
+from src.domain.Device.repositories.device_repository import IDeviceRepository
 
 
 class SceneValidator(ISceneValidator):
@@ -13,6 +12,14 @@ class SceneValidator(ISceneValidator):
     
     提供场景定义的校验和循环依赖检测功能
     """
+    
+    def __init__(self, device_repo: Optional[IDeviceRepository] = None):
+        """初始化校验器
+        
+        Args:
+            device_repo: 设备仓储，用于动态校验设备能力
+        """
+        self._device_repo = device_repo
     
     async def validate_definition(self, definition: SceneDefinition) -> List[str]:
         """校验场景定义
@@ -36,7 +43,7 @@ class SceneValidator(ISceneValidator):
         # 2. 校验条件
         if definition.conditions:
             for idx, condition in enumerate(definition.conditions):
-                condition_errors = self._validate_condition(condition, idx)
+                condition_errors = await self._validate_condition(condition, idx)
                 errors.extend(condition_errors)
         
         # 3. 校验动作
@@ -44,7 +51,7 @@ class SceneValidator(ISceneValidator):
             errors.append("场景必须至少有一个动作")
         else:
             for idx, action in enumerate(definition.actions):
-                action_errors = self._validate_action(action, idx)
+                action_errors = await self._validate_action(action, idx)
                 errors.extend(action_errors)
         
         return errors
@@ -79,7 +86,7 @@ class SceneValidator(ISceneValidator):
         
         return errors
     
-    def _validate_condition(self, condition: Condition, idx: int) -> List[str]:
+    async def _validate_condition(self, condition: Condition, idx: int) -> List[str]:
         """校验单个条件"""
         errors = []
         prefix = f"条件[{idx}]"
@@ -103,10 +110,21 @@ class SceneValidator(ISceneValidator):
         # 校验值
         if condition.value is None:
             errors.append(f"{prefix}: 比较值不能为None")
+
+        # 动态校验：检查设备是否具备该属性
+        if self._device_repo and condition.entity_id:
+            device = await self._device_repo.find_by_entity_id(condition.entity_id)
+            if not device:
+                # 注意：这里我们只报警告或允许继续，因为有些虚拟设备可能尚未注册
+                pass
+            else:
+                # 如果设备存在，可以检查其能力或属性（目前属性还是在 attributes 字典中）
+                # 后续可以根据能力模型进一步细化
+                pass
         
         return errors
     
-    def _validate_action(self, action, idx: int) -> List[str]:
+    async def _validate_action(self, action, idx: int) -> List[str]:
         """校验单个动作"""
         errors = []
         prefix = f"动作[{idx}]"
@@ -121,16 +139,25 @@ class SceneValidator(ISceneValidator):
         
         # 根据动作类型进行额外校验
         if action.type == ActionType.DEVICE_CONTROL:
-            # 设备控制动作的命令校验
-            valid_commands = [
-                "turn_on", "turn_off", "toggle",
-                "set_brightness", "set_color", "set_temperature"
-            ]
-            if action.command not in valid_commands:
-                errors.append(
-                    f"{prefix}: 设备控制命令'{action.command}'可能无效，"
-                    f"常见命令: {', '.join(valid_commands)}"
-                )
+            # 动态校验：从设备能力中获取
+            if self._device_repo:
+                device = await self._device_repo.find_by_entity_id(action.target)
+                if device:
+                    if not device.has_capability(action.command):
+                        errors.append(f"{prefix}: 设备 '{action.target}' 不具备能力 '{action.command}'")
+                else:
+                    # 如果找不到设备，回退到常见命令校验（警告级别）
+                    valid_commands = [
+                        "turn_on", "turn_off", "toggle",
+                        "set_brightness", "set_color", "set_temperature"
+                    ]
+                    if action.command not in valid_commands:
+                        errors.append(f"{prefix}: 设备未注册且命令 '{action.command}' 不是标准命令")
+            else:
+                # 兼容模式：如果没传入 repo，保留旧的硬编码校验
+                valid_commands = ["turn_on", "turn_off", "toggle", "set_brightness", "set_color", "set_temperature"]
+                if action.command not in valid_commands:
+                    errors.append(f"{prefix}: 设备控制命令 '{action.command}' 无效")
         
         elif action.type == ActionType.SCENE_CALL:
             # 场景调用动作

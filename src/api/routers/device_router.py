@@ -46,6 +46,7 @@ async def get_equipment(service: DeviceService = Depends(get_device_service)) ->
             "type": "equipment" if "sensor" not in device.entity_id else "sensor",
             "adapter_type": device.adapter_type,
             "manufacturer": device.manufacturer,
+            "capabilities": [cap.to_dict() for cap in device.capabilities.get_all()] if device.capabilities else [],
             "status": device.status.value if hasattr(device.status, 'value') else device.status,
             "created_at": device.created_at.isoformat() if hasattr(device.created_at, 'isoformat') else str(device.created_at)
         })

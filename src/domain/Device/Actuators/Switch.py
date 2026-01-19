@@ -1,7 +1,8 @@
-from ..Actuator import Actuator
+from ..BaseDevice import BaseDevice
+from ..Capabilities import SwitchableMixin
 
 
-class Switch(Actuator):
+class Switch(BaseDevice, SwitchableMixin):
     """开关设备 - 通用的开/关设备（如插座、继电器）"""
     
     def __init__(self, entity_id: str, name: str):
@@ -19,6 +20,5 @@ class Switch(Actuator):
     
     def update_state(self):
         """更新设备状态（需要从实际硬件获取）"""
-        # 子类或适配器需要实现具体的状态获取逻辑
         pass
 

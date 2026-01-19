@@ -18,38 +18,27 @@ import {
 
 const USER_SOURCE = {
   id: "user-source",
-  label: "Residents",
-  icon: "👥",
+  label: "Start Trigger",
+  icon: "👤",
   type: "user",
 };
 
 const initialSidebarSections = [
   {
     title: "Triggers",
-    items: [
-      { icon: "📡", label: "Motion Sensor", type: "sensor" },
-      { icon: "📶", label: "Sound Sensor", type: "sensor" },
-      { icon: "🌡️", label: "Temperature Sensor", type: "sensor" },
-    ],
+    items: [],
   },
   {
     title: "Conditions",
     items: [
-      { icon: "⏰", label: "Time", type: "scene" },
-      { icon: "🌡️", label: "Temperature Threshold", type: "scene" },
-      { icon: "💧", label: "Humidity Threshold", type: "scene" },
+      { icon: "⏰", label: "Time", type: "scene", capabilities: ["time"] },
+      { icon: "🌡️", label: "Temperature Threshold", type: "scene", capabilities: ["temperature_threshold"] },
+      { icon: "💧", label: "Humidity Threshold", type: "scene", capabilities: ["humidity_threshold"] },
     ],
   },
   {
     title: "Equipment List",
-    items: [
-      { icon: "💡", label: "Main light", type: "equipment" },
-      { icon: "💡", label: "Lamp", type: "equipment" },
-      { icon: "💡", label: "Ceiling", type: "equipment" },
-      { icon: "📺", label: "TV", type: "equipment" },
-      { icon: "🪟", label: "Curtain", type: "equipment" },
-      { icon: "❄️", label: "Conditioner", type: "equipment" },
-    ],
+    items: [],
   },
 ];
 
@@ -214,7 +203,7 @@ function SidebarSection({ title, items, onItemDragStart, onItemDoubleClick, onAd
           </button>
         )}
       </div>
-      <div className={`sidebar - items ${isScrollable ? "sidebar-items-scrollable" : ""} `}>
+      <div className={`sidebar-items ${isScrollable ? "sidebar-items-scrollable" : ""}`}>
         {filteredItems.length ? (
           filteredItems.map((item, idx) => (
             <div
@@ -607,6 +596,16 @@ function ConnectionLines({ connections, nodeRefs, connectingFrom, onConnectionDe
   const [hoveredConnection, setHoveredConnection] = useState(null);
   const [draggingEndpoint, setDraggingEndpoint] = useState(null); // { connection, isSource, mousePos: {x, y} }
   const [dragTarget, setDragTarget] = useState(null); // nodeId that can be connected to
+  const [, forceUpdate] = useState(0);
+
+  // Force re-render to ensure connections are drawn after nodeRefs are populated
+  useEffect(() => {
+    // Add a small delay to ensure DOM is fully ready
+    const timer = setTimeout(() => {
+      forceUpdate(prev => prev + 1);
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [actions.length, connections.length]);
 
   // Handle mouse move for dragging endpoints
   useEffect(() => {
@@ -899,7 +898,7 @@ function ConnectionLines({ connections, nodeRefs, connectingFrom, onConnectionDe
   );
 }
 
-function CanvasNodes({ actions, connections, connectingFrom, onConnectionStart, onConnectionDelete, onConnectionUpdate, nodePositions, onNodePositionChange, onRemoveAction, onUpdateAction, onOpenSettings, USER_SOURCE, userTriggerMode, onUserTriggerModeChange, onNodeClick }) {
+function CanvasNodes({ actions, connections, connectingFrom, onConnectionStart, onConnectionDelete, onConnectionUpdate, nodePositions, onNodePositionChange, onRemoveAction, onUpdateAction, onOpenSettings, USER_SOURCE, userTriggerMode, onUserTriggerModeChange, onNodeClick, onAddNode }) {
   const nodeRefs = useRef({});
 
   const { sensors, scenes, equipment } = useMemo(() => {
@@ -919,39 +918,172 @@ function CanvasNodes({ actions, connections, connectingFrom, onConnectionStart, 
     }
   };
 
-  // Helper function to get default position
+  // 智能自动布局系统 (Rank-Based / Topological)
+  const calculateSmartLayout = useMemo(() => {
+    const nodeWidth = 140;
+    const nodeHeight = 80;
+    const minSpacing = 100;
+    const paddingX = 50;
+
+    // 1. 初始化 Ranks
+    const ranks = {};
+    const allNodes = [USER_SOURCE, ...actions];
+
+    // 初始化默认 Rank
+    // User = 0, Sensor >= 1, Scene >= 2, Equipment >= 3
+    allNodes.forEach(node => {
+      if (node.id === USER_SOURCE.id) {
+        ranks[node.id] = 0;
+      } else if (node.type === 'sensor') {
+        ranks[node.id] = 1;
+      } else if (node.type === 'scene') {
+        ranks[node.id] = 2;
+      } else {
+        ranks[node.id] = 3; // Equipment default
+      }
+    });
+
+    // 2. 根据连接关系更新 Rank (Relaxation)
+    // 确保子节点 Rank > 父节点 Rank
+    // 运行多次以传播深度
+    let changed = true;
+    let iterations = 0;
+    while (changed && iterations < allNodes.length) {
+      changed = false;
+      iterations++;
+      connections.forEach(conn => {
+        const from = conn.from;
+        const to = conn.to;
+        if (ranks[from] !== undefined && ranks[to] !== undefined) {
+          if (ranks[to] <= ranks[from]) {
+            ranks[to] = ranks[from] + 1;
+            changed = true;
+          }
+        }
+      });
+    }
+
+    // 3. 强制类型分区约束 (Zone Constraints)
+    // 确保 Equipment 始终在所有 Scene 之后
+    let maxSceneRank = 2;
+    actions.forEach(a => {
+      if (a.type === 'scene' && ranks[a.id] > maxSceneRank) {
+        maxSceneRank = ranks[a.id];
+      }
+    });
+
+    actions.forEach(a => {
+      if ((a.type === 'equipment' || !a.type) && ranks[a.id] <= maxSceneRank) {
+        ranks[a.id] = maxSceneRank + 1;
+      }
+    });
+
+    // 4. 按 Rank 分组
+    const nodesByRank = {};
+    for (let r = 0; r <= Math.max(...Object.values(ranks)); r++) {
+      nodesByRank[r] = [];
+    }
+    allNodes.forEach(node => {
+      const r = ranks[node.id];
+      if (nodesByRank[r]) nodesByRank[r].push(node);
+    });
+
+    // 5. 最小化交叉 (Crossing Reduction - Sugiyama Phase 2)
+    // 迭代多次：正向扫一遍，反向扫一遍
+    const sweepIterations = 4; // 几次迭代足以解决大部分问题
+
+    // 初始排序：按ID或保持现状，以提供稳定的起点
+    Object.values(nodesByRank).forEach(nodes => nodes.sort((a, b) => a.id.localeCompare(b.id)));
+
+    for (let i = 0; i < sweepIterations; i++) {
+      // Forward Sweep (Rank 1 -> Max)
+      // 根据父节点的平均位置排当前层
+      for (let r = 1; r <= Math.max(...Object.values(ranks)); r++) {
+        const nodes = nodesByRank[r];
+        nodes.sort((a, b) => {
+          const getParentAvg = (node) => {
+            const parents = connections.filter(c => c.to === node.id).map(c => c.from);
+            if (parents.length === 0) return 0;
+            // 找到父节点在上一层列表中的索引（作为Y的代理）
+            const prevRankNodes = nodesByRank[r - 1];
+            let sum = 0;
+            let count = 0;
+            parents.forEach(pid => {
+              const idx = prevRankNodes.findIndex(n => n.id === pid);
+              if (idx !== -1) {
+                sum += idx;
+                count++;
+              }
+            });
+            return count > 0 ? sum / count : 9999;
+          };
+          return getParentAvg(a) - getParentAvg(b);
+        });
+      }
+
+      // Backward Sweep (Max -> Rank 0)
+      // 根据子节点的平均位置排当前层
+      for (let r = Math.max(...Object.values(ranks)) - 1; r >= 0; r--) {
+        const nodes = nodesByRank[r];
+        nodes.sort((a, b) => {
+          const getChildAvg = (node) => {
+            const children = connections.filter(c => c.from === node.id).map(c => c.to);
+            if (children.length === 0) return 0;
+            const nextRankNodes = nodesByRank[r + 1];
+            let sum = 0;
+            let count = 0;
+            children.forEach(cid => {
+              const idx = nextRankNodes.findIndex(n => n.id === cid);
+              if (idx !== -1) {
+                sum += idx;
+                count++;
+              }
+            });
+            return count > 0 ? sum / count : 9999;
+          };
+          return getChildAvg(a) - getChildAvg(b);
+        });
+      }
+    }
+
+    // 6. 计算位置
+    const positions = {};
+    const maxRank = Math.max(...Object.values(ranks));
+
+    // 增加列宽，避免线穿过卡片
+    const minColWidth = 350; // Increased from 300
+    const dynamicCanvasWidth = Math.max(1600, (maxRank + 1) * minColWidth + paddingX * 2);
+    const colWidth = dynamicCanvasWidth / (maxRank + 1.5);
+
+    // 7. 布局每一列 (Vertical Layout)
+    Object.keys(nodesByRank).map(Number).sort((a, b) => a - b).forEach(rank => {
+      const nodes = nodesByRank[rank];
+
+      // Vertical Centering for the column
+      const columnHeight = nodes.length * nodeHeight + (nodes.length - 1) * minSpacing;
+      const startY = Math.max(100, (800 - columnHeight) / 2);
+
+      nodes.forEach((node, idx) => {
+        // Simple distinct positioning based on the optimized order
+        positions[node.id] = {
+          x: paddingX + rank * colWidth,
+          y: startY + idx * (nodeHeight + minSpacing)
+        };
+      });
+    });
+
+    return positions;
+  }, [actions, connections, USER_SOURCE]);
+
+  // Helper function to get position (with drag override)
   const getDefaultPosition = (nodeId, index, type) => {
+    // 如果用户手动拖拽过，使用手动位置
     if (nodePositions[nodeId]) {
       return nodePositions[nodeId];
     }
 
-    // Default layout: columns with more spacing to avoid overlap
-    const columnSpacing = 350; // spacing between trigger / condition / equipment columns
-    const rowSpacing = 200; // vertical spacing between nodes (avoid overlap)
-    const startX = 100;
-    const startY = 150;
-
-    let x = startX;
-    let y = startY;
-
-    if (nodeId === USER_SOURCE.id) {
-      x = startX;
-      y = startY;
-    } else if (type === "sensor") {
-      x = startX + columnSpacing;
-      const sensorIndex = sensors.findIndex(s => s.id === nodeId);
-      y = startY + sensorIndex * rowSpacing;
-    } else if (type === "scene") {
-      x = startX + columnSpacing * 2;
-      const sceneIndex = scenes.findIndex(s => s.id === nodeId);
-      y = startY + sceneIndex * rowSpacing;
-    } else if (type === "equipment" || !type) {
-      x = startX + columnSpacing * 3;
-      const eqIndex = equipment.findIndex(e => e.id === nodeId);
-      y = startY + eqIndex * rowSpacing;
-    }
-
-    return { x, y };
+    // 否则使用智能布局计算的位置
+    return calculateSmartLayout[nodeId] || { x: 100, y: 150 };
   };
 
   if (!actions.length) {
@@ -966,6 +1098,7 @@ function CanvasNodes({ actions, connections, connectingFrom, onConnectionStart, 
           position={defaultUserPos}
           onPositionChange={(newPos) => onNodePositionChange?.(USER_SOURCE.id, newPos)}
           onRemove={undefined}
+          onAddNode={onAddNode}
         />
         <div className="canvas-placeholder">
           Drag components from the left sidebar to the canvas
@@ -1007,8 +1140,8 @@ function CanvasNodes({ actions, connections, connectingFrom, onConnectionStart, 
           onUpdate={onUpdateAction}
           onOpenSettings={onOpenSettings}
           userTriggerMode={node.id === USER_SOURCE.id ? userTriggerMode : undefined}
-          onUserTriggerModeChange={node.id === USER_SOURCE.id ? onUserTriggerModeChange : undefined}
           onNodeClick={onNodeClick}
+          onAddNode={onAddNode}
         />
       ))}
     </div>
@@ -1017,13 +1150,23 @@ function CanvasNodes({ actions, connections, connectingFrom, onConnectionStart, 
 
 function canConnect(fromType, toType) {
   if (fromType === "user" && toType === "sensor") return true;
-  if (fromType === "sensor" && toType === "scene") return true;
-  if (fromType === "scene" && toType === "equipment") return true;
-  // Don't allow equipment to equipment connections - each equipment should connect from scene/sensor
+
+  // Triggers to...
+  if (fromType === "sensor" && toType === "scene") return true; // to Condition
+  if (fromType === "sensor" && toType === "equipment") return true; // Direct to Action
+  if (fromType === "sensor" && toType === "sensor") return true; // Trigger chaining (optional)
+
+  // Conditions to...
+  if (fromType === "scene" && toType === "equipment") return true; // to Action
+  if (fromType === "scene" && toType === "scene") return true; // Condition chaining (AND logic)
+
+  // Equipment to...
+  if (fromType === "equipment" && toType === "equipment") return true; // Action chaining
+
   return false;
 }
 
-function CanvasNode({ action, isConnecting, isSelected, onConnectionClick, nodeRef, position, onPositionChange, onRemove, onUpdate, onOpenSettings, userTriggerMode, onUserTriggerModeChange, onNodeClick }) {
+function CanvasNode({ action, isConnecting, isSelected, onConnectionClick, nodeRef, position, onPositionChange, onRemove, onAddNode, onUpdate, onOpenSettings, userTriggerMode, onUserTriggerModeChange, onNodeClick }) {
   const nodeClass = action.type === "user" ? "canvas-node-user" :
     action.type === "sensor" ? "canvas-node-sensor" :
       action.type === "scene" ? "canvas-node-scene" :
@@ -1122,13 +1265,21 @@ function CanvasNode({ action, isConnecting, isSelected, onConnectionClick, nodeR
     >
       {action.type === "user" ? (
         <>
-          <div className="canvas-node-header-start">
-            <div className="start-trigger-icon">
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <path d="M2 2L10 6L2 10V2Z" fill="currentColor" />
-              </svg>
-            </div>
-            <div className="start-trigger-label">Start Trigger</div>
+          <div className="canvas-node-header header-user">
+            <div className="canvas-node-header-icon">{action.icon || "👤"}</div>
+            <div className="canvas-node-header-title">{action.label}</div>
+            {onAddNode && (
+              <button
+                className="canvas-node-add-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAddNode(action.id);
+                }}
+                title="Add component after this node"
+              >
+                +
+              </button>
+            )}
           </div>
           <div className="canvas-node-content">
             <div className="canvas-node-main-text">
@@ -1161,6 +1312,18 @@ function CanvasNode({ action, isConnecting, isSelected, onConnectionClick, nodeR
           <div className={`canvas-node-header ${action.type === "sensor" ? "header-sensor" : action.type === "scene" ? "header-scene" : "header-equipment"} `}>
             <div className="canvas-node-header-icon">{action.icon ?? (action.type === "sensor" ? "🌡️" : action.type === "scene" ? "⏰" : "💡")}</div>
             <div className="canvas-node-header-title">{action.label}</div>
+            {onAddNode && (
+              <button
+                className="canvas-node-add-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAddNode(action.id);
+                }}
+                title="Add component after this node"
+              >
+                +
+              </button>
+            )}
             {onRemove && action.type !== "user" && (
               <button
                 className="canvas-node-close-btn"
@@ -1492,7 +1655,8 @@ function NodeEditPopup({ action, position, onUpdate, onRemove, onClose, onOpenSe
 
   // Render controls based on action type
   const renderControls = () => {
-    // Scene type with specific controls
+
+    // 1. Scene / Condition Types (Time, Temp, Humidity)
     if (action.type === 'scene') {
       if (action.label === 'Temperature Threshold' || action.label === 'Temperature') {
         const minTemp = -15;
@@ -1574,47 +1738,89 @@ function NodeEditPopup({ action, position, onUpdate, onRemove, onClose, onOpenSe
       );
     }
 
-    // Sensor or Equipment with toggle
-    const isEnabled = action.isEnabled !== false;
-    if (action.control === 'slider') {
-      const value = action.value ?? 50;
-      const percentage = ((value - (action.min ?? 0)) / ((action.max ?? 100) - (action.min ?? 0))) * 100;
+    // 2. Equipment / Sensor Types - Dynamic Capabilities
+    // Check if we have capabilities data
+    const capabilities = action.capabilities || [];
+    const controls = [];
+
+    // Helper: Render Toggle
+    const renderToggle = (label, checked, onChange) => (
+      <div className="node-popup-control-group" key={label}>
+        <label className="node-popup-label">{label}</label>
+        <label className="node-popup-toggle">
+          <input
+            type="checkbox"
+            checked={checked}
+            onChange={onChange}
+          />
+          <span className="node-popup-toggle-slider"></span>
+          <span className="node-popup-toggle-text">{checked ? 'On' : 'Off'}</span>
+        </label>
+      </div>
+    );
+
+    // Helper: Render Slider
+    const renderSlider = (label, value, min, max, onChange) => {
+      const percentage = ((value - min) / (max - min)) * 100;
       return (
-        <div className="node-popup-control-group">
-          <label className="node-popup-label">
-            {action.type === 'sensor' ? 'Sensor Value' : 'Level'}: {value}
-          </label>
+        <div className="node-popup-control-group" key={label}>
+          <label className="node-popup-label">{label}: {value}</label>
           <div className="slider-wrapper">
             <input
               type="range"
-              min={action.min ?? 0}
-              max={action.max ?? 100}
+              min={min}
+              max={max}
               value={value}
-              onChange={(e) => handleSliderChange(e, 'value')}
+              onChange={onChange}
               className="slider"
               style={{ '--value': `${percentage}%` }}
             />
           </div>
         </div>
       );
+    };
+
+    // --- Dynamic Rendering based on Capabilities ---
+
+    // Toggle (Switch/Light/Lock)
+    const hasTurnOn = capabilities.some(c => c.name === 'turn_on');
+    const hasLock = capabilities.some(c => c.name === 'lock');
+
+    if (hasTurnOn) {
+      const isEnabled = action.isEnabled !== false;
+      controls.push(renderToggle('Power', isEnabled, handleToggleChange));
     }
 
-    return (
-      <div className="node-popup-control-group">
-        <label className="node-popup-label">
-          {action.type === 'sensor' ? 'Enabled' : 'Power'}
-        </label>
-        <label className="node-popup-toggle">
-          <input
-            type="checkbox"
-            checked={isEnabled}
-            onChange={handleToggleChange}
-          />
-          <span className="node-popup-toggle-slider"></span>
-          <span className="node-popup-toggle-text">{isEnabled ? 'On' : 'Off'}</span>
-        </label>
-      </div>
-    );
+    if (hasLock) {
+      // Reusing isEnabled for lock state for now, but ideally should be separate
+      // Identifying "locked" as "true" (enabled)
+      const isLocked = action.isLocked !== false;
+      controls.push(renderToggle('Locked', isLocked, (e) => {
+        if (onUpdate && action.id) {
+          onUpdate(action.id, { isLocked: e.target.checked });
+        }
+      }));
+    }
+
+    // Slider (Brightness)
+    const brightnessCap = capabilities.find(c => c.name === 'set_brightness');
+    if (brightnessCap) {
+      const value = action.brightness ?? 100; // Default brightness
+      // Extract min/max from ability parameters if available, else default
+      const min = brightnessCap.parameters?.min ?? 0;
+      const max = brightnessCap.parameters?.max ?? 255; // HomeAssistant usually 255
+
+      controls.push(renderSlider('Brightness', value, min, max, (e) => handleSliderChange(e, 'brightness')));
+    }
+
+    // Fallback if no specific controls generated but it's an equipment/sensor
+    if (controls.length === 0) {
+      // Default behavior for devices without specific caps (or unknown caps)
+      const isEnabled = action.isEnabled !== false;
+      controls.push(renderToggle(action.type === 'sensor' ? 'Enabled' : 'Power', isEnabled, handleToggleChange));
+    }
+
+    return <>{controls}</>;
   };
 
   return (
@@ -1641,6 +1847,28 @@ function SidebarModal({ sidebarSections, onItemDragStart, onItemDoubleClick, onA
   const modalRef = useRef(null);
   const overlayRef = useRef(null);
   const isDraggingRef = useRef(false);
+
+  // Step-based navigation: 'selectType' or 'selectDevice'
+  const [step, setStep] = useState('selectType');
+  const [selectedType, setSelectedType] = useState(null); // 'trigger' | 'condition' | 'executor'
+
+  // Filter sections based on selected type
+  const filteredSections = useMemo(() => {
+    if (!selectedType) return [];
+    if (selectedType === 'trigger') return sidebarSections.filter(s => s.title === 'Triggers');
+    if (selectedType === 'condition') return sidebarSections.filter(s => s.title === 'Conditions');
+    if (selectedType === 'executor') return sidebarSections.filter(s => s.title === 'Equipment List');
+    return sidebarSections;
+  }, [sidebarSections, selectedType]);
+
+  // Get header title based on step
+  const getHeaderTitle = () => {
+    if (step === 'selectType') return 'Select Component Type';
+    if (selectedType === 'trigger') return 'Select Trigger';
+    if (selectedType === 'condition') return 'Select Condition';
+    if (selectedType === 'executor') return 'Select Equipment';
+    return 'Add Components';
+  };
 
   useEffect(() => {
     const handleDragOver = (e) => {
@@ -1700,6 +1928,16 @@ function SidebarModal({ sidebarSections, onItemDragStart, onItemDoubleClick, onA
     onItemDragStart?.(e, item);
   };
 
+  const handleTypeSelect = (type) => {
+    setSelectedType(type);
+    setStep('selectDevice');
+  };
+
+  const handleBack = () => {
+    setStep('selectType');
+    setSelectedType(null);
+  };
+
   return (
     <div
       ref={overlayRef}
@@ -1708,26 +1946,61 @@ function SidebarModal({ sidebarSections, onItemDragStart, onItemDoubleClick, onA
     >
       <div
         ref={modalRef}
-        className="sidebar-modal-content"
+        className={`sidebar-modal-content ${step === 'selectType' ? 'sidebar-modal-content-narrow' : 'sidebar-modal-content-wide'}`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="sidebar-modal-header">
-          <h3 className="sidebar-modal-title">Add Components</h3>
+          {step === 'selectDevice' && (
+            <button className="sidebar-modal-back" onClick={handleBack}>
+              ←
+            </button>
+          )}
+          <h3 className="sidebar-modal-title">{getHeaderTitle()}</h3>
           <button className="sidebar-modal-close" onClick={onClose}>×</button>
         </div>
         <div className="sidebar-modal-body">
-          <Sidebar
-            onItemDragStart={handleItemDragStart}
-            onItemDoubleClick={onItemDoubleClick}
-            sidebarSections={sidebarSections}
-            onAddItem={onAddItem}
-            onAddItemClick={onAddItemClick}
-          />
+          {step === 'selectType' ? (
+            <div className="type-selection-grid">
+              <button
+                className="type-selection-btn type-selection-trigger"
+                onClick={() => handleTypeSelect('trigger')}
+              >
+                <span className="type-selection-icon">📡</span>
+                <span className="type-selection-label">Trigger</span>
+                <span className="type-selection-desc">Sensors, Motion, Events</span>
+              </button>
+              <button
+                className="type-selection-btn type-selection-condition"
+                onClick={() => handleTypeSelect('condition')}
+              >
+                <span className="type-selection-icon">⚙️</span>
+                <span className="type-selection-label">Condition</span>
+                <span className="type-selection-desc">Time, Temperature, Humidity</span>
+              </button>
+              <button
+                className="type-selection-btn type-selection-executor"
+                onClick={() => handleTypeSelect('executor')}
+              >
+                <span className="type-selection-icon">💡</span>
+                <span className="type-selection-label">Executor</span>
+                <span className="type-selection-desc">Lights, Curtains, Devices</span>
+              </button>
+            </div>
+          ) : (
+            <Sidebar
+              onItemDragStart={handleItemDragStart}
+              onItemDoubleClick={onItemDoubleClick}
+              sidebarSections={filteredSections}
+              onAddItem={onAddItem}
+              onAddItemClick={onAddItemClick}
+            />
+          )}
         </div>
       </div>
     </div>
   );
 }
+
 
 function ActionPanel({ actions, onUpdateAction, onRemoveAction }) {
 
@@ -1838,6 +2111,7 @@ function Canvas({ actions, connections, connectingFrom, onDropItem, automationNa
   const [sceneSettingsModal, setSceneSettingsModal] = useState(null);
   const [selectedNode, setSelectedNode] = useState(null); // Node being edited via popup
   const [selectedNodePosition, setSelectedNodePosition] = useState(null);
+  const [relativeNodeId, setRelativeNodeId] = useState(null); // Node that triggered "+" add flow
 
   const handleDragOver = (event) => {
     event.preventDefault();
@@ -1927,13 +2201,6 @@ function Canvas({ actions, connections, connectingFrom, onDropItem, automationNa
               className="automation-name-input"
             />
           </div>
-          <button
-            className="canvas-add-button"
-            onClick={() => setShowSidebarModal(true)}
-            title="Add components"
-          >
-            <span className="canvas-add-icon">+</span>
-          </button>
         </div>
         <div className="canvas-content-wrapper">
           <CanvasNodes
@@ -1952,6 +2219,10 @@ function Canvas({ actions, connections, connectingFrom, onDropItem, automationNa
             userTriggerMode={userTriggerMode}
             onUserTriggerModeChange={onUserTriggerModeChange}
             onNodeClick={handleNodeClick}
+            onAddNode={(nodeId) => {
+              setRelativeNodeId(nodeId);
+              setShowSidebarModal(true);
+            }}
           />
           {/* N8N-style node edit popup */}
           {selectedNode && (
@@ -1986,8 +2257,15 @@ function Canvas({ actions, connections, connectingFrom, onDropItem, automationNa
           onItemDragStart={onItemDragStart}
           onItemDoubleClick={onItemDoubleClick}
           onAddItem={onAddItem}
-          onAddItemClick={onAddItemClick}
-          onClose={() => setShowSidebarModal(false)}
+          onAddItemClick={(item) => {
+            onAddItemClick(item, null, relativeNodeId);
+            setRelativeNodeId(null);
+            setShowSidebarModal(false);
+          }}
+          onClose={() => {
+            setShowSidebarModal(false);
+            setRelativeNodeId(null);
+          }}
         />
       )}
       {sceneSettingsModal && (
@@ -2185,11 +2463,25 @@ export default function App() {
             const fetchedSensors = devices.filter(d => d.type === 'sensor');
 
             setSidebarSections(prev => prev.map(section => {
-              if (section.title === "Equipment List" && fetchedEquipment.length > 0) {
-                return { ...section, items: fetchedEquipment };
+              if (section.title === "Equipment List") {
+                return {
+                  ...section,
+                  items: fetchedEquipment.map(d => ({
+                    ...d,
+                    capabilities: d.capabilities || [] // Ensure capabilities are present
+                  }))
+                };
               }
-              if (section.title === "Triggers" && fetchedSensors.length > 0) {
-                return { ...section, items: fetchedSensors };
+              if (section.title === "Triggers") {
+                // For now mapping sensors manually if they come from backend (future proofing)
+                // Or if "sensor" type devices are returned
+                return {
+                  ...section,
+                  items: section.items.concat(fetchedSensors.map(d => ({
+                    ...d,
+                    capabilities: d.capabilities || []
+                  })))
+                }
               }
               return section;
             }));
@@ -2203,83 +2495,14 @@ export default function App() {
   }, []);
 
   // Auto-connect newly added actions
-  useEffect(() => {
-    // Only process if actions count increased (new action added)
-    if (actions.length <= lastActionCount) {
-      setLastActionCount(actions.length);
-      return;
-    }
 
-    // Find the newly added action (the last one)
-    const newAction = actions[actions.length - 1];
-    if (!newAction) {
-      setLastActionCount(actions.length);
-      return;
-    }
-
-    const itemType = newAction.type ?? "equipment";
-
-    // Find the appropriate source node to connect from
-    let sourceId = null;
-
-    if (itemType === "sensor") {
-      // Sensor should connect from USER_SOURCE
-      sourceId = USER_SOURCE.id;
-    } else if (itemType === "scene") {
-      // Scene should connect from ALL sensors (Home Assistant logic: conditions check all triggers)
-      // For simplicity, connect to the first sensor, but the logic means "when any sensor triggers, check all conditions"
-      const sensors = actions.filter(a => a.type === "sensor" && a.id !== newAction.id);
-      if (sensors.length > 0) {
-        // Connect to the first sensor (represents the trigger group)
-        sourceId = sensors[0].id;
-      }
-    } else if (itemType === "equipment") {
-      // Equipment should connect from the last scene (Home Assistant logic: actions execute after all conditions are met)
-      // If multiple scenes exist, connect to the last one (represents "all conditions satisfied")
-      const scenes = actions.filter(a => a.type === "scene" && a.id !== newAction.id);
-      if (scenes.length > 0) {
-        sourceId = scenes[scenes.length - 1].id;
-      } else {
-        // If no scene, connect from last sensor (fallback: direct trigger to action)
-        // Don't connect equipment to equipment - each equipment should connect from scene/sensor
-        const sensors = actions.filter(a => a.type === "sensor" && a.id !== newAction.id);
-        if (sensors.length > 0) {
-          sourceId = sensors[sensors.length - 1].id;
-        }
-      }
-    }
-
-    // Create connection if source is found and connection is valid
-    if (sourceId) {
-      const sourceAction = sourceId === USER_SOURCE.id ? USER_SOURCE : actions.find(a => a.id === sourceId);
-      if (sourceAction && canConnect(sourceAction.type || "user", itemType)) {
-        // Use functional update to check and create connection
-        setConnections((prevConnections) => {
-          // Check if connection already exists
-          const connectionExists = prevConnections.some(
-            conn => conn.from === sourceId && conn.to === newAction.id
-          );
-
-          if (!connectionExists) {
-            return [
-              ...prevConnections,
-              { from: sourceId, to: newAction.id }
-            ];
-          }
-          return prevConnections;
-        });
-      }
-    }
-
-    setLastActionCount(actions.length);
-  }, [actions, lastActionCount]);
 
   const handleItemDragStart = useCallback((event, item) => {
     event.dataTransfer.setData("application/json", JSON.stringify(item));
     event.dataTransfer.effectAllowed = "copy";
   }, []);
 
-  const handleDropItem = useCallback((item, dropPosition) => {
+  const handleDropItem = useCallback((item, dropPosition, relativeId = null) => {
     const itemType = item.type ?? "equipment";
 
     // Check if it's a sensor or scene type
@@ -2333,48 +2556,48 @@ export default function App() {
       }
     }
 
-    // If drop position is provided, set it for the new node
-    if (dropPosition) {
-      setNodePositions(prev => ({
-        ...prev,
-        [newActionId]: {
-          x: dropPosition.x - 70, // Center the node on drop position
-          y: dropPosition.y - 40
-        }
-      }));
+    // Calculate position
+    let finalPosition = dropPosition;
+    if (!finalPosition && relativeId) {
+      const relPos = nodePositions[relativeId] || { x: 100, y: 150 };
+      finalPosition = {
+        x: relPos.x + 350,
+        y: relPos.y
+      };
+    } else if (!finalPosition) {
+      finalPosition = { x: 400, y: 300 };
     }
 
-    // Find the appropriate source node to connect from (before adding new action)
-    let sourceId = null;
-
-    if (itemType === "sensor") {
-      // Sensor should connect from USER_SOURCE
-      sourceId = USER_SOURCE.id;
-    } else if (itemType === "scene") {
-      // Scene should connect from the first sensor (Home Assistant logic: conditions check all triggers)
-      // This represents "when any sensor triggers, check all conditions (scenes)"
-      const sensors = actions.filter(a => a.type === "sensor");
-      if (sensors.length > 0) {
-        sourceId = sensors[0].id; // Connect to first sensor (represents the trigger group)
+    // Set node position
+    setNodePositions(prev => ({
+      ...prev,
+      [newActionId]: {
+        x: finalPosition.x - 70, // Center the node
+        y: finalPosition.y - 40
       }
-    } else if (itemType === "equipment") {
-      // Equipment should connect from the last scene, or last equipment if no scene
-      const scenes = actions.filter(a => a.type === "scene");
-      if (scenes.length > 0) {
-        sourceId = scenes[scenes.length - 1].id;
-      } else {
-        // If no scene, connect from last sensor
-        // Don't connect equipment to equipment - each equipment should connect from scene/sensor
-        const sensors = actions.filter(a => a.type === "sensor");
-        if (sensors.length > 0) {
-          sourceId = sensors[sensors.length - 1].id;
-        }
+    }));
+
+    // Find the appropriate source node to connect from (ONLY if explicitly added via relativeId)
+    // Rule: "New device by default has a logical line from THAT device to the new device... APART FROM THIS, NO OTHER AUTO CREATED LOGICAL LINES"
+    const sourceId = relativeId;
+
+    // Create connection ONLY if explicit source (relativeId) is provided
+    if (sourceId) {
+      const sourceAction = (sourceId === USER_SOURCE.id) ? USER_SOURCE : actions.find(a => a.id === sourceId);
+
+      if (sourceAction && canConnect(sourceAction.type || "user", itemType)) {
+        setConnections(prev => {
+          if (!prev.some(conn => conn.from === sourceId && conn.to === newActionId)) {
+            return [...prev, { from: sourceId, to: newActionId }];
+          }
+          return prev;
+        });
       }
     }
 
-    // Add the new action (connection will be created automatically via useEffect)
+    // Add the new action
     setActions((prev) => [...prev, newAction]);
-  }, [actions]);
+  }, [actions, nodePositions, USER_SOURCE, connections]);
 
   const handleResetClick = useCallback(() => {
     setConfirmReset(true);
@@ -2456,89 +2679,6 @@ export default function App() {
   }, []);
 
   // Function to auto-repair connections based on node types
-  const autoRepairConnections = useCallback((currentActions, currentConnections) => {
-    const allNodes = [USER_SOURCE, ...currentActions];
-    const sensors = currentActions.filter(a => a.type === "sensor");
-    const scenes = currentActions.filter(a => a.type === "scene");
-    const equipment = currentActions.filter(a => a.type === "equipment" || !a.type);
-
-    const requiredConnections = [];
-
-    // Helper function to check if connection was manually deleted
-    const isDeleted = (fromId, toId) => {
-      return deletedConnections.has(`${fromId} -${toId} `);
-    };
-
-    // 1. Connect all sensors from USER_SOURCE
-    sensors.forEach(sensor => {
-      const exists = currentConnections.some(
-        conn => conn.from === USER_SOURCE.id && conn.to === sensor.id
-      );
-      if (!exists && !isDeleted(USER_SOURCE.id, sensor.id)) {
-        requiredConnections.push({ from: USER_SOURCE.id, to: sensor.id });
-      }
-    });
-
-    // 2. Connect scenes from sensors (connect each scene to first sensor, representing trigger group)
-    if (sensors.length > 0 && scenes.length > 0) {
-      const firstSensorId = sensors[0].id;
-      scenes.forEach(scene => {
-        const exists = currentConnections.some(
-          conn => conn.from === firstSensorId && conn.to === scene.id
-        );
-        if (!exists && !isDeleted(firstSensorId, scene.id)) {
-          requiredConnections.push({ from: firstSensorId, to: scene.id });
-        }
-      });
-    }
-
-    // 3. Connect equipment from scenes (connect each equipment to last scene, representing all conditions met)
-    // Each equipment connects independently from the scene/sensor, not from other equipment
-    if (scenes.length > 0 && equipment.length > 0) {
-      const lastSceneId = scenes[scenes.length - 1].id;
-      equipment.forEach((eq) => {
-        const exists = currentConnections.some(
-          conn => conn.from === lastSceneId && conn.to === eq.id
-        );
-        if (!exists && !isDeleted(lastSceneId, eq.id)) {
-          requiredConnections.push({ from: lastSceneId, to: eq.id });
-        }
-      });
-    } else if (sensors.length > 0 && equipment.length > 0) {
-      // If no scenes, connect equipment directly from last sensor
-      const lastSensorId = sensors[sensors.length - 1].id;
-      equipment.forEach((eq) => {
-        const exists = currentConnections.some(
-          conn => conn.from === lastSensorId && conn.to === eq.id
-        );
-        if (!exists && !isDeleted(lastSensorId, eq.id)) {
-          requiredConnections.push({ from: lastSensorId, to: eq.id });
-        }
-      });
-    }
-
-    // Add missing connections
-    if (requiredConnections.length > 0) {
-      setConnections(prev => {
-        const newConnections = [...prev];
-        requiredConnections.forEach(reqConn => {
-          // Check if connection already exists before adding
-          const exists = newConnections.some(
-            conn => conn.from === reqConn.from && conn.to === reqConn.to
-          );
-          if (!exists) {
-            // Validate connection before adding
-            const fromNode = allNodes.find(n => n.id === reqConn.from);
-            const toNode = allNodes.find(n => n.id === reqConn.to);
-            if (fromNode && toNode && canConnect(fromNode.type || "user", toNode.type || "equipment")) {
-              newConnections.push(reqConn);
-            }
-          }
-        });
-        return newConnections;
-      });
-    }
-  }, [USER_SOURCE, deletedConnections]);
 
   const handleNodePositionChange = useCallback((nodeId, newPosition) => {
     setNodePositions(prev => ({
@@ -2547,15 +2687,6 @@ export default function App() {
     }));
   }, []);
 
-  // Auto-repair connections when actions change (debounced to avoid excessive updates during drag)
-  useEffect(() => {
-    // Debounce the repair to avoid excessive updates during drag operations
-    const timeoutId = setTimeout(() => {
-      autoRepairConnections(actions, connections);
-    }, 300); // Wait 300ms after last change before repairing
-
-    return () => clearTimeout(timeoutId);
-  }, [actions, connections, autoRepairConnections]);
 
   const handleImportJson = useCallback(() => {
     // Create a file input element
@@ -2681,6 +2812,15 @@ export default function App() {
       ? `auto_${automationName.toLowerCase().replace(/\s+/g, "_")}`
       : `auto_${Date.now()}`);
 
+
+    const uiMetadata = {
+      actions: actions.map(a => ({
+        ...a,
+        // Ensure no sensitive/internal React keys leak
+      })),
+      connections: connections,
+      // nodePositions removed to rely on auto-layout
+    };
     return {
       automationId,
       name: automationName || "Untitled Automation",
@@ -2689,11 +2829,7 @@ export default function App() {
       triggers: triggers,
       conditions: conditions,
       actions: actionsList,
-      uiMetadata: {
-        actions,
-        connections,
-        nodePositions
-      }
+      uiMetadata: uiMetadata
     };
   }, [actions, connections, nodePositions, automationName, editingSceneId]);
 
@@ -3299,7 +3435,7 @@ export default function App() {
               onItemDragStart={handleItemDragStart}
               onItemDoubleClick={handleItemDoubleClick}
               onAddItem={handleAddItem}
-              onAddItemClick={(item) => handleDropItem(item, { x: 400, y: 300 })}
+              onAddItemClick={(item, pos, relId) => handleDropItem(item, pos || { x: 400, y: 300 }, relId)}
               USER_SOURCE={USER_SOURCE}
               userTriggerMode={userTriggerMode}
               onUserTriggerModeChange={setUserTriggerMode}

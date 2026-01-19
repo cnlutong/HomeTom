@@ -102,6 +102,7 @@ const DeviceList = ({ onBack }) => {
                   <th>Type</th>
                   <th>Adapter</th>
                   <th>Manufacturer</th>
+                  <th>Capabilities</th>
                   <th>Status</th>
                 </tr>
               </thead>
@@ -125,6 +126,19 @@ const DeviceList = ({ onBack }) => {
                     </td>
                     <td>
                       <span className="device-table-manufacturer">{device.manufacturer || 'Generic'}</span>
+                    </td>
+                    <td>
+                      <div className="device-table-capabilities">
+                        {device.capabilities && device.capabilities.length > 0 ? (
+                          device.capabilities.map((cap, idx) => (
+                            <span key={idx} className="capability-badge">
+                              {cap.name}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-muted">-</span>
+                        )}
+                      </div>
                     </td>
                     <td>
                       <div className="device-table-status">
@@ -283,6 +297,24 @@ const DeviceList = ({ onBack }) => {
         @keyframes spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
+        }
+        .device-table-capabilities {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 4px;
+          max-width: 200px;
+        }
+        .capability-badge {
+          background: #f1f5f9;
+          color: #475569;
+          padding: 2px 6px;
+          border-radius: 4px;
+          font-size: 10px;
+          border: 1px solid #e2e8f0;
+          white-space: nowrap;
+        }
+        .text-muted {
+            color: #cbd5e1;
         }
       `}} />
     </div>

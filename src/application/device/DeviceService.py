@@ -7,9 +7,72 @@ from ...domain.Device.aggregates.device_aggregate import DeviceAggregate
 from ...domain.Device.repositories.device_repository import IDeviceRepository
 from ...domain.Device.services.device_service import IDeviceService
 from ...domain.Device.value_objects.device_status import DeviceStatus
-from ...domain.Device.value_objects.device_capability import DeviceCapabilities
+from ...domain.Device.value_objects.device_capability import DeviceCapabilities, DeviceCapability
 from ...infrastructure.messaging.event_bus import IEventBus
 
+
+# 根据 entity_id 前缀自动推断设备能力的映射表
+# 参考 src/domain/Device/Capabilities.py 中各 Mixin 定义的能力
+ENTITY_TYPE_CAPABILITIES: Dict[str, List[str]] = {
+    # 可开关设备 (SwitchableMixin)
+    "light": ["turn_on", "turn_off", "toggle", "set_brightness"],
+    "switch": ["turn_on", "turn_off", "toggle"],
+    
+    # 锁具 (LockMixin) - 注意：lock 设备使用 lock/unlock 而不是 turn_on/turn_off
+    "lock": ["lock", "unlock"],
+    
+    # 窗帘/遮蔽 (CoverMixin)
+    "cover": ["set_position", "open_cover", "close_cover"],
+    
+    # 风扇 (FanMixin + SwitchableMixin)
+    "fan": ["turn_on", "turn_off", "toggle", "set_speed", "set_oscillating"],
+    
+    # 温控 (ClimateMixin + SwitchableMixin)
+    "climate": ["turn_on", "turn_off", "set_temperature", "set_mode"],
+    
+    # 吸尘器 (VacuumMixin)
+    "vacuum": ["start", "stop", "pause", "return_to_base"],
+    
+    # 摄像头 (CameraMixin)
+    "camera": ["start_recording", "stop_recording"],
+    
+    # 媒体播放器 (MediaPlayerMixin)
+    "media_player": ["play", "pause", "stop", "set_volume"],
+    
+    # 安防系统 (AlarmMixin)
+    "alarm_control_panel": ["arm_away", "arm_home", "disarm"],
+    
+    # 传感器 - 只读，没有命令能力
+    "sensor": [],
+    "binary_sensor": ["trigger_test"],
+    
+    # 设备追踪器 - 只读
+    "device_tracker": [],
+    
+    # 天气 - 只读
+    "weather": [],
+}
+
+
+def get_capabilities_for_entity(entity_id: str) -> DeviceCapabilities:
+    """根据 entity_id 前缀自动推断设备能力
+    
+    Args:
+        entity_id: 设备实体ID，如 "lock.garage_door", "light.living_room"
+        
+    Returns:
+        对应的设备能力集合
+    """
+    # 提取 entity_id 的类型前缀 (如 "lock", "light")
+    entity_type = entity_id.split(".")[0] if "." in entity_id else ""
+    
+    # 获取该类型的能力列表
+    capability_names = ENTITY_TYPE_CAPABILITIES.get(entity_type, [])
+    
+    # 创建 DeviceCapability 对象列表
+    capabilities = [DeviceCapability(name=name) for name in capability_names]
+    
+    return DeviceCapabilities(capabilities)
 
 class DeviceService:
     """设备应用服务
@@ -236,15 +299,20 @@ class DeviceService:
                     # 获取友好名称，如果没有则使用 entity_id
                     friendly_name = state.attributes.get("friendly_name") or state.entity_id
                     
+                    # 根据 entity_id 前缀自动推断设备能力
+                    capabilities = get_capabilities_for_entity(state.entity_id)
+                    
                     # 注册新设备
                     device_id = await self.register_device(
                         entity_id=state.entity_id,
                         name=friendly_name,
-                        adapter_type=adapter_type
+                        adapter_type=adapter_type,
+                        capabilities=capabilities
                     )
                     new_device_ids.append(device_id)
                 else:
                     skipped_count += 1
+
             
             print(f"[{adapter_type}] 设备同步完成: 新增 {len(new_device_ids)} 个，跳过 {skipped_count} 个已存在设备。")
             return new_device_ids

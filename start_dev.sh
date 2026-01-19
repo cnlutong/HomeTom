@@ -35,14 +35,14 @@ done
 
 # 1. Start Mock Hardware API Server (Port 8123)
 echo -e "${PURPLE}[1/3] Starting Mock Hardware API Server (Port 8123)...${NC}"
-python3 -m uvicorn test_API_server.main:app --port 8123 --reload > mock_api.log 2>&1 &
+./venv/bin/python3 -m uvicorn test_API_server.main:app --port 8123 --reload > mock_api.log 2>&1 &
 TEST_API_PID=$!
 
 # 2. Start HomeTom Backend (Port 8000)
 echo -e "${GREEN}[2/3] Starting HomeTom Backend (Port 8000)...${NC}"
 # Wait a few seconds for the mock server to initialize
 sleep 5
-uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload > backend_dev.log 2>&1 &
+./venv/bin/uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload > backend_dev.log 2>&1 &
 BACKEND_PID=$!
 
 # 3. Start Frontend (Vite)

@@ -137,8 +137,7 @@ class SceneAggregate:
         if self._status == SceneStatus.PUBLISHED:
             return  # 已经是发布状态，无需操作
         
-        if self._status == SceneStatus.DISABLED:
-            raise ValueError("已禁用的场景不能直接发布，需要先启用")
+
         
         if not self._definition:
             raise ValueError("场景必须有定义才能发布")

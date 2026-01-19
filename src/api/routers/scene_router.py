@@ -6,6 +6,7 @@ from src.infrastructure.persistence.database import get_current_session_factory
 from src.infrastructure.persistence.repositories.scene_repository_impl import SceneRepositoryImpl
 from src.infrastructure.messaging.in_memory_event_bus import InMemoryEventBus
 from src.application.scene.SceneService import SceneService
+from src.infrastructure.persistence.repositories.device_repository_impl import DeviceRepositoryImpl
 from src.domain.Scene.services.scene_validator_impl import SceneValidator
 from src.domain.Scene.value_objects.scene_definition import SceneDefinition
 from src.domain.Scene.value_objects.trigger import Trigger, TriggerType
@@ -56,7 +57,8 @@ async def get_db():
 # 依赖项：初始化 SceneService
 async def get_scene_service(session: AsyncSession = Depends(get_db)):
     repo = SceneRepositoryImpl(session)
-    validator = SceneValidator()
+    device_repo = DeviceRepositoryImpl(session)
+    validator = SceneValidator(device_repo)
     event_bus = InMemoryEventBus()  # 实际应用中应从全局配置获取
     return SceneService(repo, validator, event_bus)
 

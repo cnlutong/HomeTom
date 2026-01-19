@@ -11,7 +11,9 @@ class DeviceCapability:
     表示设备支持的操作，如 turn_on, turn_off, set_brightness 等
     """
     name: str  # 能力名称，如 "turn_on", "set_brightness"
+    description: Optional[str] = None  # 能力描述
     parameters: Optional[Dict[str, Any]] = None  # 能力参数，如 {"min": 0, "max": 255}
+
     
     def __post_init__(self):
         """验证能力名称"""
