@@ -100,7 +100,7 @@ class SceneValidator(ISceneValidator):
             errors.append(f"{prefix}: 属性名不能为空")
         
         # 校验操作符
-        valid_operators = ["==", "!=", ">", "<", ">=", "<=", "in", "not_in"]
+        valid_operators = ["==", "!=", ">", "<", ">=", "<=", "in", "not_in", "in_range"]
         if condition.operator not in valid_operators:
             errors.append(
                 f"{prefix}: 操作符'{condition.operator}'无效，"

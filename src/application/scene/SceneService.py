@@ -70,6 +70,11 @@ class SceneService:
         # 持久化场景
         await self._scene_repository.save(scene)
         
+        # 发布领域事件
+        events = scene.get_domain_events()
+        await self._event_bus.publish_all(events)
+        scene.clear_domain_events()
+        
         return scene_id
     
     async def update_scene(
@@ -141,6 +146,11 @@ class SceneService:
         # 更新场景定义
         scene.update_definition(definition)
         await self._scene_repository.save(scene)
+        
+        # 发布领域事件
+        events = scene.get_domain_events()
+        await self._event_bus.publish_all(events)
+        scene.clear_domain_events()
         
         return []
     

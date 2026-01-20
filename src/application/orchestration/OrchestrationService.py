@@ -8,6 +8,7 @@ from ...domain.Scene.repositories.scene_repository import ISceneRepository
 from ...domain.Device.repositories.device_repository import IDeviceRepository
 from ...domain.Execution.aggregates.execution_aggregate import ExecutionAggregate
 from ...domain.Execution.repositories.execution_repository import IExecutionRepository
+from ...domain.Execution.repositories.executor_repository import IExecutorRepository
 from ...domain.Execution.services.workflow_engine import IWorkflowEngine
 from ...domain.Execution.value_objects.execution_context import ExecutionContext
 from ...domain.Execution.value_objects.retry_policy import RetryPolicy
@@ -30,6 +31,7 @@ class OrchestrationService:
         scene_repository: ISceneRepository,
         device_repository: IDeviceRepository,
         execution_repository: IExecutionRepository,
+        executor_repository: IExecutorRepository,
         workflow_engine: IWorkflowEngine,
         event_bus: IEventBus
     ):
@@ -39,12 +41,14 @@ class OrchestrationService:
             scene_repository: 场景仓储接口
             device_repository: 设备仓储接口
             execution_repository: 执行仓储接口
+            executor_repository: 执行器仓储接口
             workflow_engine: 工作流引擎接口
             event_bus: 事件总线接口
         """
         self._scene_repository = scene_repository
         self._device_repository = device_repository
         self._execution_repository = execution_repository
+        self._executor_repository = executor_repository
         self._workflow_engine = workflow_engine
         self._event_bus = event_bus
     
@@ -77,6 +81,24 @@ class OrchestrationService:
         
         if not scene.definition:
             raise ValueError(f"场景缺少定义: {scene_id}")
+            
+        # 检查对应执行器的状态（Phase 3 Persistence）
+        executor = await self._executor_repository.find_by_scene_id(scene_id)
+        if not executor:
+            # 理论上发布场景时必然会创建执行器，如果不存在则属于异常数据
+            # 但为了鲁棒性，这里可以尝试创建，或者直接报错
+            # 这里选择严格模式：
+            raise ValueError(f"场景对应的执行器不存在: {scene_id}")
+            
+        if executor.status.value != "active":
+            # 只有 active 状态的执行器才能运行
+            # 除非此处是强制执行（manual），目前暂定 manual 也需要 active 状态
+            # 或者我们可以认为 manual 允许执行，但这里按照计划要求检查状态
+            raise ValueError(f"执行器未激活，当前状态: {executor.status.value}")
+        
+        # 更新执行器统计信息
+        executor.record_trigger()
+        await self._executor_repository.save(executor)
         
         # 生成执行ID
         execution_id = str(uuid.uuid4())
@@ -140,9 +162,8 @@ class OrchestrationService:
             # 委托给工作流引擎执行
             await self._workflow_engine.execute(execution, scene.definition)
             
-            # 标记执行成功
-            execution.succeed()
-            result = {"success": True, "execution_id": execution_id}
+            # 执行结果已由工作流引擎设置
+            result = {"success": execution.is_completed and execution.result.is_success() if execution.result else False, "execution_id": execution_id}
             
         except Exception as e:
             # 尝试重试

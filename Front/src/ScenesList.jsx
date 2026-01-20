@@ -439,6 +439,35 @@ function ScenesList({ onSelectScene, onCreateNew, onViewDevices, onUpdateSceneSt
     return icons;
   };
 
+  const getTriggerTypeBadge = (scene) => {
+    // Extract T0 trigger type from automationData
+    // T0 trigger types are: manual, auto, always_on
+    // Device triggers have type: deviceState
+    if (!scene.automationData || !scene.automationData.triggers || scene.automationData.triggers.length === 0) {
+      return { text: 'Manual', className: 'trigger-badge-manual' };
+    }
+
+    // Find the T0 trigger (type is manual, auto, or always_on)
+    const t0Trigger = scene.automationData.triggers.find(
+      t => t.type === 'manual' || t.type === 'auto' || t.type === 'always_on'
+    );
+
+    if (!t0Trigger) {
+      // No T0 trigger found, default to manual
+      return { text: 'Manual', className: 'trigger-badge-manual' };
+    }
+
+    const triggerType = t0Trigger.type;
+
+    if (triggerType === 'auto') {
+      return { text: 'Auto', className: 'trigger-badge-auto' };
+    } else if (triggerType === 'always_on') {
+      return { text: 'Always On', className: 'trigger-badge-always-on' };
+    } else {
+      return { text: 'Manual', className: 'trigger-badge-manual' };
+    }
+  };
+
   // Group scenes by status
   const activeScenes = scenes.filter(scene => scene.status === "published");
   const disabledScenes = scenes.filter(scene => scene.status === "disabled");
@@ -545,7 +574,7 @@ function ScenesList({ onSelectScene, onCreateNew, onViewDevices, onUpdateSceneSt
             <div className="scenarios-section">
               <div className="scenarios-section-header">
                 <span className="section-dot section-dot-active"></span>
-                <h3 className="scenarios-section-title">已启动场景</h3>
+                <h3 className="scenarios-section-title">Active Scenes</h3>
               </div>
               <div className="scenarios-grid">
                 {activeScenes.map((scene) => (
@@ -583,11 +612,15 @@ function ScenesList({ onSelectScene, onCreateNew, onViewDevices, onUpdateSceneSt
                         <h4 className="scenario-card-title">{scene.name}</h4>
                         <div className="scenario-card-stats">
                           <span className="stat-item">
-                            {scene.nodeCount || 0} 节点
+                            {scene.nodeCount || 0} nodes
                           </span>
                           <span className="stat-divider"></span>
                           <span className="stat-item">
-                            {scene.activeCount || 0} 运行中
+                            {scene.activeCount || 0} running
+                          </span>
+                          <span className="stat-divider"></span>
+                          <span className={`stat-item trigger-badge ${getTriggerTypeBadge(scene).className}`}>
+                            {getTriggerTypeBadge(scene).text}
                           </span>
                         </div>
                       </div>
@@ -595,7 +628,7 @@ function ScenesList({ onSelectScene, onCreateNew, onViewDevices, onUpdateSceneSt
 
                     <div className="scenario-card-footer">
                       <div className="scenario-card-button-group">
-                        <button className="card-btn btn-active" disabled>已启动</button>
+                        <button className="card-btn btn-active" disabled>Active</button>
                         <button
                           className="card-btn btn-secondary"
                           onClick={(e) => {
@@ -603,7 +636,7 @@ function ScenesList({ onSelectScene, onCreateNew, onViewDevices, onUpdateSceneSt
                             handleStatusChange(scene.id, "disabled");
                           }}
                         >
-                          禁用
+                          Disable
                         </button>
                         <button
                           className="card-btn btn-secondary"
@@ -612,7 +645,7 @@ function ScenesList({ onSelectScene, onCreateNew, onViewDevices, onUpdateSceneSt
                             handleStatusChange(scene.id, "draft");
                           }}
                         >
-                          转为草稿
+                          To Draft
                         </button>
                       </div>
                     </div>
@@ -627,7 +660,7 @@ function ScenesList({ onSelectScene, onCreateNew, onViewDevices, onUpdateSceneSt
             <div className="scenarios-section">
               <div className="scenarios-section-header">
                 <span className="section-dot section-dot-draft"></span>
-                <h3 className="scenarios-section-title">草稿场景</h3>
+                <h3 className="scenarios-section-title">Draft Scenes</h3>
               </div>
               <div className="scenarios-grid">
                 {draftScenes.map((scene) => (
@@ -664,17 +697,21 @@ function ScenesList({ onSelectScene, onCreateNew, onViewDevices, onUpdateSceneSt
                         <h4 className="scenario-card-title">{scene.name}</h4>
                         <div className="scenario-card-stats">
                           <span className="stat-item">
-                            {scene.nodeCount || 0} 节点
+                            {scene.nodeCount || 0} nodes
                           </span>
                           <span className="stat-divider"></span>
-                          <span className="stat-item draft-badge">草稿箱</span>
+                          <span className="stat-item draft-badge">Draft</span>
+                          <span className="stat-divider"></span>
+                          <span className={`stat-item trigger-badge ${getTriggerTypeBadge(scene).className}`}>
+                            {getTriggerTypeBadge(scene).text}
+                          </span>
                         </div>
                       </div>
                     </div>
 
                     <div className="scenario-card-footer">
                       <div className="scenario-card-button-group">
-                        <button className="card-btn btn-draft" disabled>草稿箱</button>
+                        <button className="card-btn btn-draft" disabled>Draft</button>
                         <button
                           className="card-btn btn-primary"
                           onClick={(e) => {
@@ -682,7 +719,7 @@ function ScenesList({ onSelectScene, onCreateNew, onViewDevices, onUpdateSceneSt
                             handleStatusChange(scene.id, "published");
                           }}
                         >
-                          启动
+                          Activate
                         </button>
                         <button
                           className="card-btn btn-secondary"
@@ -691,7 +728,7 @@ function ScenesList({ onSelectScene, onCreateNew, onViewDevices, onUpdateSceneSt
                             handleStatusChange(scene.id, "disabled");
                           }}
                         >
-                          禁用
+                          Disable
                         </button>
                       </div>
                     </div>
@@ -706,7 +743,7 @@ function ScenesList({ onSelectScene, onCreateNew, onViewDevices, onUpdateSceneSt
             <div className="scenarios-section">
               <div className="scenarios-section-header">
                 <span className="section-dot section-dot-disabled"></span>
-                <h3 className="scenarios-section-title">已禁用场景</h3>
+                <h3 className="scenarios-section-title">Disabled Scenes</h3>
               </div>
               <div className="scenarios-grid">
                 {disabledScenes.map((scene) => (
@@ -743,17 +780,21 @@ function ScenesList({ onSelectScene, onCreateNew, onViewDevices, onUpdateSceneSt
                         <h4 className="scenario-card-title">{scene.name}</h4>
                         <div className="scenario-card-stats">
                           <span className="stat-item">
-                            {scene.nodeCount || 0} 节点
+                            {scene.nodeCount || 0} nodes
                           </span>
                           <span className="stat-divider"></span>
-                          <span className="stat-item disabled-badge">已禁用</span>
+                          <span className="stat-item disabled-badge">Disabled</span>
+                          <span className="stat-divider"></span>
+                          <span className={`stat-item trigger-badge ${getTriggerTypeBadge(scene).className}`}>
+                            {getTriggerTypeBadge(scene).text}
+                          </span>
                         </div>
                       </div>
                     </div>
 
                     <div className="scenario-card-footer">
                       <div className="scenario-card-button-group">
-                        <button className="card-btn btn-disabled" disabled>已禁用</button>
+                        <button className="card-btn btn-disabled" disabled>Disabled</button>
                         <button
                           className="card-btn btn-primary"
                           onClick={(e) => {
@@ -761,7 +802,7 @@ function ScenesList({ onSelectScene, onCreateNew, onViewDevices, onUpdateSceneSt
                             handleStatusChange(scene.id, "published");
                           }}
                         >
-                          启用
+                          Enable
                         </button>
                         <button
                           className="card-btn btn-secondary"
@@ -770,7 +811,7 @@ function ScenesList({ onSelectScene, onCreateNew, onViewDevices, onUpdateSceneSt
                             handleStatusChange(scene.id, "draft");
                           }}
                         >
-                          草稿
+                          Draft
                         </button>
                       </div>
                     </div>

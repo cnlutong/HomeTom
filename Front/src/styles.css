@@ -2143,6 +2143,91 @@ body,
   padding: 0.5rem;
 }
 
+/* Schedule Configuration UI */
+.canvas-node-schedule-config {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(16, 185, 129, 0.08);
+  border-radius: 6px;
+  border: 1px solid rgba(16, 185, 129, 0.15);
+}
+
+.schedule-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.schedule-row:last-child {
+  margin-bottom: 0;
+}
+
+.schedule-label {
+  font-size: 0.7rem;
+  color: #6b7280;
+  font-weight: 500;
+  min-width: 32px;
+}
+
+.schedule-time-input {
+  flex: 1;
+  padding: 0.25rem 0.4rem;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  background: #ffffff;
+  color: #374151;
+  outline: none;
+  max-width: 80px;
+}
+
+.schedule-time-input:focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.15);
+}
+
+.schedule-days {
+  display: flex;
+  gap: 2px;
+  flex: 1;
+}
+
+.schedule-day-btn {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid #d1d5db;
+  border-radius: 3px;
+  background: #ffffff;
+  color: #6b7280;
+  font-size: 0.6rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.schedule-day-btn:hover {
+  border-color: #10b981;
+  color: #10b981;
+}
+
+.schedule-day-btn.active {
+  background: #10b981;
+  border-color: #10b981;
+  color: #ffffff;
+}
+
+.schedule-hint {
+  font-size: 0.65rem;
+  color: #9ca3af;
+  text-align: center;
+  margin-top: 0.25rem;
+}
+
 .canvas-node-user:hover {
   border-color: #10b981;
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
@@ -4153,6 +4238,35 @@ body,
   border-radius: 4px;
 }
 
+/* Trigger Type Badges */
+.trigger-badge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.trigger-badge-manual {
+  color: #64748b;
+  background: #f1f5f9;
+}
+
+.trigger-badge-auto {
+  color: #10b981;
+  background: #d1fae5;
+}
+
+.trigger-badge-always-on {
+  color: #3b82f6;
+  background: #dbeafe;
+}
+
+.trigger-badge-device {
+  color: #f59e0b;
+  background: #fef3c7;
+}
+
+
 /* Card Footer */
 .scenario-card-footer {
   display: flex;
@@ -4542,6 +4656,73 @@ body,
   background: #dc2626;
   transform: scale(1.1);
 }
+
+/* Sidebar T0 Trigger Styles */
+.scene-settings-select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background: #f8fafc;
+  color: #334155;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.scene-settings-select:focus {
+  border-color: #10b981;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.schedule-sidebar-settings {
+  padding-top: 0.5rem;
+}
+
+.schedule-days-sidebar {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+  margin-top: 0.75rem;
+}
+
+.schedule-day-btn-sidebar {
+  flex: 1;
+  height: 32px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #64748b;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.schedule-day-btn-sidebar:hover {
+  border-color: #10b981;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.05);
+}
+
+.schedule-day-btn-sidebar.active {
+  background: #10b981;
+  border-color: #10b981;
+  color: #ffffff;
+}
+
+.schedule-hint-sidebar {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin-top: 0.75rem;
+  text-align: center;
+}
+
 
 /* Color Themes */
 .theme-trigger {

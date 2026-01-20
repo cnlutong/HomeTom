@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from datetime import datetime
 
 
@@ -10,6 +10,7 @@ class TriggerType(Enum):
     """触发器类型"""
     MANUAL = "manual"  # 手动触发
     TIMER = "timer"  # 定时器触发
+    ALWAYS_ON = "always_on"  # 常开触发（类似 bypass）
     DEVICE_EVENT = "device_event"  # 设备事件触发
 
 
@@ -53,15 +54,35 @@ class Trigger:
         )
     
     @classmethod
-    def create_timer(cls, schedule: str) -> "Trigger":
+    def create_timer(
+        cls, 
+        schedule: str,
+        days: Optional[List[int]] = None  # For weekly triggers (0=Mon, 1=Tue, ..., 6=Sun)
+    ) -> "Trigger":
         """创建定时器触发器
         
         Args:
-            schedule: 定时表达式（如 "0 8 * * *" 表示每天8点）
+            schedule: 时间表达式（如 "08:00" 或 cron 表达式）
+            days: 可选，每周执行的天数列表（0=周一，1=周二，...，6=周日）
+                  如果为 None 或空，则表示每天执行
         """
+        config = {"schedule": schedule}
+        if days:
+            config["days"] = days
         return cls(
             type=TriggerType.TIMER,
-            config={"schedule": schedule}
+            config=config
+        )
+    
+    @classmethod
+    def create_always_on(cls) -> "Trigger":
+        """创建常开触发器
+        
+        该触发器始终处于激活状态，类似 bypass
+        """
+        return cls(
+            type=TriggerType.ALWAYS_ON,
+            config={}
         )
     
     @classmethod

@@ -119,7 +119,7 @@ function Header({ onReset, onPreviewJson, onImportJson, onBackToScenes, onSave, 
           <CloudSun size={16} className="widget-icon widget-icon-orange" />
           <div className="widget-content">
             <span className="widget-value">26°C</span>
-            <span className="widget-label-inline">多云</span>
+            <span className="widget-label-inline">Partly Cloudy</span>
           </div>
         </div>
       </div>
@@ -1166,7 +1166,7 @@ function canConnect(fromType, toType) {
   return false;
 }
 
-function CanvasNode({ action, isConnecting, isSelected, onConnectionClick, nodeRef, position, onPositionChange, onRemove, onAddNode, onUpdate, onOpenSettings, userTriggerMode, onUserTriggerModeChange, onNodeClick }) {
+function CanvasNode({ action, isConnecting, isSelected, onConnectionClick, nodeRef, position, onPositionChange, onRemove, onAddNode, onUpdate, onOpenSettings, userTriggerMode, onNodeClick }) {
   const nodeClass = action.type === "user" ? "canvas-node-user" :
     action.type === "sensor" ? "canvas-node-sensor" :
       action.type === "scene" ? "canvas-node-scene" :
@@ -1286,24 +1286,23 @@ function CanvasNode({ action, isConnecting, isSelected, onConnectionClick, nodeR
               On Scene Activate
               <div className="canvas-node-connector-output-inline"></div>
             </div>
-            <div className="canvas-node-mode-field">
-              <span className="mode-label">Mode:</span>
-              <select
-                className="mode-select"
-                value={userTriggerMode || "manual"}
-                onChange={(e) => {
+            <div className="canvas-node-action-info">
+              <span className="canvas-node-action-text">
+                {userTriggerMode === "auto" ? "Scheduled" :
+                  userTriggerMode === "always_on" ? "Always On" : "Manual Click"}
+              </span>
+              <button
+                className="canvas-node-gear-button"
+                onClick={(e) => {
                   e.stopPropagation();
-                  if (onUserTriggerModeChange) {
-                    onUserTriggerModeChange(e.target.value);
+                  if (onOpenSettings) {
+                    onOpenSettings({ ...action, id: "user-source", label: "Start Trigger" });
                   }
                 }}
-                onClick={(e) => e.stopPropagation()}
-                onMouseDown={(e) => e.stopPropagation()}
-                onFocus={(e) => e.stopPropagation()}
+                title="Settings"
               >
-                <option value="manual">Manual</option>
-                <option value="automatic">Automatic</option>
-              </select>
+                <span className="canvas-node-gear-icon">⚙️</span>
+              </button>
             </div>
           </div>
         </>
@@ -1433,7 +1432,7 @@ function CanvasNode({ action, isConnecting, isSelected, onConnectionClick, nodeR
   );
 }
 
-function SceneSettingsModal({ action, onUpdate, onClose }) {
+function SceneSettingsModal({ action, onUpdate, onClose, userTriggerMode, onUserTriggerModeChange, triggerSchedule, onTriggerScheduleChange }) {
   const [tempValue, setTempValue] = useState(action.temperatureValue ?? 20);
   const [timeType, setTimeType] = useState(action.timeType ?? "fixed");
   const [timeValue, setTimeValue] = useState(action.timeValue ?? "17:00");
@@ -1441,7 +1440,19 @@ function SceneSettingsModal({ action, onUpdate, onClose }) {
   const [timeEnd, setTimeEnd] = useState(action.timeEnd ?? "23:59");
   const [humidityValue, setHumidityValue] = useState(action.humidityValue ?? 60);
 
+  // T0 Trigger specific states
+  const [localMode, setLocalMode] = useState(userTriggerMode);
+  const [localTime, setLocalTime] = useState(triggerSchedule?.time || "08:00");
+  const [localDays, setLocalDays] = useState(triggerSchedule?.days || []);
+
   const handleSave = () => {
+    if (action.id === "user-source") {
+      onUserTriggerModeChange?.(localMode);
+      onTriggerScheduleChange?.({ time: localTime, days: localDays });
+      onClose();
+      return;
+    }
+
     const updates = {};
 
     if (action.label === "Temperature Threshold" || action.label === "Temperature") {
@@ -1480,6 +1491,66 @@ function SceneSettingsModal({ action, onUpdate, onClose }) {
           <button className="scene-settings-modal-close" onClick={onClose}>×</button>
         </div>
         <div className="scene-settings-modal-body">
+          {action.id === "user-source" && (
+            <div className="scene-settings-group">
+              <label className="scene-settings-label">Trigger Mode</label>
+              <select
+                className="scene-settings-select"
+                value={localMode}
+                onChange={(e) => setLocalMode(e.target.value)}
+              >
+                <option value="manual">Manual</option>
+                <option value="auto">Auto (Scheduled)</option>
+                <option value="always_on">Always On</option>
+              </select>
+
+              {localMode === "auto" && (
+                <div className="schedule-sidebar-settings">
+                  <div className="scene-settings-group" style={{ marginTop: '1.5rem' }}>
+                    <label className="scene-settings-label">Execution Time</label>
+                    <input
+                      type="time"
+                      className="time-input"
+                      value={localTime}
+                      onChange={(e) => setLocalTime(e.target.value)}
+                      style={{ width: '100%' }}
+                    />
+                  </div>
+                  <div className="scene-settings-group">
+                    <label className="scene-settings-label">Repeat on Days</label>
+                    <div className="schedule-days-sidebar">
+                      {[
+                        { label: "Mon", idx: 0 },
+                        { label: "Tue", idx: 1 },
+                        { label: "Wed", idx: 2 },
+                        { label: "Thu", idx: 3 },
+                        { label: "Fri", idx: 4 },
+                        { label: "Sat", idx: 5 },
+                        { label: "Sun", idx: 6 }
+                      ].map((day) => (
+                        <button
+                          key={day.label}
+                          className={`schedule-day-btn-sidebar ${localDays.includes(day.idx) ? "active" : ""}`}
+                          onClick={() => {
+                            const newDays = localDays.includes(day.idx)
+                              ? localDays.filter(d => d !== day.idx)
+                              : [...localDays, day.idx].sort();
+                            setLocalDays(newDays);
+                          }}
+                        >
+                          {day.label[0]}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="schedule-hint-sidebar">
+                      {localDays.length === 0 ? "Repeat: Daily" : `Repeat: ${localDays.length} days / week`}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {(action.label === "Temperature Threshold" || action.label === "Temperature") && (
             <div className="scene-settings-group">
               <label className="scene-settings-label">Temperature: {tempValue}°C</label>
@@ -2105,7 +2176,7 @@ function ActionPanel({ actions, onUpdateAction, onRemoveAction }) {
   );
 }
 
-function Canvas({ actions, connections, connectingFrom, onDropItem, automationName, onAutomationNameChange, onUpdateAction, onRemoveAction, onConnectionStart, onConnectionDelete, onConnectionUpdate, nodePositions, onNodePositionChange, sidebarSections, onItemDragStart, onItemDoubleClick, onAddItem, onAddItemClick, USER_SOURCE, onExecuteWorkflow, userTriggerMode, onUserTriggerModeChange }) {
+function Canvas({ actions, connections, connectingFrom, onDropItem, automationName, onAutomationNameChange, onUpdateAction, onRemoveAction, onConnectionStart, onConnectionDelete, onConnectionUpdate, nodePositions, onNodePositionChange, sidebarSections, onItemDragStart, onItemDoubleClick, onAddItem, onAddItemClick, USER_SOURCE, onExecuteWorkflow, userTriggerMode, onUserTriggerModeChange, triggerSchedule, onTriggerScheduleChange }) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [showSidebarModal, setShowSidebarModal] = useState(false);
   const [sceneSettingsModal, setSceneSettingsModal] = useState(null);
@@ -2273,6 +2344,10 @@ function Canvas({ actions, connections, connectingFrom, onDropItem, automationNa
           action={sceneSettingsModal}
           onUpdate={onUpdateAction}
           onClose={() => setSceneSettingsModal(null)}
+          userTriggerMode={userTriggerMode}
+          onUserTriggerModeChange={onUserTriggerModeChange}
+          triggerSchedule={triggerSchedule}
+          onTriggerScheduleChange={onTriggerScheduleChange}
         />
       )}
     </main>
@@ -2447,7 +2522,8 @@ export default function App() {
   const [addingItem, setAddingItem] = useState(null);
   const [confirmReset, setConfirmReset] = useState(false);
   const [lastActionCount, setLastActionCount] = useState(0);
-  const [userTriggerMode, setUserTriggerMode] = useState("manual"); // "manual" or "automatic"
+  const [userTriggerMode, setUserTriggerMode] = useState("manual"); // "manual", "auto", or "always_on"
+  const [triggerSchedule, setTriggerSchedule] = useState({ time: "08:00", days: [] }); // Schedule config for auto mode
   const [deletedConnections, setDeletedConnections] = useState(new Set()); // Track manually deleted connections
   const [editingSceneId, setEditingSceneId] = useState(null); // Track the ID of the scene being edited
 
@@ -2745,15 +2821,27 @@ export default function App() {
       state: "detected",
     }));
 
-    // Add a manual trigger if User Trigger is connected and no other triggers exist
-    const hasManualTrigger = connections.some(conn => conn.from === "user-source");
-    if (hasManualTrigger && triggers.length === 0) {
-      triggers.push({
-        type: "manual",
-        deviceId: "user",
-        capability: "trigger",
-        state: "pressed"
-      });
+    // Add T0 trigger based on userTriggerMode if User Source is connected
+    const hasUserSource = connections.some(conn => conn.from === "user-source");
+    if (hasUserSource) {
+      if (userTriggerMode === "auto") {
+        // Auto (scheduled) trigger
+        triggers.unshift({
+          type: "auto",
+          schedule: triggerSchedule?.time || "08:00",
+          days: triggerSchedule?.days || [],  // Empty = daily
+        });
+      } else if (userTriggerMode === "always_on") {
+        // Always-on (bypass) trigger
+        triggers.unshift({
+          type: "always_on",
+        });
+      } else {
+        // Manual trigger (default)
+        triggers.unshift({
+          type: "manual",
+        });
+      }
     }
 
     // Generate conditions from scenes (in the same order as displayed on canvas)
@@ -2831,7 +2919,7 @@ export default function App() {
       actions: actionsList,
       uiMetadata: uiMetadata
     };
-  }, [actions, connections, nodePositions, automationName, editingSceneId]);
+  }, [actions, connections, nodePositions, automationName, editingSceneId, userTriggerMode, triggerSchedule]);
 
   const handlePreviewJson = useCallback(() => {
     const json = generateAutomationJson();
@@ -3439,6 +3527,8 @@ export default function App() {
               USER_SOURCE={USER_SOURCE}
               userTriggerMode={userTriggerMode}
               onUserTriggerModeChange={setUserTriggerMode}
+              triggerSchedule={triggerSchedule}
+              onTriggerScheduleChange={setTriggerSchedule}
               onExecuteWorkflow={async () => {
                 const json = generateAutomationJson();
                 const result = await handleSaveScene(json);

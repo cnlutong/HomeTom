@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from typing import List, Dict, Any, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.infrastructure.persistence.database import get_current_session_factory
 from src.infrastructure.persistence.repositories.scene_repository_impl import SceneRepositoryImpl
-from src.infrastructure.messaging.in_memory_event_bus import InMemoryEventBus
+from src.infrastructure.messaging.event_bus import IEventBus
 from src.application.scene.SceneService import SceneService
 from src.infrastructure.persistence.repositories.device_repository_impl import DeviceRepositoryImpl
 from src.domain.Scene.services.scene_validator_impl import SceneValidator
@@ -19,10 +19,12 @@ import uuid
 router = APIRouter(prefix="/api/scenes", tags=["scenes"])
 
 class AutomationTrigger(BaseModel):
-    type: str
-    deviceId: str
-    capability: str
-    state: Any
+    type: str  # "manual", "auto", "always_on", "deviceState"
+    deviceId: Optional[str] = None
+    capability: Optional[str] = None
+    state: Optional[Any] = None
+    schedule: Optional[str] = None  # For timer triggers (HH:MM format)
+    days: Optional[List[int]] = None  # For weekly triggers (0=Mon, 1=Tue, ..., 6=Sun)
 
 class AutomationCondition(BaseModel):
     type: str
@@ -32,6 +34,9 @@ class AutomationCondition(BaseModel):
     after: Optional[str] = None
     before: Optional[str] = None
     time: Optional[str] = None
+    # Structured fields for robust parsing
+    operator: Optional[str] = None  # e.g., ">=", "<=", "=="
+    value: Optional[Any] = None     # e.g., 20, "on", etc.
 
 class AutomationAction(BaseModel):
     type: str
@@ -54,12 +59,20 @@ async def get_db():
     async with session_factory() as session:
         yield session
 
+# 依赖项：获取事件总线
+async def get_event_bus(request: Request) -> IEventBus:
+    if not hasattr(request.app.state, "event_bus"):
+        raise HTTPException(status_code=500, detail="EventBus not initialized")
+    return request.app.state.event_bus
+
 # 依赖项：初始化 SceneService
-async def get_scene_service(session: AsyncSession = Depends(get_db)):
+async def get_scene_service(
+    session: AsyncSession = Depends(get_db),
+    event_bus: IEventBus = Depends(get_event_bus)
+):
     repo = SceneRepositoryImpl(session)
     device_repo = DeviceRepositoryImpl(session)
     validator = SceneValidator(device_repo)
-    event_bus = InMemoryEventBus()  # 实际应用中应从全局配置获取
     return SceneService(repo, validator, event_bus)
 
 @router.get("")
@@ -79,15 +92,33 @@ async def list_scenes(service: SceneService = Depends(get_scene_service)) -> Lis
         if scene.definition:
             triggers = []
             for t in scene.definition.triggers:
-                entity_id = t.config.get("entity_id", "sensor_unknown_01")
-                # 尝试从 entity_id 推断能力
-                capability = "motion" if "motion" in entity_id else "temp" if "temp" in entity_id else "sound" if "sound" in entity_id else "state"
-                triggers.append({
-                    "type": "deviceState",
-                    "deviceId": entity_id,
-                    "capability": capability,
-                    "state": "detected"
-                })
+                # Handle different trigger types
+                if t.type == TriggerType.MANUAL:
+                    triggers.append({
+                        "type": "manual"
+                    })
+                elif t.type == TriggerType.TIMER:
+                    # Timer trigger (auto/scheduled)
+                    triggers.append({
+                        "type": "auto",
+                        "schedule": t.config.get("schedule", "08:00"),
+                        "days": t.config.get("days", [])
+                    })
+                elif t.type == TriggerType.ALWAYS_ON:
+                    triggers.append({
+                        "type": "always_on"
+                    })
+                elif t.type == TriggerType.DEVICE_EVENT:
+                    # Device event trigger
+                    entity_id = t.config.get("entity_id", "sensor_unknown_01")
+                    capability = "motion" if "motion" in entity_id else "temp" if "temp" in entity_id else "sound" if "sound" in entity_id else "state"
+                    triggers.append({
+                        "type": "deviceState",
+                        "deviceId": entity_id,
+                        "capability": capability,
+                        "state": "detected"
+                    })
+
             
             conditions = []
             if scene.definition.conditions:
@@ -193,34 +224,66 @@ async def save_scene(
     triggers = []
     for t in data.triggers:
         if t.type == "deviceState":
+            # 设备状态触发器
             triggers.append(Trigger.create_device_event(
                 entity_id=t.deviceId,
                 event_type="state_changed",
                 condition={"state": t.state}
             ))
+        elif t.type == "auto" and t.schedule:
+            # 自动定时触发器
+            triggers.append(Trigger.create_timer(
+                schedule=t.schedule,
+                days=t.days  # 可选：每周特定天
+            ))
+        elif t.type == "always_on":
+            # 常开触发器
+            triggers.append(Trigger.create_always_on())
+        elif t.type == "timer" and t.schedule:
+            # 兼容旧的 timer 类型
+            triggers.append(Trigger.create_timer(
+                schedule=t.schedule,
+                days=t.days
+            ))
         else:
-            # 默认手动触发器（如果前端有特殊类型可在此扩展）
+            # 默认手动触发器 (type == "manual" 或其他)
             triggers.append(Trigger.create_manual())
             
     # 2. 转换条件
     conditions = []
     for c in data.conditions:
         if c.type == "time":
-            # 简单映射：目前 Condition 模型似乎不支持时间条件？
-            # 查阅 condition.py 发现主要是针对实体的
-            # 这里先跳过或存储为特殊格式，MVP 阶段重点是设备状态
-            continue
+            # 时间范围条件
+            conditions.append(Condition.create_time_range(
+                after=c.after,
+                before=c.before
+            ))
         elif c.type == "deviceState" and c.deviceId:
-            # 解析 state 字符串，如 ">= 20"
-            operator = "=="
-            value = str(c.state)
-            if " >= " in str(c.state):
-                operator = ">="
-                value = str(c.state).split(" >= ")[1]
-            elif " <= " in str(c.state):
-                operator = "<="
-                value = str(c.state).split(" <= ")[1]
-                
+            # 设备状态条件 - 优先使用结构化字段
+            if c.operator is not None and c.value is not None:
+                # 使用新的结构化字段
+                operator = c.operator
+                value = c.value
+            else:
+                # 回退到旧的字符串解析逻辑
+                operator = "=="
+                value = str(c.state) if c.state is not None else ""
+                if " >= " in str(c.state):
+                    operator = ">="
+                    value = str(c.state).split(" >= ")[1]
+                elif " <= " in str(c.state):
+                    operator = "<="
+                    value = str(c.state).split(" <= ")[1]
+                elif " > " in str(c.state):
+                    operator = ">"
+                    value = str(c.state).split(" > ")[1]
+                elif " < " in str(c.state):
+                    operator = "<"
+                    value = str(c.state).split(" < ")[1]
+                elif " != " in str(c.state):
+                    operator = "!="
+                    value = str(c.state).split(" != ")[1]
+                    
             conditions.append(Condition(
                 entity_id=c.deviceId,
                 attribute=c.capability or "state",

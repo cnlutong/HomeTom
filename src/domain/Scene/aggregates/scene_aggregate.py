@@ -6,6 +6,8 @@ from enum import Enum
 from ..value_objects.scene_definition import SceneDefinition
 from ..events.scene_published import ScenePublished
 from ..events.scene_disabled import SceneDisabled
+from ..events.scene_created import SceneCreated
+from ..events.scene_definition_updated import SceneDefinitionUpdated
 
 
 class SceneStatus(Enum):
@@ -124,6 +126,14 @@ class SceneAggregate:
         self._definition = definition
         self._updated_at = datetime.utcnow()
         
+        # 发布领域事件
+        event = SceneDefinitionUpdated(
+            scene_id=self._scene_id,
+            definition=definition,
+            occurred_at=datetime.utcnow()
+        )
+        self._add_domain_event(event)
+        
     def update_ui_metadata(self, ui_metadata: Optional[dict]) -> None:
         """更新UI元数据"""
         self._ui_metadata = ui_metadata
@@ -195,7 +205,7 @@ class SceneAggregate:
     def _add_domain_event(self, event: object) -> None:
         """添加领域事件"""
         self._domain_events.append(event)
-    
+
     @classmethod
     def create(
         cls,
@@ -207,12 +217,23 @@ class SceneAggregate:
         
         新场景默认状态为草稿
         """
-        return cls(
+        instance = cls(
             scene_id=scene_id,
             name=name,
             description=description,
             status=SceneStatus.DRAFT
         )
+        
+        # 发布领域事件
+        event = SceneCreated(
+            scene_id=scene_id,
+            name=name,
+            occurred_at=datetime.utcnow()
+        )
+        instance._add_domain_event(event)
+        
+        return instance
+
     
     def __eq__(self, other) -> bool:
         """相等性比较"""

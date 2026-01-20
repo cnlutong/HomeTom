@@ -68,3 +68,28 @@ class Condition:
             value=value
         )
 
+    @classmethod
+    def create_time_range(
+        cls,
+        after: Optional[str] = None,
+        before: Optional[str] = None
+    ) -> "Condition":
+        """创建时间范围条件
+        
+        Args:
+            after: 起始时间 (HH:MM 格式，如 "08:00")
+            before: 结束时间 (HH:MM 格式，如 "22:00")
+        """
+        time_value = {}
+        if after:
+            time_value["after"] = after
+        if before:
+            time_value["before"] = before
+        
+        return cls(
+            entity_id="$system.time",
+            attribute="current",
+            operator="in_range",
+            value=time_value
+        )
+

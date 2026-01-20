@@ -87,9 +87,14 @@ class ConditionEvaluator(IConditionEvaluator):
         """评估单个条件
         
         从设备的 attributes 或 state 读取实际值进行比较。
+        特殊处理 $system.time 用于时间范围条件。
         """
         entity_id = condition.entity_id
         attribute = condition.attribute
+        
+        # 特殊处理：时间条件
+        if entity_id == "$system.time":
+            return self._evaluate_time_condition(condition)
         
         # 获取实际值
         if attribute == "state":
@@ -114,6 +119,45 @@ class ConditionEvaluator(IConditionEvaluator):
         )
         
         return result
+    
+    def _evaluate_time_condition(self, condition: Condition) -> bool:
+        """评估时间条件
+        
+        检查当前时间是否在指定范围内。
+        """
+        from datetime import datetime
+        
+        if condition.operator != "in_range":
+            logger.warning(f"不支持的时间条件操作符: {condition.operator}")
+            return False
+        
+        time_value = condition.value
+        if not isinstance(time_value, dict):
+            logger.warning(f"时间条件值格式错误: {time_value}")
+            return False
+        
+        now = datetime.now().time()
+        after_str = time_value.get("after")
+        before_str = time_value.get("before")
+        
+        try:
+            if after_str:
+                after_time = datetime.strptime(after_str, "%H:%M").time()
+                if now < after_time:
+                    logger.debug(f"时间条件不满足: 当前时间 {now} < after {after_time}")
+                    return False
+            
+            if before_str:
+                before_time = datetime.strptime(before_str, "%H:%M").time()
+                if now > before_time:
+                    logger.debug(f"时间条件不满足: 当前时间 {now} > before {before_time}")
+                    return False
+            
+            logger.debug(f"时间条件满足: {after_str} <= {now} <= {before_str}")
+            return True
+        except ValueError as e:
+            logger.error(f"时间格式解析错误: {e}")
+            return False
     
     def _compare(self, actual: Any, operator: str, expected: Any) -> bool:
         """执行比较操作"""

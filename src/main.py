@@ -39,7 +39,13 @@ app.include_router(scene_router.router)
 @app.on_event("startup")
 async def startup_event():
     # 初始化数据库为 PostgreSQL 并创建表
-    from src.infrastructure.persistence.database import DatabaseConfig
+    from src.infrastructure.persistence.database import DatabaseConfig, get_current_session_factory
+    from src.infrastructure.messaging.in_memory_event_bus import InMemoryEventBus
+    from src.domain.Scene.events.scene_published import ScenePublished
+    from src.domain.Scene.events.scene_disabled import SceneDisabled
+    from src.domain.Scene.events.scene_created import SceneCreated
+    from src.domain.Scene.events.scene_definition_updated import SceneDefinitionUpdated
+    from src.application.handlers.scene_lifecycle_handler import SceneLifecycleHandler
     
     config = DatabaseConfig.postgresql(
         host="10.0.3.10",
@@ -51,8 +57,25 @@ async def startup_event():
     
     await init_database(config)
     await create_all_tables()
+    
+    # 初始化全局事件总线
+    global_event_bus = InMemoryEventBus()
+    await global_event_bus.start()
+    app.state.event_bus = global_event_bus
+    
+    # 注册场景生命周期事件处理器
+    session_factory = get_current_session_factory()
+    scene_handler = SceneLifecycleHandler(session_factory)
+    global_event_bus.subscribe(SceneCreated, scene_handler.on_scene_created)
+    global_event_bus.subscribe(SceneDefinitionUpdated, scene_handler.on_scene_definition_updated)
+    global_event_bus.subscribe(ScenePublished, scene_handler.on_scene_published)
+    global_event_bus.subscribe(SceneDisabled, scene_handler.on_scene_disabled)
+    
+    print("Global EventBus initialized and SceneLifecycleHandler registered.")
+    
     await sync_initial_devices()
     await sync_initial_scenes()
+
 
 async def sync_initial_scenes():
     """初始化样板场景"""
