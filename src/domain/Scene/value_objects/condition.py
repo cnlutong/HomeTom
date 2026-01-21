@@ -93,3 +93,16 @@ class Condition:
             value=time_value
         )
 
+    @classmethod
+    def create_bypass(cls) -> "Condition":
+        """创建 Bypass 条件（总是返回 True）
+        
+        用于不需要判断条件，直接执行动作的场景。
+        """
+        return cls(
+            entity_id="$system.bypass",
+            attribute="bypass",
+            operator="==",
+            value=True
+        )
+

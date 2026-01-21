@@ -111,6 +111,10 @@ class SceneValidator(ISceneValidator):
         if condition.value is None:
             errors.append(f"{prefix}: 比较值不能为None")
 
+        # 跳过系统级条件的设备校验（如 $system.bypass, $system.time）
+        if condition.entity_id.startswith("$system."):
+            return errors
+
         # 动态校验：检查设备是否具备该属性
         if self._device_repo and condition.entity_id:
             device = await self._device_repo.find_by_entity_id(condition.entity_id)

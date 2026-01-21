@@ -38,6 +38,7 @@ const initialSidebarSections = [
   {
     title: "Conditions",
     items: [
+      { icon: "✅", label: "Always True", type: "scene", capabilities: ["bypass"] },
       { icon: "⏰", label: "Time", type: "scene", capabilities: ["time"] },
       { icon: "🌡️", label: "Temperature Threshold", type: "scene", capabilities: ["temperature_threshold"] },
       { icon: "💧", label: "Humidity Threshold", type: "scene", capabilities: ["humidity_threshold"] },
@@ -1172,7 +1173,9 @@ function CanvasNodes({ actions, connections, connectingFrom, onConnectionStart, 
 }
 
 function canConnect(fromType, toType) {
-  if (fromType === "user" && toType === "sensor") return true;
+  // T0 Trigger (User Source) to...
+  if (fromType === "user" && toType === "sensor") return true; // to Trigger
+  if (fromType === "user" && toType === "scene") return true;  // to Condition (直接连接条件)
 
   // Triggers to...
   if (fromType === "sensor" && toType === "scene") return true; // to Condition
@@ -1359,28 +1362,31 @@ function CanvasNode({ action, isConnecting, isSelected, onConnectionClick, nodeR
             )}
           </div>
           <div className="canvas-node-content">
-            <div className="canvas-node-status-section">
-              <div className="canvas-node-status-label">
-                {(() => {
-                  if (action.type === "sensor") return "ENABLED";
-                  if (action.type === "scene") return "ACTIVE";
-                  return "POWER";
-                })()}
+            {/* Hide toggle for bypass condition (Always True) */}
+            {action.label !== "Always True" && (
+              <div className="canvas-node-status-section">
+                <div className="canvas-node-status-label">
+                  {(() => {
+                    if (action.type === "sensor") return "ENABLED";
+                    if (action.type === "scene") return "ACTIVE";
+                    return "POWER";
+                  })()}
+                </div>
+                <label className="canvas-node-toggle">
+                  <input
+                    type="checkbox"
+                    checked={action.isEnabled !== false}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      if (onUpdate && action.id) {
+                        onUpdate(action.id, { isEnabled: e.target.checked });
+                      }
+                    }}
+                  />
+                  <span className="canvas-node-toggle-slider"></span>
+                </label>
               </div>
-              <label className="canvas-node-toggle">
-                <input
-                  type="checkbox"
-                  checked={action.isEnabled !== false}
-                  onChange={(e) => {
-                    e.stopPropagation();
-                    if (onUpdate && action.id) {
-                      onUpdate(action.id, { isEnabled: e.target.checked });
-                    }
-                  }}
-                />
-                <span className="canvas-node-toggle-slider"></span>
-              </label>
-            </div>
+            )}
             <div className="canvas-node-action-info">
               <span className="canvas-node-action-text">
                 {(() => {
@@ -1393,6 +1399,9 @@ function CanvasNode({ action, isConnecting, isSelected, onConnectionClick, nodeR
                   }
                   if (action.type === "scene") {
                     // Display current value for scene
+                    if (action.label === "Always True") {
+                      return "Bypass - Always True";
+                    }
                     if (action.label === "Temperature Threshold" || action.label === "Temperature") {
                       return `${action.temperatureValue ?? 20}°C`;
                     }
@@ -1412,7 +1421,8 @@ function CanvasNode({ action, isConnecting, isSelected, onConnectionClick, nodeR
                   return (action.isEnabled !== false) ? "Turn On" : "Standby";
                 })()}
               </span>
-              {action.type === "scene" && (
+              {/* Hide settings button for bypass condition (Always True) */}
+              {action.type === "scene" && action.label !== "Always True" && (
                 <button
                   className="canvas-node-gear-button"
                   onClick={(e) => {
@@ -2864,6 +2874,16 @@ export default function App() {
 
     // Generate conditions from scenes (in the same order as displayed on canvas)
     const conditions = scenes.map((scene) => {
+      // Bypass condition - always true
+      if (scene.label === "Always True") {
+        return {
+          type: "bypass",
+          entity_id: "$system.bypass",
+          attribute: "bypass",
+          operator: "==",
+          value: true,
+        };
+      }
       if (scene.label === "Time") {
         if (scene.timeType === "range") {
           return {
@@ -2908,6 +2928,7 @@ export default function App() {
         state: "active",
       };
     });
+
 
     const actionsList = equipment.map((eq) => ({
       type: "deviceCommand",
@@ -3087,6 +3108,22 @@ export default function App() {
     // Process conditions (scenes)
     if (Array.isArray(automation.conditions)) {
       automation.conditions.forEach((condition, idx) => {
+        // Handle bypass condition
+        if (condition.type === 'bypass' || condition.entity_id === '$system.bypass') {
+          const sceneSection = sidebarSections.find(s => s.title === "Conditions");
+          const bypassItem = sceneSection?.items.find(item => item.label === "Always True");
+
+          if (bypassItem) {
+            const actionId = `imported-scene-bypass-${idx}-${Date.now()}`;
+            importedActions.push({
+              id: actionId,
+              label: 'Always True',
+              icon: bypassItem.icon,
+              type: 'scene',
+            });
+          }
+          return; // Continue to next condition
+        }
         if (condition.type === 'time') {
           const sceneSection = sidebarSections.find(s => s.title === "Conditions");
           const timeItem = sceneSection?.items.find(item => item.label === "Time");

@@ -88,9 +88,16 @@ class ConditionEvaluator(IConditionEvaluator):
         
         从设备的 attributes 或 state 读取实际值进行比较。
         特殊处理 $system.time 用于时间范围条件。
+        特殊处理 $system.bypass 用于总是返回 True 的条件。
         """
         entity_id = condition.entity_id
         attribute = condition.attribute
+        
+        # 特殊处理：Bypass 条件（总是返回 True）
+        if entity_id == "$system.bypass":
+            logger.debug("Bypass condition - always true")
+            print(f"DEBUG: Bypass condition - always returns True")
+            return True
         
         # 特殊处理：时间条件
         if entity_id == "$system.time":
