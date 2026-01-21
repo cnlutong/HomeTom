@@ -45,6 +45,7 @@ async def startup_event():
     from src.domain.Scene.events.scene_disabled import SceneDisabled
     from src.domain.Scene.events.scene_created import SceneCreated
     from src.domain.Scene.events.scene_definition_updated import SceneDefinitionUpdated
+    from src.domain.Scene.events.scene_deleted import SceneDeleted
     from src.application.handlers.scene_lifecycle_handler import SceneLifecycleHandler
     
     config = DatabaseConfig.postgresql(
@@ -70,11 +71,13 @@ async def startup_event():
     global_event_bus.subscribe(SceneDefinitionUpdated, scene_handler.on_scene_definition_updated)
     global_event_bus.subscribe(ScenePublished, scene_handler.on_scene_published)
     global_event_bus.subscribe(SceneDisabled, scene_handler.on_scene_disabled)
+    global_event_bus.subscribe(SceneDeleted, scene_handler.on_scene_deleted)
     
     print("Global EventBus initialized and SceneLifecycleHandler registered.")
     
     await sync_initial_devices()
     await sync_initial_scenes()
+    await sync_scene_executors()
 
 
 async def sync_initial_scenes():
@@ -181,6 +184,78 @@ async def sync_initial_devices():
         
         await session.commit()
         print(f"Device sync completed. Added {len(new_ids)} new devices.")
+
+
+async def sync_scene_executors():
+    """启动时同步场景执行器
+    
+    检查所有场景是否都有对应的执行器，如果没有则创建。
+    同时确保执行器状态与场景状态一致，并编译执行流程。
+    """
+    from src.infrastructure.persistence.database import get_current_session_factory
+    from src.infrastructure.persistence.repositories.scene_repository_impl import SceneRepositoryImpl
+    from src.infrastructure.persistence.repositories.executor_repository_impl import ExecutorRepositoryImpl
+    from src.domain.Scene.aggregates.scene_aggregate import SceneStatus
+    from src.domain.Execution.aggregates.scene_executor import SceneExecutor
+    
+    def compile_execution_flow(scene) -> dict:
+        """编译场景定义为可执行的执行流程"""
+        if not scene.definition:
+            return {
+                "triggers": [],
+                "conditions": [],
+                "actions": [],
+                "scene_id": scene.scene_id,
+                "scene_name": scene.name
+            }
+        
+        definition = scene.definition
+        return {
+            "scene_id": scene.scene_id,
+            "scene_name": scene.name,
+            "triggers": [t.to_dict() for t in definition.triggers],
+            "conditions": [c.to_dict() for c in definition.conditions] if definition.conditions else [],
+            "actions": [a.to_dict() for a in definition.actions]
+        }
+    
+    session_factory = get_current_session_factory()
+    async with session_factory() as session:
+        scene_repo = SceneRepositoryImpl(session)
+        executor_repo = ExecutorRepositoryImpl(session)
+        
+        # 获取所有场景
+        scenes = await scene_repo.find_all()
+        
+        created_count = 0
+        synced_count = 0
+        
+        for scene in scenes:
+            execution_flow = compile_execution_flow(scene)
+            executor = await executor_repo.find_by_scene_id(scene.scene_id)
+            
+            if not executor:
+                # 执行器不存在，创建新的
+                executor = SceneExecutor.create(scene.scene_id, execution_flow)
+                if scene.status == SceneStatus.PUBLISHED:
+                    executor.activate()
+                await executor_repo.save(executor)
+                created_count += 1
+                print(f"Created executor for scene: {scene.scene_id} (status: {executor.status.value})")
+            else:
+                # 执行器存在，同步状态和执行流程
+                executor.update_execution_flow(execution_flow)
+                expected_active = scene.status == SceneStatus.PUBLISHED
+                if expected_active and not executor.is_active:
+                    executor.activate()
+                    synced_count += 1
+                elif not expected_active and executor.is_active:
+                    executor.stop()
+                    synced_count += 1
+                await executor_repo.save(executor)
+        
+        await session.commit()
+        print(f"Executor sync completed. Created: {created_count}, Synced: {synced_count}")
+
 
 @app.get("/")
 async def root():

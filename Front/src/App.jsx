@@ -3370,6 +3370,37 @@ export default function App() {
     }
   }, []);
 
+  // Execute scene by calling the backend execute endpoint
+  const handleExecuteScene = useCallback(async (sceneId) => {
+    try {
+      console.log("Executing scene:", sceneId);
+      const response = await fetch(`http://localhost:8000/api/scenes/${sceneId}/execute`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        let errorMsg = "Failed to execute scene";
+        try {
+          const errorData = await response.json();
+          errorMsg = errorData.detail || errorMsg;
+        } catch (e) {
+          // ignore parse error
+        }
+        throw new Error(errorMsg);
+      }
+
+      const result = await response.json();
+      console.log("Execute result:", result);
+      return result;
+    } catch (error) {
+      console.error("Failed to execute scene:", error);
+      throw error;
+    }
+  }, []);
+
   const handleSaveClick = useCallback(async () => {
     try {
       const json = generateAutomationJson();
@@ -3483,6 +3514,7 @@ export default function App() {
           onViewDevices={() => setCurrentPage("devices")}
           onUpdateSceneStatus={handleUpdateSceneStatus}
           onDeleteScene={handleDeleteScene}
+          onExecuteScene={handleExecuteScene}
         />
       ) : currentPage === "devices" ? (
         <DeviceList onBack={() => setCurrentPage("scenes")} />
@@ -3495,11 +3527,22 @@ export default function App() {
             onBackToScenes={handleBackToScenes}
             onSave={handleSaveClick}
             onExecute={async () => {
-              const json = generateAutomationJson();
-              const result = await handleSaveScene(json);
-              if (result) {
-                setAlertMessage("Workflow executed and saved successfully!");
-                setTimeout(() => setAlertMessage(null), 3000);
+              try {
+                const json = generateAutomationJson();
+                const saveResult = await handleSaveScene(json);
+                if (saveResult && saveResult.id) {
+                  setAlertMessage("Scene saved. Executing...");
+                  const execResult = await handleExecuteScene(saveResult.id);
+                  if (execResult && execResult.status === "success") {
+                    setAlertMessage("Scene executed successfully!");
+                  } else {
+                    setAlertMessage("Execution completed with status: " + (execResult?.status || "unknown"));
+                  }
+                  setTimeout(() => setAlertMessage(null), 3000);
+                }
+              } catch (error) {
+                setAlertMessage("Execution failed: " + error.message);
+                setTimeout(() => setAlertMessage(null), 5000);
               }
             }}
             sceneName={automationName}
@@ -3530,11 +3573,22 @@ export default function App() {
               triggerSchedule={triggerSchedule}
               onTriggerScheduleChange={setTriggerSchedule}
               onExecuteWorkflow={async () => {
-                const json = generateAutomationJson();
-                const result = await handleSaveScene(json);
-                if (result) {
-                  setAlertMessage("Workflow executed and saved successfully!");
-                  setTimeout(() => setAlertMessage(null), 3000);
+                try {
+                  const json = generateAutomationJson();
+                  const saveResult = await handleSaveScene(json);
+                  if (saveResult && saveResult.id) {
+                    setAlertMessage("Scene saved. Executing...");
+                    const execResult = await handleExecuteScene(saveResult.id);
+                    if (execResult && execResult.status === "success") {
+                      setAlertMessage("Scene executed successfully!");
+                    } else {
+                      setAlertMessage("Execution completed with status: " + (execResult?.status || "unknown"));
+                    }
+                    setTimeout(() => setAlertMessage(null), 3000);
+                  }
+                } catch (error) {
+                  setAlertMessage("Execution failed: " + error.message);
+                  setTimeout(() => setAlertMessage(null), 5000);
                 }
               }}
             />

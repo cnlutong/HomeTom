@@ -1,18 +1,26 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from typing import List, Dict, Any, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
+import os
 
 from src.infrastructure.persistence.database import get_current_session_factory
 from src.infrastructure.persistence.repositories.scene_repository_impl import SceneRepositoryImpl
-from src.infrastructure.messaging.event_bus import IEventBus
-from src.application.scene.SceneService import SceneService
 from src.infrastructure.persistence.repositories.device_repository_impl import DeviceRepositoryImpl
+from src.infrastructure.persistence.repositories.execution_repository_impl import ExecutionRepositoryImpl
+from src.infrastructure.persistence.repositories.executor_repository_impl import ExecutorRepositoryImpl
+from src.infrastructure.messaging.event_bus import IEventBus
+from src.infrastructure.adapters.hardware_adapter import HomeAssistantClient
+from src.application.scene.SceneService import SceneService
+from src.application.orchestration.OrchestrationService import OrchestrationService
 from src.domain.Scene.services.scene_validator_impl import SceneValidator
 from src.domain.Scene.value_objects.scene_definition import SceneDefinition
 from src.domain.Scene.value_objects.trigger import Trigger, TriggerType
 from src.domain.Scene.value_objects.condition import Condition
 from src.domain.Scene.value_objects.action import Action, ActionType
 from src.domain.Scene.aggregates.scene_aggregate import SceneStatus
+from src.domain.Execution.services.device_manager import DeviceManager
+from src.domain.Execution.services.condition_evaluator import ConditionEvaluator
+from src.domain.Execution.services.workflow_engine_impl import WorkflowEngine
 from pydantic import BaseModel
 import uuid
 
@@ -74,6 +82,52 @@ async def get_scene_service(
     device_repo = DeviceRepositoryImpl(session)
     validator = SceneValidator(device_repo)
     return SceneService(repo, validator, event_bus)
+
+# 依赖项：初始化 OrchestrationService (完整依赖链)
+async def get_orchestration_service(
+    session: AsyncSession = Depends(get_db),
+    event_bus: IEventBus = Depends(get_event_bus)
+):
+    """组装完整的服务依赖链
+    
+    HardwareClient -> DeviceManager -> ConditionEvaluator
+                                    -> WorkflowEngine -> OrchestrationService
+    """
+    # 硬件客户端 (连接到 test_API_server)
+    ha_base_url = os.environ.get("HA_BASE_URL", "http://localhost:8123")
+    ha_token = os.environ.get("HA_TOKEN", "test_token")
+    hardware_client = HomeAssistantClient(
+        base_url=ha_base_url,
+        access_token=ha_token
+    )
+    
+    # 设备管理器
+    device_manager = DeviceManager(hardware_client)
+    
+    # 条件评估器
+    condition_evaluator = ConditionEvaluator(device_manager)
+    
+    # 工作流引擎
+    workflow_engine = WorkflowEngine(
+        condition_evaluator=condition_evaluator,
+        device_manager=device_manager
+    )
+    
+    # 仓储
+    scene_repo = SceneRepositoryImpl(session)
+    device_repo = DeviceRepositoryImpl(session)
+    execution_repo = ExecutionRepositoryImpl(session)
+    executor_repo = ExecutorRepositoryImpl(session)
+    
+    # 编排服务
+    return OrchestrationService(
+        scene_repository=scene_repo,
+        device_repository=device_repo,
+        execution_repository=execution_repo,
+        executor_repository=executor_repo,
+        workflow_engine=workflow_engine,
+        event_bus=event_bus
+    )
 
 @router.get("")
 async def list_scenes(service: SceneService = Depends(get_scene_service)) -> List[Dict[str, Any]]:
@@ -291,12 +345,37 @@ async def save_scene(
                 value=value
             ))
             
-    # 3. 转换动作
+    # 3. 转换动作 (保留 capability 信息用于精确命令映射)
     actions = []
     for a in data.actions:
         if a.type == "deviceCommand":
-            command = "turn_on" if a.value is True else "turn_off" if a.value is False else "set_value"
-            params = {"value": a.value} if command == "set_value" else {}
+            # 根据 capability 和 value 类型决定具体命令
+            if a.value is True:
+                command = "turn_on"
+                params = {}
+            elif a.value is False:
+                command = "turn_off"
+                params = {}
+            else:
+                # 根据 capability 决定具体的设置命令
+                capability = a.capability.lower() if a.capability else "value"
+                if capability in ("brightness", "onoff"):
+                    command = "set_brightness"
+                    params = {"brightness": int(a.value) if isinstance(a.value, (int, float)) else 255}
+                elif capability == "temperature":
+                    command = "set_temperature"
+                    params = {"temperature": float(a.value)}
+                elif capability == "color":
+                    command = "set_color_rgb"
+                    params = a.value if isinstance(a.value, dict) else {"r": 255, "g": 255, "b": 255}
+                elif capability == "colortemp":
+                    command = "set_color_temp"
+                    params = {"color_temp": int(a.value)}
+                else:
+                    # 通用值设置
+                    command = "set_value"
+                    params = {"value": a.value, "capability": capability}
+            
             actions.append(Action.create_device_control(
                 entity_id=a.deviceId,
                 command=command,
@@ -365,3 +444,37 @@ async def delete_scene(
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete scene: {str(e)}")
+
+
+@router.post("/{scene_id}/execute")
+async def execute_scene(
+    scene_id: str,
+    orchestration: OrchestrationService = Depends(get_orchestration_service),
+    session: AsyncSession = Depends(get_db)
+):
+    """手动触发执行场景
+    
+    触发已发布的场景执行，通过 OrchestrationService 协调
+    WorkflowEngine 和 DeviceManager 完成设备控制。
+    
+    Args:
+        scene_id: 要执行的场景ID
+        
+    Returns:
+        执行结果，包括成功状态和执行ID
+    """
+    try:
+        result = await orchestration.trigger_and_execute(scene_id)
+        await session.commit()
+        return {
+            "status": "success" if result.get("success") else "failed",
+            "scene_id": scene_id,
+            **result
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Execution failed: {str(e)}")
+

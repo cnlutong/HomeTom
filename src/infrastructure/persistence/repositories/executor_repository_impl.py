@@ -1,7 +1,7 @@
 """执行器仓储实现"""
 
 from typing import Optional, List
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.domain.Execution.aggregates.scene_executor import SceneExecutor, ExecutorStatus
@@ -81,3 +81,8 @@ class ExecutorRepositoryImpl(IExecutorRepository):
         model = await self._session.get(ExecutorModel, executor_id)
         if model:
             await self._session.delete(model)
+
+    async def delete_by_scene_id(self, scene_id: str) -> None:
+        """根据场景 ID 删除执行器"""
+        stmt = delete(ExecutorModel).where(ExecutorModel.scene_id == scene_id)
+        await self._session.execute(stmt)

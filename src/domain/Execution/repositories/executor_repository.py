@@ -40,3 +40,8 @@ class IExecutorRepository(ABC):
     async def delete(self, executor_id: str) -> None:
         """删除执行器"""
         pass
+
+    @abstractmethod
+    async def delete_by_scene_id(self, scene_id: str) -> None:
+        """根据场景 ID 删除执行器"""
+        pass

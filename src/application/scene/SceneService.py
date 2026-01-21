@@ -72,6 +72,9 @@ class SceneService:
         
         # 发布领域事件
         events = scene.get_domain_events()
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"SceneService: Publishing {len(events)} events for scene {scene_id}: {[type(e).__name__ for e in events]}")
         await self._event_bus.publish_all(events)
         scene.clear_domain_events()
         
@@ -310,4 +313,13 @@ class SceneService:
         if not scene:
             raise ValueError(f"场景不存在: {scene_id}")
         
+        # 标记删除并发布领域事件
+        scene.delete()
+        
+        # 持久化场景删除（仓储负责物理或逻辑删除）
         await self._scene_repository.delete(scene_id)
+        
+        # 发布领域事件（由 lifecycle handler 处理关联清理）
+        events = scene.get_domain_events()
+        await self._event_bus.publish_all(events)
+        scene.clear_domain_events()

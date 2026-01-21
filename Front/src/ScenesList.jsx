@@ -13,7 +13,8 @@ import {
   CheckCircle,
   FileText,
   MoreVertical,
-  Zap
+  Zap,
+  Play
 } from 'lucide-react';
 
 // Helper function to translate Chinese scene names to English
@@ -295,7 +296,7 @@ const fetchWeatherData = async () => {
   }
 };
 
-function ScenesList({ onSelectScene, onCreateNew, onViewDevices, onUpdateSceneStatus, onDeleteScene }) {
+function ScenesList({ onSelectScene, onCreateNew, onViewDevices, onUpdateSceneStatus, onDeleteScene, onExecuteScene }) {
   const [scenes, setScenes] = useState([]);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [environmentData, setEnvironmentData] = useState({
@@ -421,6 +422,23 @@ function ScenesList({ onSelectScene, onCreateNew, onViewDevices, onUpdateSceneSt
           return updated;
         });
       }
+    }
+  };
+
+  const handleExecuteScene = async (sceneId) => {
+    if (onExecuteScene) {
+      try {
+        const result = await onExecuteScene(sceneId);
+        if (result && result.status === "success") {
+          alert("Scene executed successfully!");
+        } else {
+          alert("Execution completed with status: " + (result?.status || "unknown"));
+        }
+      } catch (error) {
+        alert("Execution failed: " + error.message);
+      }
+    } else {
+      alert("Execute function not available");
     }
   };
 
@@ -585,6 +603,16 @@ function ScenesList({ onSelectScene, onCreateNew, onViewDevices, onUpdateSceneSt
                   >
                     <div className="scenario-card-glow"></div>
                     <div className="scenario-card-actions">
+                      <button
+                        className="scenario-action-icon-btn play-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleExecuteScene(scene.id);
+                        }}
+                        title="Execute scenario"
+                      >
+                        <Play size={14} />
+                      </button>
                       <button
                         className="scenario-action-icon-btn edit-btn"
                         onClick={(e) => {

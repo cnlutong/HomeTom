@@ -4,7 +4,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 
 
 class ExecutorStatus(Enum):
@@ -25,6 +25,7 @@ class SceneExecutor:
         executor_id: 执行器唯一标识
         scene_id: 关联的场景ID
         status: 执行器状态
+        execution_flow: 编译后的执行流程（可直接被调度器使用）
         created_at: 创建时间
         updated_at: 更新时间
         last_triggered_at: 最后触发时间
@@ -36,19 +37,21 @@ class SceneExecutor:
     status: ExecutorStatus
     created_at: datetime
     updated_at: datetime
+    execution_flow: Optional[Dict[str, Any]] = None  # 存储编译后的执行流程
     last_triggered_at: Optional[datetime] = None
     trigger_count: int = 0
     error_message: Optional[str] = None
     
     @classmethod
-    def create(cls, scene_id: str) -> "SceneExecutor":
+    def create(cls, scene_id: str, execution_flow: Optional[Dict[str, Any]] = None) -> "SceneExecutor":
         """创建新的执行器
         
         Args:
             scene_id: 关联的场景ID
+            execution_flow: 可选的执行流程定义
             
         Returns:
-            新创建的执行器实例，状态为 ACTIVE
+            新创建的执行器实例，状态为 STOPPED
         """
         now = datetime.utcnow()
         return cls(
@@ -57,10 +60,21 @@ class SceneExecutor:
             status=ExecutorStatus.STOPPED,
             created_at=now,
             updated_at=now,
+            execution_flow=execution_flow,
             last_triggered_at=None,
             trigger_count=0,
             error_message=None
         )
+    
+    def update_execution_flow(self, execution_flow: Dict[str, Any]) -> None:
+        """更新执行流程
+        
+        Args:
+            execution_flow: 新的执行流程定义
+        """
+        self.execution_flow = execution_flow
+        self.updated_at = datetime.utcnow()
+
     
     def activate(self) -> None:
         """激活执行器"""

@@ -8,6 +8,7 @@ from ..events.scene_published import ScenePublished
 from ..events.scene_disabled import SceneDisabled
 from ..events.scene_created import SceneCreated
 from ..events.scene_definition_updated import SceneDefinitionUpdated
+from ..events.scene_deleted import SceneDeleted
 
 
 class SceneStatus(Enum):
@@ -173,6 +174,15 @@ class SceneAggregate:
         
         # 发布领域事件
         event = SceneDisabled(
+            scene_id=self._scene_id,
+            occurred_at=datetime.utcnow()
+        )
+        self._add_domain_event(event)
+    
+    def delete(self) -> None:
+        """删除场景"""
+        # 发布领域事件
+        event = SceneDeleted(
             scene_id=self._scene_id,
             occurred_at=datetime.utcnow()
         )

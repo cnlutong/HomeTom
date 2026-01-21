@@ -1,7 +1,7 @@
 """执行仓储实现"""
 
 from typing import Optional, List
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.domain.Execution.aggregates.execution_aggregate import ExecutionAggregate
@@ -44,6 +44,9 @@ class ExecutionRepositoryImpl(IExecutionRepository):
             # 新增记录
             model = self._mapper.to_model(execution)
             self._session.add(model)
+        
+        # 确保修改立即写入数据库（但不提交）
+        await self._session.flush()
     
     async def find_by_id(self, execution_id: str) -> Optional[ExecutionAggregate]:
         """根据 ID 查找执行记录"""
@@ -69,3 +72,8 @@ class ExecutionRepositoryImpl(IExecutionRepository):
         models = result.scalars().all()
         
         return [self._mapper.to_aggregate(m) for m in models]
+
+    async def delete_by_scene_id(self, scene_id: str) -> None:
+        """根据场景 ID 删除所有执行记录"""
+        stmt = delete(ExecutionModel).where(ExecutionModel.scene_id == scene_id)
+        await self._session.execute(stmt)

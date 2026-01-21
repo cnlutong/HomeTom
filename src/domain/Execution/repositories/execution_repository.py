@@ -31,3 +31,8 @@ class IExecutionRepository(ABC):
         """查找所有执行"""
         pass
 
+    @abstractmethod
+    async def delete_by_scene_id(self, scene_id: str) -> None:
+        """根据场景 ID 删除所有执行记录"""
+        pass
+

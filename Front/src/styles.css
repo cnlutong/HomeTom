@@ -4168,6 +4168,11 @@ body,
   background: #fef2f2;
 }
 
+.play-btn:hover {
+  color: #10b981;
+  background: #d1fae5;
+}
+
 /* Card Body */
 .scenario-card-body {
   display: flex;

@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from typing import Optional
-from sqlalchemy import String, DateTime, Integer
+from sqlalchemy import String, DateTime, Integer, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base
@@ -25,6 +25,9 @@ class ExecutorModel(Base):
     # 执行器状态：active, stopped, error
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="active")
     
+    # 执行流程（JSON格式存储，可直接被调度器使用）
+    execution_flow: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    
     # 触发统计
     trigger_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     last_triggered_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
@@ -38,3 +41,4 @@ class ExecutorModel(Base):
     
     def __repr__(self) -> str:
         return f"<ExecutorModel(id={self.id}, scene_id={self.scene_id}, status={self.status})>"
+

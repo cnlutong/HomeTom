@@ -6,6 +6,7 @@ from .device_state_model import DeviceStateModel
 from .scene_model import SceneModel
 from .execution_model import ExecutionModel
 from .execution_log_model import ExecutionLogModel
+from .executor_model import ExecutorModel
 
 __all__ = [
     "Base",
@@ -14,5 +15,6 @@ __all__ = [
     "SceneModel",
     "ExecutionModel",
     "ExecutionLogModel",
+    "ExecutorModel",
 ]
 

@@ -141,9 +141,22 @@ async def create_all_tables() -> None:
         raise RuntimeError("数据库未初始化，请先调用 init_database()")
     
     from .models import Base
+    from sqlalchemy import text
     
     async with _engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        
+        # 手动添加缺失的列（MVP 阶段简单迁移）
+        # 检查并添加 execution_flow 列到 scene_executors 表
+        try:
+            await conn.execute(text(
+                "ALTER TABLE scene_executors ADD COLUMN IF NOT EXISTS execution_flow TEXT"
+            ))
+            print("Migration: execution_flow column added or already exists.")
+        except Exception as e:
+            # 如果是 SQLite 或其他不支持 ADD COLUMN IF NOT EXISTS 的数据库，忽略错误
+            print(f"Migration note: {e}")
+
 
 
 def get_session() -> AsyncSession:
