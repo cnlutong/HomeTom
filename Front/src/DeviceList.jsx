@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Server, Activity, ArrowLeft, RefreshCw, Cpu, Zap, Radio } from 'lucide-react';
+import { Server, Activity, ArrowLeft, RefreshCw, Cpu, Zap, Radio, CheckCircle, XCircle } from 'lucide-react';
 
 const DeviceList = ({ onBack }) => {
   const [devices, setDevices] = useState([]);
@@ -37,64 +37,118 @@ const DeviceList = ({ onBack }) => {
       default: return <Cpu size={16} className="text-slate-400" />;
     }
   };
+  const getStatusBadge = (status) => {
+    // Map device status to badges similar to logs
+    const unifiedStatus = status ? status.toLowerCase() : 'unknown';
+
+    if (unifiedStatus === 'enabled' || unifiedStatus === 'online' || unifiedStatus === 'active') {
+      return (
+        <span className="status-badge status-success">
+          <CheckCircle size={12} /> Active
+        </span>
+      );
+    } else if (unifiedStatus === 'disabled' || unifiedStatus === 'offline') {
+      return (
+        <span className="status-badge status-failed">
+          <XCircle size={12} /> Offline
+        </span>
+      );
+    } else {
+      return <span className="status-badge status-unknown">{status || 'Unknown'}</span>;
+    }
+  };
+
+  // Calculate stats
+  const total = devices.length;
+  const active = devices.filter(d => ['enabled', 'online', 'active'].includes(d.status?.toLowerCase())).length;
+  const offline = devices.filter(d => ['disabled', 'offline'].includes(d.status?.toLowerCase())).length;
 
   return (
-    <div className="scenes-dashboard">
+    <div className="orchestrator-page">
       {/* Header */}
-      <header className="header-refactored">
-        <div className="header-left">
-          <button className="header-back-btn" onClick={onBack} title="Back to Scenes">
+      <header className="orchestrator-header">
+        <div className="orchestrator-header-left">
+          <button className="back-button" onClick={onBack}>
             <ArrowLeft size={20} />
+            <span>Back</span>
           </button>
-          <div className="header-brand">
-            <span className="header-title-text">Connected <span className="header-title-accent">Equipment</span></span>
+          <div className="orchestrator-title-section">
+            <h1 className="orchestrator-title">
+              <Server size={24} className="orchestrator-title-icon" />
+              Connected Equipment
+            </h1>
+            <p className="orchestrator-subtitle">Information-dense view of all synchronized home devices</p>
           </div>
         </div>
-        <div className="header-widgets">
-          <div className="header-widget">
-            <Server size={14} className="widget-icon widget-icon-indigo" />
-            <div className="widget-content">
-              <span className="widget-label">TOTAL</span>
-              <span className="widget-value">{devices.length}</span>
-            </div>
-          </div>
-          <div className="header-widget">
-            <Activity size={14} className="widget-icon widget-icon-emerald" />
-            <div className="widget-content">
-              <span className="widget-label">STATUS</span>
-              <span className="widget-value">{loading ? "Syncing..." : "Online"}</span>
-            </div>
-          </div>
-          <button className="refresh-button" onClick={fetchDevices} disabled={loading}>
-            <RefreshCw size={16} className={loading ? "spin" : ""} />
-          </button>
-        </div>
+        <button className="orchestrator-refresh-btn" onClick={fetchDevices} disabled={loading}>
+          <RefreshCw size={16} className={loading ? "spin" : ""} />
+          <span>Refresh</span>
+        </button>
       </header>
 
-      {/* Main Content */}
-      <div className="dashboard-content dashboard-content-tight">
-        <div className="content-header content-header-compact">
-          <div className="content-title-section">
-            <h2 className="content-title">Connected Equipment</h2>
-            <p className="content-subtitle">Information-dense view of all synchronized home devices</p>
+      {/* Stats Cards */}
+      <div className="orchestrator-stats">
+        <div className="orchestrator-stat-card stat-total">
+          <div className="stat-icon-wrapper">
+            <Server size={24} />
+          </div>
+          <div className="stat-content">
+            <div className="stat-value">{total}</div>
+            <div className="stat-label">Total Devices</div>
           </div>
         </div>
+        <div className="orchestrator-stat-card stat-active">
+          <div className="stat-icon-wrapper">
+            <CheckCircle size={24} />
+          </div>
+          <div className="stat-content">
+            <div className="stat-value">{active}</div>
+            <div className="stat-label">Active</div>
+          </div>
+        </div>
+        <div className="orchestrator-stat-card stat-error">
+          <div className="stat-icon-wrapper">
+            <XCircle size={24} />
+          </div>
+          <div className="stat-content">
+            <div className="stat-value">{offline}</div>
+            <div className="stat-label">Offline/Disabled</div>
+          </div>
+        </div>
+        {/* Placeholder for future stat or layout balance */}
+        <div className="orchestrator-stat-card stat-stopped">
+          <div className="stat-icon-wrapper">
+            <Activity size={24} />
+          </div>
+          <div className="stat-content">
+            <div className="stat-value">{loading ? 'Syncing' : 'Online'}</div>
+            <div className="stat-label">System Status</div>
+          </div>
+        </div>
+      </div>
 
+      {/* Main Content */}
+      <div className="orchestrator-table-container">
         {error && (
-          <div className="error-container">
-            <p className="error-text">{error}</p>
-            <button className="retry-button" onClick={fetchDevices}>Retry Connection</button>
+          <div className="orchestrator-error">
+            <p>Error: {error}</p>
+            <button onClick={fetchDevices}>Retry Connection</button>
           </div>
         )}
 
         {loading && !devices.length ? (
-          <div className="loading-container">
-            <div className="loading-spinner"></div>
+          <div className="orchestrator-loading">
+            <RefreshCw size={32} className="loading-spinner" />
             <p>Loading equipment...</p>
           </div>
         ) : (
-          <div className="device-table-container">
-            <table className="device-high-density-table">
+          !loading && devices.length === 0 ? (
+            <div className="orchestrator-empty">
+              <Server size={48} />
+              <p>No connected equipment found</p>
+            </div>
+          ) : (
+            <table className="orchestrator-table">
               <thead>
                 <tr>
                   <th>Device Name</th>
@@ -102,7 +156,7 @@ const DeviceList = ({ onBack }) => {
                   <th>Type</th>
                   <th>Adapter</th>
                   <th>Manufacturer</th>
-                  <th>Capabilities</th>
+                  <th style={{ minWidth: '450px' }}>Capabilities</th>
                   <th>Status</th>
                 </tr>
               </thead>
@@ -112,7 +166,7 @@ const DeviceList = ({ onBack }) => {
                     <td>
                       <div className="device-table-name-cell">
                         {getDeviceIcon(device)}
-                        <span className="device-table-label">{device.label}</span>
+                        <span className="text-indigo-400 font-medium">{device.label}</span>
                       </div>
                     </td>
                     <td><code className="device-table-code">{device.entity_id}</code></td>
@@ -141,24 +195,15 @@ const DeviceList = ({ onBack }) => {
                       </div>
                     </td>
                     <td>
-                      <div className="device-table-status">
-                        <span className={device.status === 'enabled' ? "status-dot-green" : "status-dot-gray"}></span>
-                        <span>{device.status ? device.status.charAt(0).toUpperCase() + device.status.slice(1) : 'Active'}</span>
-                      </div>
+                      {getStatusBadge(device.status)}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-            {devices.length === 0 && !loading && (
-              <div className="empty-state-padding">
-                <p className="text-slate-400">No connected equipment found.</p>
-              </div>
-            )}
-          </div>
+          )
         )}
       </div>
-
     </div>
   );
 };

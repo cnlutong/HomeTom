@@ -1209,9 +1209,11 @@ body,
 
 .device-table-capabilities {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 4px;
-  max-width: 200px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  /* For scrollbar if needed */
 }
 
 .capability-badge {
@@ -1219,7 +1221,7 @@ body,
   color: #475569;
   padding: 2px 6px;
   border-radius: 4px;
-  font-size: 10px;
+  font-size: 12px;
   border: 1px solid #e2e8f0;
   white-space: nowrap;
 }

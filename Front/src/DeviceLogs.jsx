@@ -100,62 +100,90 @@ const DeviceLogs = ({ onBack }) => {
     };
 
     return (
-        <div className="scenes-dashboard">
+        <div className="orchestrator-page">
             {/* Header */}
-            <header className="header-refactored">
-                <div className="header-left">
-                    <button className="header-back-btn" onClick={onBack} title="Back">
+            <header className="orchestrator-header">
+                <div className="orchestrator-header-left">
+                    <button className="back-button" onClick={onBack}>
                         <ArrowLeft size={20} />
+                        <span>Back</span>
                     </button>
-                    <div className="header-brand">
-                        <span className="header-title-text">Device <span className="header-title-accent">Logs</span></span>
+                    <div className="orchestrator-title-section">
+                        <h1 className="orchestrator-title">
+                            <Terminal size={24} className="orchestrator-title-icon" />
+                            Device Logs
+                        </h1>
+                        <p className="orchestrator-subtitle">Detailed record of device commands and state changes</p>
                     </div>
                 </div>
-                <div className="header-widgets">
-                    <div className="header-widget">
-                        <Terminal size={14} className="widget-icon widget-icon-indigo" />
-                        <div className="widget-content">
-                            <span className="widget-label">TODAY</span>
-                            <span className="widget-value">{todayCount}</span>
-                        </div>
-                    </div>
-                    <div className="header-widget">
-                        <Activity size={14} className="widget-icon widget-icon-emerald" />
-                        <div className="widget-content">
-                            <span className="widget-label">STATUS</span>
-                            <span className="widget-value">{loading ? "Syncing..." : "Online"}</span>
-                        </div>
-                    </div>
-                    <button className="refresh-button" onClick={fetchLogs} disabled={loading}>
-                        <RefreshCw size={16} className={loading ? "spin" : ""} />
-                    </button>
-                </div>
+                <button className="orchestrator-refresh-btn" onClick={fetchLogs} disabled={loading}>
+                    <RefreshCw size={16} className={loading ? "spin" : ""} />
+                    <span>Refresh</span>
+                </button>
             </header>
 
-            {/* Main Content */}
-            <div className="dashboard-content dashboard-content-tight">
-                <div className="content-header content-header-compact">
-                    <div className="content-title-section">
-                        <h2 className="content-title">Device Execution History</h2>
-                        <p className="content-subtitle">Detailed record of device commands and state changes</p>
+            {/* Stats Cards */}
+            <div className="orchestrator-stats">
+                <div className="orchestrator-stat-card stat-total">
+                    <div className="stat-icon-wrapper">
+                        <Terminal size={24} />
+                    </div>
+                    <div className="stat-content">
+                        <div className="stat-value">{todayCount}</div>
+                        <div className="stat-label">Today's Logs</div>
                     </div>
                 </div>
+                <div className="orchestrator-stat-card stat-active">
+                    <div className="stat-icon-wrapper">
+                        <Activity size={24} />
+                    </div>
+                    <div className="stat-content">
+                        <div className="stat-value">{loading ? "Syncing..." : "Online"}</div>
+                        <div className="stat-label">System Status</div>
+                    </div>
+                </div>
+                <div className="orchestrator-stat-card stat-stopped">
+                    <div className="stat-icon-wrapper">
+                        <CheckCircle size={24} />
+                    </div>
+                    <div className="stat-content">
+                        <div className="stat-value">{logs.filter(l => l.success).length}</div>
+                        <div className="stat-label">Success (Page)</div>
+                    </div>
+                </div>
+                <div className="orchestrator-stat-card stat-error">
+                    <div className="stat-icon-wrapper">
+                        <AlertCircle size={24} />
+                    </div>
+                    <div className="stat-content">
+                        <div className="stat-value">{logs.filter(l => !l.success).length}</div>
+                        <div className="stat-label">Failed (Page)</div>
+                    </div>
+                </div>
+            </div>
 
+            {/* Main Content */}
+            <div className="orchestrator-table-container">
                 {error && (
-                    <div className="error-container">
-                        <p className="error-text">{error}</p>
-                        <button className="retry-button" onClick={fetchLogs}>Retry Connection</button>
+                    <div className="orchestrator-error">
+                        <p>Error: {error}</p>
+                        <button onClick={fetchLogs}>Retry Connection</button>
                     </div>
                 )}
 
                 {loading && !logs.length ? (
-                    <div className="loading-container">
-                        <div className="loading-spinner"></div>
+                    <div className="orchestrator-loading">
+                        <RefreshCw size={32} className="loading-spinner" />
                         <p>Loading records...</p>
                     </div>
                 ) : (
-                    <div className="device-table-container">
-                        <table className="device-high-density-table">
+                    !loading && logs.length === 0 ? (
+                        <div className="orchestrator-empty">
+                            <Terminal size={48} />
+                            <p>No device execution records found</p>
+                        </div>
+                    ) : (
+                        <table className="orchestrator-table">
                             <thead>
                                 <tr>
                                     <th>Time</th>
@@ -216,12 +244,7 @@ const DeviceLogs = ({ onBack }) => {
                                 ))}
                             </tbody>
                         </table>
-                        {logs.length === 0 && !loading && (
-                            <div className="empty-state-padding">
-                                <p className="text-slate-400">No device execution records found.</p>
-                            </div>
-                        )}
-                    </div>
+                    )
                 )}
             </div>
         </div>
