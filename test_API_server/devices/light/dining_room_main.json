@@ -1,0 +1,17 @@
+{
+  "entity_id": "light.dining_room_main",
+  "state": "off",
+  "attributes": {
+    "friendly_name": "Dining Room Main",
+    "brightness": 125,
+    "color_temp": 374,
+    "rgb_color": [
+      34,
+      103,
+      202
+    ],
+    "supported_features": 63
+  },
+  "last_changed": "2026-01-21T06:56:11.010797+00:00",
+  "last_updated": "2026-01-21T06:56:11.010798+00:00"
+}

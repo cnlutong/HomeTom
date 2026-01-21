@@ -1,18 +1,18 @@
 {
   "entity_id": "climate.study_ac",
-  "state": "off",
+  "state": "cool",
   "attributes": {
-    "friendly_name": "书房空调",
-    "temperature": 25,
-    "current_temperature": 24,
+    "friendly_name": "Study AC",
+    "temperature": 24,
+    "current_temperature": 22.438801330150344,
     "hvac_modes": [
       "off",
-      "heat",
       "cool",
-      "auto"
+      "heat",
+      "fan_only"
     ],
     "fan_mode": "auto"
   },
-  "last_changed": "2026-01-05T23:51:18.980769+00:00",
-  "last_updated": "2026-01-05T23:51:18.980770+00:00"
+  "last_changed": "2026-01-21T06:56:11.016915+00:00",
+  "last_updated": "2026-01-21T06:56:11.016916+00:00"
 }

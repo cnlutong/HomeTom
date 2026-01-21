@@ -1,0 +1,17 @@
+{
+  "entity_id": "light.bedroom_guest_main",
+  "state": "off",
+  "attributes": {
+    "friendly_name": "Bedroom Guest Main",
+    "brightness": 129,
+    "color_temp": 196,
+    "rgb_color": [
+      77,
+      8,
+      87
+    ],
+    "supported_features": 63
+  },
+  "last_changed": "2026-01-21T06:56:11.010098+00:00",
+  "last_updated": "2026-01-21T06:56:11.010100+00:00"
+}

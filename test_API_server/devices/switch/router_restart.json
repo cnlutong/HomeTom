@@ -1,0 +1,11 @@
+{
+  "entity_id": "switch.router_restart",
+  "state": "off",
+  "attributes": {
+    "friendly_name": "Router Restart",
+    "device_class": "outlet",
+    "current_consumption": 0
+  },
+  "last_changed": "2026-01-21T06:56:11.013287+00:00",
+  "last_updated": "2026-01-21T06:56:11.013289+00:00"
+}

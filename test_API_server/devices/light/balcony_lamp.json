@@ -1,0 +1,17 @@
+{
+  "entity_id": "light.balcony_lamp",
+  "state": "off",
+  "attributes": {
+    "friendly_name": "Balcony Lamp",
+    "brightness": 70,
+    "color_temp": 494,
+    "rgb_color": [
+      50,
+      80,
+      120
+    ],
+    "supported_features": 63
+  },
+  "last_changed": "2026-01-21T06:56:11.011572+00:00",
+  "last_updated": "2026-01-21T06:56:11.011573+00:00"
+}

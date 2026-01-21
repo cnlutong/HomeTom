@@ -1,0 +1,11 @@
+{
+  "entity_id": "switch.smart_plug_4",
+  "state": "off",
+  "attributes": {
+    "friendly_name": "Smart Plug 4",
+    "device_class": "outlet",
+    "current_consumption": 28.31589671418122
+  },
+  "last_changed": "2026-01-21T06:56:11.013867+00:00",
+  "last_updated": "2026-01-21T06:56:11.013868+00:00"
+}

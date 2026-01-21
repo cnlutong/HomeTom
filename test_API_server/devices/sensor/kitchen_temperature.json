@@ -1,0 +1,11 @@
+{
+  "entity_id": "sensor.kitchen_temperature",
+  "state": "22.1",
+  "attributes": {
+    "friendly_name": "Kitchen Temperature",
+    "unit_of_measurement": "°C",
+    "device_class": "temperature"
+  },
+  "last_changed": "2026-01-21T06:56:11.014466+00:00",
+  "last_updated": "2026-01-21T06:56:11.014467+00:00"
+}

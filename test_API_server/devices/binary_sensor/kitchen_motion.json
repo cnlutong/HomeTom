@@ -1,0 +1,10 @@
+{
+  "entity_id": "binary_sensor.kitchen_motion",
+  "state": "off",
+  "attributes": {
+    "friendly_name": "Kitchen Motion",
+    "device_class": "motion"
+  },
+  "last_changed": "2026-01-21T06:56:11.015992+00:00",
+  "last_updated": "2026-01-21T06:56:11.015993+00:00"
+}

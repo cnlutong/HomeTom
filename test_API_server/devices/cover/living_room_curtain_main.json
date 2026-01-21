@@ -1,0 +1,11 @@
+{
+  "entity_id": "cover.living_room_curtain_main",
+  "state": "open",
+  "attributes": {
+    "friendly_name": "Living Room Curtain Main",
+    "current_position": 90,
+    "device_class": "curtain"
+  },
+  "last_changed": "2026-01-21T06:56:11.016252+00:00",
+  "last_updated": "2026-01-21T06:56:11.016254+00:00"
+}

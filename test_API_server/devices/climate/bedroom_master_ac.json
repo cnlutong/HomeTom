@@ -1,0 +1,18 @@
+{
+  "entity_id": "climate.bedroom_master_ac",
+  "state": "cool",
+  "attributes": {
+    "friendly_name": "Bedroom Master AC",
+    "temperature": 24,
+    "current_temperature": 25.94035231120612,
+    "hvac_modes": [
+      "off",
+      "cool",
+      "heat",
+      "fan_only"
+    ],
+    "fan_mode": "auto"
+  },
+  "last_changed": "2026-01-21T06:56:11.016798+00:00",
+  "last_updated": "2026-01-21T06:56:11.016799+00:00"
+}

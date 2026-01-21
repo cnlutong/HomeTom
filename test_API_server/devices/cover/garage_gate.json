@@ -1,0 +1,11 @@
+{
+  "entity_id": "cover.garage_gate",
+  "state": "open",
+  "attributes": {
+    "friendly_name": "Garage Gate",
+    "current_position": 13,
+    "device_class": "garage"
+  },
+  "last_changed": "2026-01-21T06:56:11.016554+00:00",
+  "last_updated": "2026-01-21T06:56:11.016555+00:00"
+}

@@ -1,0 +1,10 @@
+{
+  "entity_id": "binary_sensor.driveway_motion",
+  "state": "on",
+  "attributes": {
+    "friendly_name": "Driveway Motion",
+    "device_class": "motion"
+  },
+  "last_changed": "2026-01-21T06:56:11.016117+00:00",
+  "last_updated": "2026-01-21T06:56:11.016118+00:00"
+}

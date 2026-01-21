@@ -1,0 +1,11 @@
+{
+  "entity_id": "switch.bed_warmer",
+  "state": "on",
+  "attributes": {
+    "friendly_name": "Bed Warmer",
+    "device_class": "outlet",
+    "current_consumption": 77.41723498522403
+  },
+  "last_changed": "2026-01-21T06:56:11.013464+00:00",
+  "last_updated": "2026-01-21T06:56:11.013465+00:00"
+}

@@ -1,0 +1,17 @@
+{
+  "entity_id": "light.study_strip",
+  "state": "on",
+  "attributes": {
+    "friendly_name": "Study Strip",
+    "brightness": 123,
+    "color_temp": 208,
+    "rgb_color": [
+      36,
+      177,
+      18
+    ],
+    "supported_features": 63
+  },
+  "last_changed": "2026-01-21T06:56:11.011760+00:00",
+  "last_updated": "2026-01-21T06:56:11.011761+00:00"
+}

@@ -1,0 +1,17 @@
+{
+  "entity_id": "light.bedroom_master_main",
+  "state": "off",
+  "attributes": {
+    "friendly_name": "Bedroom Master Main",
+    "brightness": 138,
+    "color_temp": 464,
+    "rgb_color": [
+      111,
+      57,
+      17
+    ],
+    "supported_features": 63
+  },
+  "last_changed": "2026-01-21T06:56:11.009636+00:00",
+  "last_updated": "2026-01-21T06:56:11.009637+00:00"
+}

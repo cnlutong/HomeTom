@@ -1,0 +1,17 @@
+{
+  "entity_id": "light.living_room_lamp",
+  "state": "off",
+  "attributes": {
+    "friendly_name": "Living Room Lamp",
+    "brightness": 103,
+    "color_temp": 195,
+    "rgb_color": [
+      191,
+      112,
+      233
+    ],
+    "supported_features": 63
+  },
+  "last_changed": "2026-01-21T06:56:11.009172+00:00",
+  "last_updated": "2026-01-21T06:56:11.009176+00:00"
+}

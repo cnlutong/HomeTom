@@ -1,0 +1,11 @@
+{
+  "entity_id": "cover.bedroom_master_blinds",
+  "state": "open",
+  "attributes": {
+    "friendly_name": "Master Bedroom Blinds",
+    "current_position": 3,
+    "device_class": "blind"
+  },
+  "last_changed": "2026-01-21T06:56:11.016462+00:00",
+  "last_updated": "2026-01-21T06:56:11.016463+00:00"
+}

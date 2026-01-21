@@ -1,0 +1,11 @@
+{
+  "entity_id": "sensor.kitchen_humidity",
+  "state": "37",
+  "attributes": {
+    "friendly_name": "Kitchen Humidity",
+    "unit_of_measurement": "%",
+    "device_class": "humidity"
+  },
+  "last_changed": "2026-01-21T06:56:11.014551+00:00",
+  "last_updated": "2026-01-21T06:56:11.014552+00:00"
+}

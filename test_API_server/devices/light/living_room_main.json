@@ -1,0 +1,17 @@
+{
+  "entity_id": "light.living_room_main",
+  "state": "off",
+  "attributes": {
+    "friendly_name": "Living Room Main",
+    "brightness": 10,
+    "color_temp": 268,
+    "rgb_color": [
+      191,
+      179,
+      72
+    ],
+    "supported_features": 63
+  },
+  "last_changed": "2026-01-21T06:56:11.008443+00:00",
+  "last_updated": "2026-01-21T06:56:11.008626+00:00"
+}

@@ -1,0 +1,17 @@
+{
+  "entity_id": "light.kitchen_spot",
+  "state": "on",
+  "attributes": {
+    "friendly_name": "Kitchen Spot",
+    "brightness": 90,
+    "color_temp": 364,
+    "rgb_color": [
+      35,
+      13,
+      35
+    ],
+    "supported_features": 63
+  },
+  "last_changed": "2026-01-21T06:56:11.009422+00:00",
+  "last_updated": "2026-01-21T06:56:11.009424+00:00"
+}

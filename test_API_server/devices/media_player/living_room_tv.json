@@ -1,22 +1,12 @@
 {
   "entity_id": "media_player.living_room_tv",
-  "state": "playing",
+  "state": "off",
   "attributes": {
-    "friendly_name": "客厅电视",
-    "volume_level": 0.5,
-    "is_volume_muted": false,
-    "media_content_type": "video",
-    "media_title": "新闻联播",
-    "source": "HDMI1",
-    "source_list": [
-      "HDMI1",
-      "HDMI2",
-      "TV",
-      "Netflix",
-      "YouTube"
-    ],
-    "supported_features": 152463
+    "friendly_name": "Living Room TV",
+    "volume_level": 0.3,
+    "source": "Netflix",
+    "device_class": "tv"
   },
-  "last_changed": "2026-01-05T23:51:18.987813+00:00",
-  "last_updated": "2026-01-05T23:51:18.987817+00:00"
+  "last_changed": "2026-01-21T06:56:11.017186+00:00",
+  "last_updated": "2026-01-21T06:56:11.017187+00:00"
 }

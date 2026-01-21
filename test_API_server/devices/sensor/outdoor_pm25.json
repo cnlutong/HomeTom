@@ -1,0 +1,11 @@
+{
+  "entity_id": "sensor.outdoor_pm25",
+  "state": "80",
+  "attributes": {
+    "friendly_name": "Outdoor PM2.5",
+    "unit_of_measurement": "µg/m³",
+    "device_class": "pm25"
+  },
+  "last_changed": "2026-01-21T06:56:11.015110+00:00",
+  "last_updated": "2026-01-21T06:56:11.015112+00:00"
+}

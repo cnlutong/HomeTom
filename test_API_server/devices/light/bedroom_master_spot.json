@@ -1,0 +1,17 @@
+{
+  "entity_id": "light.bedroom_master_spot",
+  "state": "on",
+  "attributes": {
+    "friendly_name": "Bedroom Master Spot",
+    "brightness": 194,
+    "color_temp": 314,
+    "rgb_color": [
+      40,
+      210,
+      154
+    ],
+    "supported_features": 63
+  },
+  "last_changed": "2026-01-21T06:56:11.009957+00:00",
+  "last_updated": "2026-01-21T06:56:11.009961+00:00"
+}

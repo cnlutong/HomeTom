@@ -1,0 +1,17 @@
+{
+  "entity_id": "light.study_lamp",
+  "state": "off",
+  "attributes": {
+    "friendly_name": "Study Lamp",
+    "brightness": 158,
+    "color_temp": 171,
+    "rgb_color": [
+      166,
+      39,
+      176
+    ],
+    "supported_features": 63
+  },
+  "last_changed": "2026-01-21T06:56:11.011999+00:00",
+  "last_updated": "2026-01-21T06:56:11.012000+00:00"
+}

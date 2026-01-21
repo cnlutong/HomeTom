@@ -1,0 +1,10 @@
+{
+  "entity_id": "binary_sensor.kitchen_window_contact",
+  "state": "on",
+  "attributes": {
+    "friendly_name": "Kitchen Window Contact",
+    "device_class": "window"
+  },
+  "last_changed": "2026-01-21T06:56:11.015481+00:00",
+  "last_updated": "2026-01-21T06:56:11.015483+00:00"
+}

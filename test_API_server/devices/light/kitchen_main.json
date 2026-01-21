@@ -1,0 +1,17 @@
+{
+  "entity_id": "light.kitchen_main",
+  "state": "off",
+  "attributes": {
+    "friendly_name": "Kitchen Main",
+    "brightness": 25,
+    "color_temp": 324,
+    "rgb_color": [
+      99,
+      243,
+      104
+    ],
+    "supported_features": 63
+  },
+  "last_changed": "2026-01-21T06:56:11.009310+00:00",
+  "last_updated": "2026-01-21T06:56:11.009312+00:00"
+}

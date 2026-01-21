@@ -1,0 +1,17 @@
+{
+  "entity_id": "light.living_room_strip",
+  "state": "on",
+  "attributes": {
+    "friendly_name": "Living Room Strip",
+    "brightness": 73,
+    "color_temp": 410,
+    "rgb_color": [
+      173,
+      189,
+      158
+    ],
+    "supported_features": 63
+  },
+  "last_changed": "2026-01-21T06:56:11.008825+00:00",
+  "last_updated": "2026-01-21T06:56:11.008827+00:00"
+}

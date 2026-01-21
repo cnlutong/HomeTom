@@ -1,0 +1,17 @@
+{
+  "entity_id": "light.balcony_strip",
+  "state": "off",
+  "attributes": {
+    "friendly_name": "Balcony Strip",
+    "brightness": 86,
+    "color_temp": 228,
+    "rgb_color": [
+      170,
+      85,
+      1
+    ],
+    "supported_features": 63
+  },
+  "last_changed": "2026-01-21T06:56:11.011372+00:00",
+  "last_updated": "2026-01-21T06:56:11.011374+00:00"
+}

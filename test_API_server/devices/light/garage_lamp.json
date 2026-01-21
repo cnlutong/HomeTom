@@ -1,0 +1,17 @@
+{
+  "entity_id": "light.garage_lamp",
+  "state": "off",
+  "attributes": {
+    "friendly_name": "Garage Lamp",
+    "brightness": 196,
+    "color_temp": 401,
+    "rgb_color": [
+      11,
+      117,
+      22
+    ],
+    "supported_features": 63
+  },
+  "last_changed": "2026-01-21T06:56:11.012272+00:00",
+  "last_updated": "2026-01-21T06:56:11.012274+00:00"
+}

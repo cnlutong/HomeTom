@@ -1,0 +1,17 @@
+{
+  "entity_id": "light.living_room_spot",
+  "state": "off",
+  "attributes": {
+    "friendly_name": "Living Room Spot",
+    "brightness": 183,
+    "color_temp": 384,
+    "rgb_color": [
+      168,
+      199,
+      203
+    ],
+    "supported_features": 63
+  },
+  "last_changed": "2026-01-21T06:56:11.008945+00:00",
+  "last_updated": "2026-01-21T06:56:11.008947+00:00"
+}

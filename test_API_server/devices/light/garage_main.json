@@ -1,0 +1,17 @@
+{
+  "entity_id": "light.garage_main",
+  "state": "on",
+  "attributes": {
+    "friendly_name": "Garage Main",
+    "brightness": 185,
+    "color_temp": 433,
+    "rgb_color": [
+      181,
+      142,
+      137
+    ],
+    "supported_features": 63
+  },
+  "last_changed": "2026-01-21T06:56:11.012093+00:00",
+  "last_updated": "2026-01-21T06:56:11.012095+00:00"
+}

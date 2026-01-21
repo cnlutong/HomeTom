@@ -1,0 +1,11 @@
+{
+  "entity_id": "switch.dehumidifier",
+  "state": "off",
+  "attributes": {
+    "friendly_name": "Dehumidifier",
+    "device_class": "outlet",
+    "current_consumption": 59.26686283760261
+  },
+  "last_changed": "2026-01-21T06:56:11.012537+00:00",
+  "last_updated": "2026-01-21T06:56:11.012538+00:00"
+}

@@ -1,0 +1,11 @@
+{
+  "entity_id": "media_player.kitchen_speaker",
+  "state": "idle",
+  "attributes": {
+    "friendly_name": "Kitchen Speaker",
+    "volume_level": 0.5,
+    "device_class": "speaker"
+  },
+  "last_changed": "2026-01-21T06:56:11.017285+00:00",
+  "last_updated": "2026-01-21T06:56:11.017286+00:00"
+}

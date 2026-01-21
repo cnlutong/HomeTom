@@ -1,0 +1,17 @@
+{
+  "entity_id": "light.garage_strip",
+  "state": "off",
+  "attributes": {
+    "friendly_name": "Garage Strip",
+    "brightness": 201,
+    "color_temp": 186,
+    "rgb_color": [
+      49,
+      76,
+      140
+    ],
+    "supported_features": 63
+  },
+  "last_changed": "2026-01-21T06:56:11.012179+00:00",
+  "last_updated": "2026-01-21T06:56:11.012180+00:00"
+}

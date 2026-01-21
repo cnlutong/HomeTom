@@ -1,35 +1,18 @@
 {
   "entity_id": "climate.living_room_ac",
-  "state": "heat",
+  "state": "cool",
   "attributes": {
-    "friendly_name": "客厅空调",
+    "friendly_name": "Living Room AC",
     "temperature": 24,
-    "current_temperature": 22.5,
+    "current_temperature": 24.61132078186891,
     "hvac_modes": [
       "off",
-      "heat",
       "cool",
-      "auto",
-      "dry",
+      "heat",
       "fan_only"
     ],
-    "fan_mode": "auto",
-    "fan_modes": [
-      "auto",
-      "low",
-      "medium",
-      "high"
-    ],
-    "swing_mode": "off",
-    "swing_modes": [
-      "off",
-      "vertical",
-      "horizontal",
-      "both"
-    ],
-    "min_temp": 16,
-    "max_temp": 30
+    "fan_mode": "auto"
   },
-  "last_changed": "2026-01-05T23:51:18.980526+00:00",
-  "last_updated": "2026-01-05T23:51:18.980528+00:00"
+  "last_changed": "2026-01-21T06:56:11.016694+00:00",
+  "last_updated": "2026-01-21T06:56:11.016695+00:00"
 }

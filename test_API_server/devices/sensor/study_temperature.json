@@ -1,0 +1,11 @@
+{
+  "entity_id": "sensor.study_temperature",
+  "state": "26.5",
+  "attributes": {
+    "friendly_name": "Study Temperature",
+    "unit_of_measurement": "°C",
+    "device_class": "temperature"
+  },
+  "last_changed": "2026-01-21T06:56:11.014644+00:00",
+  "last_updated": "2026-01-21T06:56:11.014645+00:00"
+}

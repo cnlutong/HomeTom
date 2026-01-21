@@ -1,0 +1,17 @@
+{
+  "entity_id": "light.kitchen_lamp",
+  "state": "on",
+  "attributes": {
+    "friendly_name": "Kitchen Lamp",
+    "brightness": 54,
+    "color_temp": 325,
+    "rgb_color": [
+      151,
+      115,
+      178
+    ],
+    "supported_features": 63
+  },
+  "last_changed": "2026-01-21T06:56:11.009533+00:00",
+  "last_updated": "2026-01-21T06:56:11.009535+00:00"
+}

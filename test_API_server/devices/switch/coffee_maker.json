@@ -1,0 +1,11 @@
+{
+  "entity_id": "switch.coffee_maker",
+  "state": "off",
+  "attributes": {
+    "friendly_name": "Coffee Maker",
+    "device_class": "outlet",
+    "current_consumption": 0
+  },
+  "last_changed": "2026-01-21T06:56:11.012419+00:00",
+  "last_updated": "2026-01-21T06:56:11.012420+00:00"
+}

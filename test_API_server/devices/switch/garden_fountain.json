@@ -1,0 +1,11 @@
+{
+  "entity_id": "switch.garden_fountain",
+  "state": "off",
+  "attributes": {
+    "friendly_name": "Garden Fountain",
+    "device_class": "outlet",
+    "current_consumption": 93.8914556636786
+  },
+  "last_changed": "2026-01-21T06:56:11.012835+00:00",
+  "last_updated": "2026-01-21T06:56:11.012836+00:00"
+}

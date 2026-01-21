@@ -1,0 +1,17 @@
+{
+  "entity_id": "light.bathroom_strip",
+  "state": "off",
+  "attributes": {
+    "friendly_name": "Bathroom Strip",
+    "brightness": 82,
+    "color_temp": 401,
+    "rgb_color": [
+      14,
+      104,
+      218
+    ],
+    "supported_features": 63
+  },
+  "last_changed": "2026-01-21T06:56:11.011088+00:00",
+  "last_updated": "2026-01-21T06:56:11.011089+00:00"
+}

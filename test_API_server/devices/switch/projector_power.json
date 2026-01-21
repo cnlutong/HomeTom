@@ -1,0 +1,11 @@
+{
+  "entity_id": "switch.projector_power",
+  "state": "off",
+  "attributes": {
+    "friendly_name": "Projector",
+    "device_class": "outlet",
+    "current_consumption": 39.51192500509835
+  },
+  "last_changed": "2026-01-21T06:56:11.012741+00:00",
+  "last_updated": "2026-01-21T06:56:11.012742+00:00"
+}

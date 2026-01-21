@@ -1,0 +1,11 @@
+{
+  "entity_id": "sensor.living_room_temperature",
+  "state": "23.5",
+  "attributes": {
+    "friendly_name": "Living Room Temperature",
+    "unit_of_measurement": "°C",
+    "device_class": "temperature"
+  },
+  "last_changed": "2026-01-21T06:56:11.014108+00:00",
+  "last_updated": "2026-01-21T06:56:11.014110+00:00"
+}

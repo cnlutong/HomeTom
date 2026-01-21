@@ -1,0 +1,17 @@
+{
+  "entity_id": "light.bathroom_main",
+  "state": "on",
+  "attributes": {
+    "friendly_name": "Bathroom Main",
+    "brightness": 167,
+    "color_temp": 213,
+    "rgb_color": [
+      74,
+      239,
+      5
+    ],
+    "supported_features": 63
+  },
+  "last_changed": "2026-01-21T06:56:11.010990+00:00",
+  "last_updated": "2026-01-21T06:56:11.010991+00:00"
+}

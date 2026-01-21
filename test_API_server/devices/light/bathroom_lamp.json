@@ -1,0 +1,17 @@
+{
+  "entity_id": "light.bathroom_lamp",
+  "state": "off",
+  "attributes": {
+    "friendly_name": "Bathroom Lamp",
+    "brightness": 76,
+    "color_temp": 293,
+    "rgb_color": [
+      206,
+      51,
+      126
+    ],
+    "supported_features": 63
+  },
+  "last_changed": "2026-01-21T06:56:11.011177+00:00",
+  "last_updated": "2026-01-21T06:56:11.011179+00:00"
+}

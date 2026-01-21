@@ -1,0 +1,17 @@
+{
+  "entity_id": "light.bedroom_guest_spot",
+  "state": "on",
+  "attributes": {
+    "friendly_name": "Bedroom Guest Spot",
+    "brightness": 116,
+    "color_temp": 474,
+    "rgb_color": [
+      199,
+      144,
+      35
+    ],
+    "supported_features": 63
+  },
+  "last_changed": "2026-01-21T06:56:11.010225+00:00",
+  "last_updated": "2026-01-21T06:56:11.010226+00:00"
+}

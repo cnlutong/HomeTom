@@ -1,0 +1,17 @@
+{
+  "entity_id": "light.balcony_main",
+  "state": "off",
+  "attributes": {
+    "friendly_name": "Balcony Main",
+    "brightness": 101,
+    "color_temp": 182,
+    "rgb_color": [
+      161,
+      240,
+      109
+    ],
+    "supported_features": 63
+  },
+  "last_changed": "2026-01-21T06:56:11.011274+00:00",
+  "last_updated": "2026-01-21T06:56:11.011276+00:00"
+}

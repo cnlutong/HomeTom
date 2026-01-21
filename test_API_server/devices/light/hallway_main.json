@@ -1,0 +1,17 @@
+{
+  "entity_id": "light.hallway_main",
+  "state": "on",
+  "attributes": {
+    "friendly_name": "Hallway Main",
+    "brightness": 137,
+    "color_temp": 466,
+    "rgb_color": [
+      104,
+      240,
+      29
+    ],
+    "supported_features": 63
+  },
+  "last_changed": "2026-01-21T06:56:11.010429+00:00",
+  "last_updated": "2026-01-21T06:56:11.010430+00:00"
+}

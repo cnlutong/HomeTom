@@ -1,0 +1,11 @@
+{
+  "entity_id": "vacuum.roborock_s7",
+  "state": "paused",
+  "attributes": {
+    "friendly_name": "Roborock S7",
+    "battery_level": 4,
+    "fan_speed": "standard"
+  },
+  "last_changed": "2026-01-21T06:56:11.017054+00:00",
+  "last_updated": "2026-01-21T06:56:11.017055+00:00"
+}

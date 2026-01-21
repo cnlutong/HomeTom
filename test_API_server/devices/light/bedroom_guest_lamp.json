@@ -1,0 +1,17 @@
+{
+  "entity_id": "light.bedroom_guest_lamp",
+  "state": "off",
+  "attributes": {
+    "friendly_name": "Bedroom Guest Lamp",
+    "brightness": 39,
+    "color_temp": 247,
+    "rgb_color": [
+      28,
+      221,
+      245
+    ],
+    "supported_features": 63
+  },
+  "last_changed": "2026-01-21T06:56:11.010331+00:00",
+  "last_updated": "2026-01-21T06:56:11.010333+00:00"
+}
