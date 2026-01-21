@@ -9,7 +9,9 @@ import {
   CloudSun,
   Clock,
   FileText,
-  Terminal
+  Terminal,
+  Gauge,
+  Cpu
 } from 'lucide-react';
 
 // Helper function to translate Chinese scene names to English
@@ -566,7 +568,9 @@ const ScenesList = ({ onSelectScene, onCreateNew, onViewDevices, onUpdateSceneSt
           onClick={onViewOrchestrator}
           title="View Orchestrator Status"
         >
-          <div className="summary-card-icon">⚡</div>
+          <div className="summary-card-icon">
+            <Gauge size={24} />
+          </div>
           <div className="summary-card-content">
             <div className="summary-card-title">Orchestrator</div>
             <div className="summary-card-value">{activeScenes.length}/{totalScenes}</div>
@@ -577,7 +581,9 @@ const ScenesList = ({ onSelectScene, onCreateNew, onViewDevices, onUpdateSceneSt
           onClick={onViewDevices}
           title="View all device details"
         >
-          <div className="summary-card-icon">⚡</div>
+          <div className="summary-card-icon">
+            <Cpu size={24} />
+          </div>
           <div className="summary-card-content">
             <div className="summary-card-title">Active Devices</div>
             <div className="summary-card-value font-bold">{activeDevices.active}/{activeDevices.total}</div>

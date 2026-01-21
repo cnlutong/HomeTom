@@ -164,10 +164,7 @@ const DeviceList = ({ onBack }) => {
                 {devices.map((device) => (
                   <tr key={device.id}>
                     <td>
-                      <div className="device-table-name-cell">
-                        {getDeviceIcon(device)}
-                        <span className="text-indigo-400 font-medium">{device.label}</span>
-                      </div>
+                      <span className="text-indigo-400 font-medium">{device.label}</span>
                     </td>
                     <td><code className="device-table-code">{device.entity_id}</code></td>
                     <td>

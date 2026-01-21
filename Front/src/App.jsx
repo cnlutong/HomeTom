@@ -2062,7 +2062,6 @@ function SidebarModal({ sidebarSections, onItemDragStart, onItemDoubleClick, onA
                 className="type-selection-btn type-selection-trigger"
                 onClick={() => handleTypeSelect('trigger')}
               >
-                <span className="type-selection-icon">📡</span>
                 <span className="type-selection-label">Trigger</span>
                 <span className="type-selection-desc">Sensors, Motion, Events</span>
               </button>
@@ -2070,7 +2069,6 @@ function SidebarModal({ sidebarSections, onItemDragStart, onItemDoubleClick, onA
                 className="type-selection-btn type-selection-condition"
                 onClick={() => handleTypeSelect('condition')}
               >
-                <span className="type-selection-icon">⚙️</span>
                 <span className="type-selection-label">Condition</span>
                 <span className="type-selection-desc">Time, Temperature, Humidity</span>
               </button>
@@ -2078,7 +2076,6 @@ function SidebarModal({ sidebarSections, onItemDragStart, onItemDoubleClick, onA
                 className="type-selection-btn type-selection-executor"
                 onClick={() => handleTypeSelect('executor')}
               >
-                <span className="type-selection-icon">💡</span>
                 <span className="type-selection-label">Executor</span>
                 <span className="type-selection-desc">Lights, Curtains, Devices</span>
               </button>
