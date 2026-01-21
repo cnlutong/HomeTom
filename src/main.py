@@ -2,7 +2,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.api.routers import device_router, scene_router, execution_router, device_log_router
+from src.api.routers import device_router, scene_router, execution_router, device_log_router, executor_router
 
 app = FastAPI(title="HomeTom API", version="1.0.0")
 
@@ -36,6 +36,7 @@ app.include_router(device_router.router)
 app.include_router(scene_router.router)
 app.include_router(execution_router.router)
 app.include_router(device_log_router.router)
+app.include_router(executor_router.router)
 
 
 @app.on_event("startup")

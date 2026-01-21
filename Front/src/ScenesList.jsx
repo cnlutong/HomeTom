@@ -291,7 +291,7 @@ const fetchWeatherData = async () => {
   }
 };
 
-const ScenesList = ({ onSelectScene, onCreateNew, onViewDevices, onUpdateSceneStatus, onDeleteScene, onExecuteScene, onViewLogs, onViewDeviceLogs }) => {
+const ScenesList = ({ onSelectScene, onCreateNew, onViewDevices, onUpdateSceneStatus, onDeleteScene, onExecuteScene, onViewLogs, onViewDeviceLogs, onViewOrchestrator }) => {
   const [scenes, setScenes] = useState([]);
   const [activeTab, setActiveTab] = useState('all');
   const [deviceLogCount, setDeviceLogCount] = useState(null);
@@ -561,11 +561,15 @@ const ScenesList = ({ onSelectScene, onCreateNew, onViewDevices, onUpdateSceneSt
 
       {/* Summary Cards */}
       <div className="summary-cards">
-        <div className="summary-card">
-          <div className="summary-card-icon">📋</div>
+        <div
+          className="summary-card clickable"
+          onClick={onViewOrchestrator}
+          title="View Orchestrator Status"
+        >
+          <div className="summary-card-icon">⚡</div>
           <div className="summary-card-content">
-            <div className="summary-card-title">Total Scenes</div>
-            <div className="summary-card-value">{totalScenes}</div>
+            <div className="summary-card-title">Orchestrator</div>
+            <div className="summary-card-value">{activeScenes.length}/{totalScenes}</div>
           </div>
         </div>
         <div

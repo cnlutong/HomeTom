@@ -47,7 +47,7 @@ const DeviceList = ({ onBack }) => {
             <ArrowLeft size={20} />
           </button>
           <div className="header-brand">
-            <span className="header-title-text">Backend <span className="header-title-accent">Devices</span></span>
+            <span className="header-title-text">Connected <span className="header-title-accent">Equipment</span></span>
           </div>
         </div>
         <div className="header-widgets">
@@ -90,7 +90,7 @@ const DeviceList = ({ onBack }) => {
         {loading && !devices.length ? (
           <div className="loading-container">
             <div className="loading-spinner"></div>
-            <p>Synchronizing device metadata...</p>
+            <p>Loading equipment...</p>
           </div>
         ) : (
           <div className="device-table-container">
@@ -152,7 +152,7 @@ const DeviceList = ({ onBack }) => {
             </table>
             {devices.length === 0 && !loading && (
               <div className="empty-state-padding">
-                <p className="text-slate-400">No devices found on the backend server.</p>
+                <p className="text-slate-400">No connected equipment found.</p>
               </div>
             )}
           </div>

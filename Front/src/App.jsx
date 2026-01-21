@@ -21,6 +21,7 @@ import {
 import LogPopup from './LogPopup';
 import SceneLogs from './SceneLogs.jsx';
 import DeviceLogs from './DeviceLogs';
+import OrchestratorList from './OrchestratorList';
 
 const USER_SOURCE = {
   id: "user-source",
@@ -3553,6 +3554,7 @@ export default function App() {
           onViewLogs={() => setCurrentPage("logs")}
           onRefresh={() => { /* fetchScenes(true) logic would go here if ScenesList had it */ }}
           onViewDeviceLogs={() => setCurrentPage("device_logs")}
+          onViewOrchestrator={() => setCurrentPage("orchestrator")}
         />
       ) : currentPage === "devices" ? (
         <DeviceList onBack={() => setCurrentPage("scenes")} />
@@ -3560,6 +3562,8 @@ export default function App() {
         <SceneLogs onBack={() => setCurrentPage("scenes")} />
       ) : currentPage === "device_logs" ? (
         <DeviceLogs onBack={() => setCurrentPage("scenes")} />
+      ) : currentPage === "orchestrator" ? (
+        <OrchestratorList onBack={() => setCurrentPage("scenes")} />
       ) : (
         <>
           <Header
