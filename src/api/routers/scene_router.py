@@ -309,8 +309,8 @@ async def save_scene(
         if c.type == "time":
             # 时间范围条件
             conditions.append(Condition.create_time_range(
-                after=c.after,
-                before=c.before
+                after=c.after or c.time or "00:00",
+                before=c.before or c.time or "23:59"
             ))
         elif c.type == "deviceState" and c.deviceId:
             # 设备状态条件 - 优先使用结构化字段
@@ -319,24 +319,22 @@ async def save_scene(
                 operator = c.operator
                 value = c.value
             else:
-                # 回退到旧的字符串解析逻辑
+                # 回退到旧的字符串解析逻辑，并使其更鲁棒
+                state_str = str(c.state).strip() if c.state is not None else ""
                 operator = "=="
-                value = str(c.state) if c.state is not None else ""
-                if " >= " in str(c.state):
-                    operator = ">="
-                    value = str(c.state).split(" >= ")[1]
-                elif " <= " in str(c.state):
-                    operator = "<="
-                    value = str(c.state).split(" <= ")[1]
-                elif " > " in str(c.state):
-                    operator = ">"
-                    value = str(c.state).split(" > ")[1]
-                elif " < " in str(c.state):
-                    operator = "<"
-                    value = str(c.state).split(" < ")[1]
-                elif " != " in str(c.state):
-                    operator = "!="
-                    value = str(c.state).split(" != ")[1]
+                value = state_str
+                
+                # 定义支持的操作符
+                ops = [">=", "<=", "!=", ">", "<"]
+                for op_symbol in ops:
+                    if state_str.startswith(op_symbol):
+                        operator = op_symbol
+                        value = state_str[len(op_symbol):].strip()
+                        break
+                    elif f" {op_symbol} " in state_str:
+                        operator = op_symbol
+                        value = state_str.split(f" {op_symbol} ")[1].strip()
+                        break
                     
             conditions.append(Condition(
                 entity_id=c.deviceId,

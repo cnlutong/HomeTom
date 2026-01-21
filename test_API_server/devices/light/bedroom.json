@@ -3,10 +3,10 @@
   "state": "on",
   "attributes": {
     "friendly_name": "卧室主灯",
-    "brightness": 0,
+    "brightness": 128,
     "color_temp": 350,
     "supported_features": 63
   },
   "last_changed": "2026-01-21T00:32:54.738488+00:00",
-  "last_updated": "2026-01-21T00:42:34.422082+00:00"
+  "last_updated": "2026-01-21T01:48:06.514953+00:00"
 }

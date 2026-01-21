@@ -1,7 +1,10 @@
 """执行仓储实现"""
 
 from typing import Optional, List
-from sqlalchemy import select, delete
+from typing import Optional, List
+from datetime import datetime, time
+from sqlalchemy import select, delete, func, desc
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.domain.Execution.aggregates.execution_aggregate import ExecutionAggregate
@@ -77,3 +80,29 @@ class ExecutionRepositoryImpl(IExecutionRepository):
         """根据场景 ID 删除所有执行记录"""
         stmt = delete(ExecutionModel).where(ExecutionModel.scene_id == scene_id)
         await self._session.execute(stmt)
+
+    async def count_today_executions(self) -> int:
+        """统计今日执行次数"""
+        # 获取今日开始时间 (00:00:00)
+        today_start = datetime.combine(datetime.now().date(), time.min)
+        
+        stmt = select(func.count()).select_from(ExecutionModel).where(
+            ExecutionModel.started_at >= today_start
+        )
+        result = await self._session.execute(stmt)
+        return result.scalar() or 0
+
+    async def find_all_paginated(self, skip: int = 0, limit: int = 100) -> List[ExecutionAggregate]:
+        """分页查找所有执行记录，按开始时间倒序排列"""
+        stmt = select(ExecutionModel).options(
+            selectinload(ExecutionModel.scene)
+        ).order_by(
+            desc(ExecutionModel.started_at)
+        ).offset(skip).limit(limit)
+        
+        result = await self._session.execute(stmt)
+        models = result.scalars().all()
+        
+        # 批量预加载 logs (如果在模型中有配置 lazy='selectin' 则不需要额外处理，但这里我们相信模型配置)
+        
+        return [self._mapper.to_aggregate(m) for m in models]

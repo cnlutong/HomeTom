@@ -94,12 +94,15 @@ class WorkflowEngine(IWorkflowEngine):
                     definition.conditions
                 )
                 if not conditions_met:
+                    print(f"DEBUG: Workflow {execution.execution_id} SKIPPED: conditions not met")
                     logger.info(f"条件不满足，跳过执行: {execution.execution_id}")
                     execution.succeed({"skipped": True, "reason": "conditions_not_met"})
                     await self._publish_succeeded_event(execution)
                     return
+                print(f"DEBUG: Workflow {execution.execution_id} PROCEEDING: conditions met")
             
             # 顺序执行所有动作
+            print(f"DEBUG: Starting actions execution for {execution.execution_id}")
             action_results: List[Dict[str, Any]] = []
             failed_actions: List[Dict[str, Any]] = []
             

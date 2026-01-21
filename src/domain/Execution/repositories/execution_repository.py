@@ -36,3 +36,13 @@ class IExecutionRepository(ABC):
         """根据场景 ID 删除所有执行记录"""
         pass
 
+    @abstractmethod
+    async def count_today_executions(self) -> int:
+        """统计今日执行次数"""
+        pass
+
+    @abstractmethod
+    async def find_all_paginated(self, skip: int = 0, limit: int = 100) -> List[ExecutionAggregate]:
+        """分页查找所有执行"""
+        pass
+

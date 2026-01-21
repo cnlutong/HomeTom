@@ -258,10 +258,28 @@ async def verify_token(authorization: Optional[str] = Header(None)) -> str:
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     start = datetime.now()
+    
+    # 获取请求体以供记录日志（如果是 POST/PUT/DELETE）
+    request_body = None
+    if request.method in ["POST", "PUT", "PATCH"]:
+        try:
+            body_bytes = await request.body()
+            if body_bytes:
+                request_body = json.loads(body_bytes)
+        except Exception:
+            pass
+
     response = await call_next(request)
     ms = (datetime.now() - start).total_seconds() * 1000
     emoji = "✅" if response.status_code < 400 else "❌"
+    
+    # 记录基本请求信息
     logger.info(f"{emoji} {request.method:6} {request.url.path:<50} {response.status_code} ({ms:.0f}ms)")
+    
+    # 如果有请求体且是非 GET 请求，则记录请求体
+    if request_body:
+        logger.info(f"   📥 请求 Payload: {json.dumps(request_body, ensure_ascii=False)}")
+        
     return response
 
 # ==================== API 端点 ====================
@@ -330,7 +348,8 @@ async def set_state(entity_id: str, payload: StatePayload, authorization: str = 
     await verify_token(authorization)
     is_new = store.get_state(entity_id) is None
     result = store.set_state(entity_id, payload.state, payload.attributes)
-    logger.info(f"{'✨ 创建' if is_new else '📝 更新'} {entity_id} = {payload.state} [已保存到 JSON]")
+    logger.info(f"{'✨ 创建' if is_new else '📝 更新'} {entity_id} = {payload.state}")
+    logger.info(f"   📤 返回结果: {json.dumps(result, ensure_ascii=False)}")
     return result
 
 @app.delete("/api/states/{entity_id:path}")
@@ -437,9 +456,12 @@ async def call_service(domain: str, service: str, payload: ServiceCallPayload, a
         
         store.set_state(entity_id, new_state, new_attrs if new_attrs else None)
         if old != new_state:
-            logger.info(f"   📍 {entity_id}: {old} -> {new_state} [已保存]")
-        changed_states.append(store.get_state(entity_id))
+            logger.info(f"   📍 {entity_id}: {old} -> {new_state}")
+        
+        updated_state = store.get_state(entity_id)
+        changed_states.append(updated_state)
     
+    logger.info(f"   📤 调用结果: {json.dumps(changed_states, ensure_ascii=False)}")
     return changed_states
 
 @app.post("/api/events/{event_type}")

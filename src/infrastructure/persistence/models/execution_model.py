@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from typing import Optional, List, TYPE_CHECKING
-from sqlalchemy import String, DateTime, JSON, Integer, Boolean
+from sqlalchemy import String, DateTime, JSON, Integer, Boolean, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
@@ -23,7 +23,10 @@ class ExecutionModel(Base):
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
     
     # 执行上下文
-    scene_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    scene_id: Mapped[str] = mapped_column(String(64), ForeignKey("scenes.id"), nullable=False, index=True)
+    
+    # 关系：场景
+    scene: Mapped[Optional["SceneModel"]] = relationship("SceneModel", lazy="selectin")
     trigger_source: Mapped[str] = mapped_column(String(32), nullable=False)
     input_parameters: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
     call_chain: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)

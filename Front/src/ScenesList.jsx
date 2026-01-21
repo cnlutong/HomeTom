@@ -1,20 +1,15 @@
 import React, { useState, useEffect } from "react";
 import {
   Layers,
-  Clock,
+  Trash2,
+  Edit2,
+  Play,
   Server,
-  MapPin,
   Activity,
   CloudSun,
-  Plus,
-  Edit2,
-  Trash2,
-  Power,
-  CheckCircle,
+  Clock,
   FileText,
-  MoreVertical,
-  Zap,
-  Play
+  Terminal
 } from 'lucide-react';
 
 // Helper function to translate Chinese scene names to English
@@ -296,8 +291,10 @@ const fetchWeatherData = async () => {
   }
 };
 
-function ScenesList({ onSelectScene, onCreateNew, onViewDevices, onUpdateSceneStatus, onDeleteScene, onExecuteScene }) {
+const ScenesList = ({ onSelectScene, onCreateNew, onViewDevices, onUpdateSceneStatus, onDeleteScene, onExecuteScene, onViewLogs, onViewDeviceLogs }) => {
   const [scenes, setScenes] = useState([]);
+  const [activeTab, setActiveTab] = useState('all');
+  const [deviceLogCount, setDeviceLogCount] = useState(null);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [environmentData, setEnvironmentData] = useState({
     averageTemp: 24.2,
@@ -307,6 +304,7 @@ function ScenesList({ onSelectScene, onCreateNew, onViewDevices, onUpdateSceneSt
     location: "Loading..."
   });
   const [activeDevices, setActiveDevices] = useState({ active: 3, total: 5 });
+  const [todayCount, setTodayCount] = useState(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -365,6 +363,17 @@ function ScenesList({ onSelectScene, onCreateNew, onViewDevices, onUpdateSceneSt
         active: active,
         total: totalCount
       });
+
+      // Fetch execution stats
+      try {
+        const statsRes = await fetch('http://localhost:8000/api/executions/stats/today');
+        if (statsRes.ok) {
+          const statsData = await statsRes.json();
+          setTodayCount(statsData.count);
+        }
+      } catch (err) {
+        console.error("Failed to fetch execution stats:", err);
+      }
     };
 
     loadData();
@@ -372,6 +381,20 @@ function ScenesList({ onSelectScene, onCreateNew, onViewDevices, onUpdateSceneSt
     const interval = setInterval(loadData, 30000);
     return () => clearInterval(interval);
   }, [scenes]);
+
+  useEffect(() => {
+    // Fetch device logs stats
+    const fetchDeviceStats = () => {
+      fetch('http://localhost:8000/api/device-logs/stats/today')
+        .then(res => res.json())
+        .then(data => setDeviceLogCount(data.count))
+        .catch(err => console.error("Failed to fetch device log stats:", err));
+    };
+
+    fetchDeviceStats();
+    const interval = setInterval(fetchDeviceStats, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   const formatTime = (date) => {
     return date.toLocaleTimeString('en-US', {
@@ -429,10 +452,9 @@ function ScenesList({ onSelectScene, onCreateNew, onViewDevices, onUpdateSceneSt
     if (onExecuteScene) {
       try {
         const result = await onExecuteScene(sceneId);
-        if (result && result.status === "success") {
-          alert("Scene executed successfully!");
-        } else {
-          alert("Execution completed with status: " + (result?.status || "unknown"));
+        // Popup will handle the logs and success status
+        if (result && result.status !== "success") {
+          console.warn("Execution completed with status:", result?.status);
         }
       } catch (error) {
         alert("Execution failed: " + error.message);
@@ -557,18 +579,30 @@ function ScenesList({ onSelectScene, onCreateNew, onViewDevices, onUpdateSceneSt
             <div className="summary-card-value font-bold">{activeDevices.active}/{activeDevices.total}</div>
           </div>
         </div>
-        <div className="summary-card">
-          <div className="summary-card-icon">🌡️</div>
+        <div
+          className="summary-card clickable"
+          onClick={onViewLogs}
+          title="View Execution Logs"
+        >
+          <div className="summary-card-icon">
+            <FileText size={24} />
+          </div>
           <div className="summary-card-content">
-            <div className="summary-card-title">Temperature</div>
-            <div className="summary-card-value">{environmentData.averageTemp}°C</div>
+            <div className="summary-card-title">Execution History</div>
+            <div className="summary-card-value">{todayCount !== null ? todayCount : '-'}</div>
           </div>
         </div>
-        <div className="summary-card">
-          <div className="summary-card-icon">💧</div>
+        <div
+          className="summary-card clickable"
+          onClick={onViewDeviceLogs}
+          title="View Device Execution Logs"
+        >
+          <div className="summary-card-icon">
+            <Terminal size={24} />
+          </div>
           <div className="summary-card-content">
-            <div className="summary-card-title">Humidity</div>
-            <div className="summary-card-value">{environmentData.humidity}%</div>
+            <div className="summary-card-title">Device Logs</div>
+            <div className="summary-card-value">{deviceLogCount !== null ? deviceLogCount : '-'}</div>
           </div>
         </div>
       </div>

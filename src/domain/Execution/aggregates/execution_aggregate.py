@@ -56,6 +56,9 @@ class ExecutionAggregate:
         # 执行日志列表
         self._logs: List[ExecutionLog] = []
         
+        # 场景名称
+        self._scene_name: Optional[str] = None
+        
         # 领域事件列表
         self._domain_events: List[object] = []
         
@@ -106,6 +109,16 @@ class ExecutionAggregate:
     def logs(self) -> List[ExecutionLog]:
         """获取执行日志列表"""
         return list(self._logs)
+    
+    @property
+    def scene_name(self) -> Optional[str]:
+        """获取场景名称"""
+        return self._scene_name
+    
+    @scene_name.setter
+    def scene_name(self, value: str) -> None:
+        """设置场景名称"""
+        self._scene_name = value
     
     def start(self) -> None:
         """开始执行"""

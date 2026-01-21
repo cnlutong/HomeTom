@@ -162,8 +162,15 @@ class OrchestrationService:
             # 委托给工作流引擎执行
             await self._workflow_engine.execute(execution, scene.definition)
             
+            # 获取执行日志并转换为字典
+            logs = [log.to_dict() for log in execution.logs]
+            
             # 执行结果已由工作流引擎设置
-            result = {"success": execution.is_completed and execution.result.is_success() if execution.result else False, "execution_id": execution_id}
+            result = {
+                "success": execution.is_completed and execution.result.is_success() if execution.result else False, 
+                "execution_id": execution_id,
+                "logs": logs
+            }
             
         except Exception as e:
             # 尝试重试
@@ -172,9 +179,17 @@ class OrchestrationService:
                 await self._execution_repository.save(execution)
                 return {"success": False, "error": str(e), "retry_available": True}
             
+            # 获取执行日志并转换为字典
+            logs = [log.to_dict() for log in execution.logs]
+            
             # 标记执行失败
             execution.fail(str(e))
-            result = {"success": False, "error": str(e), "retry_available": False}
+            result = {
+                "success": False, 
+                "error": str(e), 
+                "retry_available": False,
+                "logs": logs
+            }
         
         # 持久化执行结果
         await self._execution_repository.save(execution)

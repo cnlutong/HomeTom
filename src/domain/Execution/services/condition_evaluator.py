@@ -113,10 +113,9 @@ class ConditionEvaluator(IConditionEvaluator):
         expected_value = condition.value
         result = self._compare(actual_value, condition.operator, expected_value)
         
-        logger.debug(
-            f"条件评估: {entity_id}.{attribute} {condition.operator} {expected_value} "
-            f"=> {actual_value} => {result}"
-        )
+        print(f"DEBUG: Condition Evaluation: {entity_id}.{attribute} {condition.operator} {expected_value}")
+        print(f"DEBUG:   Actual value: {actual_value} (type: {type(actual_value)})")
+        print(f"DEBUG:   Result: {result}")
         
         return result
     
@@ -144,18 +143,19 @@ class ConditionEvaluator(IConditionEvaluator):
             if after_str:
                 after_time = datetime.strptime(after_str, "%H:%M").time()
                 if now < after_time:
-                    logger.debug(f"时间条件不满足: 当前时间 {now} < after {after_time}")
+                    print(f"DEBUG: Time condition failed: {now} < after {after_time}")
                     return False
             
             if before_str:
                 before_time = datetime.strptime(before_str, "%H:%M").time()
                 if now > before_time:
-                    logger.debug(f"时间条件不满足: 当前时间 {now} > before {before_time}")
+                    print(f"DEBUG: Time condition failed: {now} > before {before_time}")
                     return False
             
-            logger.debug(f"时间条件满足: {after_str} <= {now} <= {before_str}")
+            print(f"DEBUG: Time condition satisfied: {after_str} <= {now} <= {before_str}")
             return True
         except ValueError as e:
+            print(f"DEBUG: Time parse error: {e}")
             logger.error(f"时间格式解析错误: {e}")
             return False
     

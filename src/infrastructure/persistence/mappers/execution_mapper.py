@@ -123,6 +123,13 @@ class ExecutionMapper:
         aggregate._result = result
         aggregate._started_at = model.started_at
         aggregate._ended_at = model.ended_at
+        if hasattr(model, 'scene') and model.scene:
+            aggregate._scene_name = model.scene.name
+        elif not hasattr(aggregate, '_scene_name'):
+             aggregate._scene_name = "Unknown Scene"
+        else:
+             aggregate._scene_name = "Unknown Scene"
+
         aggregate._domain_events = []  # 恢复时不包含事件
         
         # 恢复日志

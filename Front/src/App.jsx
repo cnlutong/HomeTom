@@ -13,8 +13,14 @@ import {
   Braces,
   FileJson,
   RotateCcw,
-  Save
+  Save,
+  FileText,
+  RefreshCw,
+  Plus,
 } from 'lucide-react';
+import LogPopup from './LogPopup';
+import SceneLogs from './SceneLogs.jsx';
+import DeviceLogs from './DeviceLogs';
 
 const USER_SOURCE = {
   id: "user-source",
@@ -44,16 +50,35 @@ const initialSidebarSections = [
 
 const defaultActions = [];
 
-function Header({ onReset, onPreviewJson, onImportJson, onBackToScenes, onSave, onExecute, sceneName }) {
+function Header({ onReset, onPreviewJson, onImportJson, onBackToScenes, onSave, onExecute, sceneName, onViewLogs, onRefresh, onViewDeviceLogs }) {
   const [localTime, setLocalTime] = useState(new Date());
   const [uptime, setUptime] = useState(0);
+  const [todayCount, setTodayCount] = useState(null);
 
   useEffect(() => {
+    // Fetch initial count
+    fetch('http://localhost:8000/api/executions/stats/today')
+      .then(res => res.json())
+      .then(data => setTodayCount(data.count))
+      .catch(err => console.error("Failed to fetch execution stats:", err));
+
     const timer = setInterval(() => {
       setLocalTime(new Date());
       setUptime(prev => prev + 1);
     }, 1000);
-    return () => clearInterval(timer);
+
+    // Refresh stats every minute
+    const statsTimer = setInterval(() => {
+      fetch('http://localhost:8000/api/executions/stats/today')
+        .then(res => res.json())
+        .then(data => setTodayCount(data.count))
+        .catch(err => console.error("Failed to fetch execution stats:", err));
+    }, 60000);
+
+    return () => {
+      clearInterval(timer);
+      clearInterval(statsTimer);
+    };
   }, []);
 
   const formatUptime = (seconds) => {
@@ -2328,11 +2353,7 @@ function Canvas({ actions, connections, connectingFrom, onDropItem, automationNa
           onItemDragStart={onItemDragStart}
           onItemDoubleClick={onItemDoubleClick}
           onAddItem={onAddItem}
-          onAddItemClick={(item) => {
-            onAddItemClick(item, null, relativeNodeId);
-            setRelativeNodeId(null);
-            setShowSidebarModal(false);
-          }}
+          onAddItemClick={(item) => onDropItem(item, null, relativeNodeId)}
           onClose={() => {
             setShowSidebarModal(false);
             setRelativeNodeId(null);
@@ -2521,6 +2542,8 @@ export default function App() {
   const [editingItem, setEditingItem] = useState(null);
   const [addingItem, setAddingItem] = useState(null);
   const [confirmReset, setConfirmReset] = useState(false);
+  const [executionLogs, setExecutionLogs] = useState([]);
+  const [showLogPopup, setShowLogPopup] = useState(false);
   const [lastActionCount, setLastActionCount] = useState(0);
   const [userTriggerMode, setUserTriggerMode] = useState("manual"); // "manual", "auto", or "always_on"
   const [triggerSchedule, setTriggerSchedule] = useState({ time: "08:00", days: [] }); // Schedule config for auto mode
@@ -2857,6 +2880,8 @@ export default function App() {
           const timeValue = scene.timeValue || "17:00";
           return {
             type: "time",
+            after: timeValue,
+            before: timeValue,
             time: timeValue,
           };
         }
@@ -2866,7 +2891,9 @@ export default function App() {
           type: "deviceState",
           deviceId: scene.entity_id || `sensor.temperature`,
           capability: "temperature",
-          state: `>= ${tempValue} `,
+          operator: ">=",
+          value: tempValue,
+          state: `>= ${tempValue}`,
         };
       } else if (scene.label === "Humidity Threshold" || scene.label === "Humidity") {
         const humidityValue = scene.humidityValue ?? 60;
@@ -2874,7 +2901,9 @@ export default function App() {
           type: "deviceState",
           deviceId: scene.entity_id || `sensor.humidity`,
           capability: "humidity",
-          state: `>= ${humidityValue} `,
+          operator: ">=",
+          value: humidityValue,
+          state: `>= ${humidityValue}`,
         };
       }
       return {
@@ -3149,7 +3178,7 @@ export default function App() {
             const itemLabelLower = item.label.toLowerCase();
             const equipmentNameLower = equipmentNameFromId.toLowerCase();
             if (itemLabelLower === equipmentNameLower) return true;
-            if (itemLabelLower.includes(equipmentNameLower) || equipmentNameLower.includes(itemLabelLower)) return true;
+            if (itemLabelLower.includes(equipmentNameLower) || equipmentNameLower.includes(equipmentNameLower)) return true;
             if (capability === 'onoff' && (itemLabelLower.includes('light') || itemLabelLower.includes('lamp') || itemLabelLower.includes('ceiling'))) return true;
             if (capability === 'temperature' && itemLabelLower.includes('conditioner')) return true;
             return false;
@@ -3337,7 +3366,7 @@ export default function App() {
       const sceneData = {
         id: result.id || json.automationId || `scene_${Date.now()}`,
         name: json.name || "Untitled Automation",
-        description: json.description || `Automation with ${json.triggers?.length || 0} trigger(s), ${json.conditions?.length || 0} condition(s), and ${json.actions?.length || 0} action(s)`,
+        description: `Automation with ${json.triggers?.length || 0} trigger(s), ${json.conditions?.length || 0} condition(s), and ${json.actions?.length || 0} action(s)`,
         icon: "🎯",
         isEnabled: json.isEnabled !== undefined ? json.isEnabled : true,
         triggerCount: json.triggers?.length || 0,
@@ -3394,6 +3423,12 @@ export default function App() {
 
       const result = await response.json();
       console.log("Execute result:", result);
+
+      if (result && result.logs) {
+        setExecutionLogs(result.logs);
+        setShowLogPopup(true);
+      }
+
       return result;
     } catch (error) {
       console.error("Failed to execute scene:", error);
@@ -3515,9 +3550,16 @@ export default function App() {
           onUpdateSceneStatus={handleUpdateSceneStatus}
           onDeleteScene={handleDeleteScene}
           onExecuteScene={handleExecuteScene}
+          onViewLogs={() => setCurrentPage("logs")}
+          onRefresh={() => { /* fetchScenes(true) logic would go here if ScenesList had it */ }}
+          onViewDeviceLogs={() => setCurrentPage("device_logs")}
         />
       ) : currentPage === "devices" ? (
         <DeviceList onBack={() => setCurrentPage("scenes")} />
+      ) : currentPage === "logs" ? (
+        <SceneLogs onBack={() => setCurrentPage("scenes")} />
+      ) : currentPage === "device_logs" ? (
+        <DeviceLogs onBack={() => setCurrentPage("scenes")} />
       ) : (
         <>
           <Header
@@ -3526,6 +3568,7 @@ export default function App() {
             onImportJson={handleImportJson}
             onBackToScenes={handleBackToScenes}
             onSave={handleSaveClick}
+            onViewLogs={() => setCurrentPage("logs")}
             onExecute={async () => {
               try {
                 const json = generateAutomationJson();
@@ -3566,7 +3609,7 @@ export default function App() {
               onItemDragStart={handleItemDragStart}
               onItemDoubleClick={handleItemDoubleClick}
               onAddItem={handleAddItem}
-              onAddItemClick={(item, pos, relId) => handleDropItem(item, pos || { x: 400, y: 300 }, relId)}
+              onAddItemClick={(item) => handleDropItem(item, null, null)}
               USER_SOURCE={USER_SOURCE}
               userTriggerMode={userTriggerMode}
               onUserTriggerModeChange={setUserTriggerMode}
@@ -3915,6 +3958,11 @@ export default function App() {
           onCancel={() => setConfirmReset(false)}
         />
       )}
+      <LogPopup
+        logs={executionLogs}
+        isOpen={showLogPopup}
+        onClose={() => setShowLogPopup(false)}
+      />
     </div>
   );
 }
