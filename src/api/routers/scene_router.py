@@ -109,8 +109,8 @@ async def get_orchestration_service(
     
     # 工作流引擎
     workflow_engine = WorkflowEngine(
-        condition_evaluator=condition_evaluator,
-        device_manager=device_manager
+        device_manager,
+        condition_evaluator=condition_evaluator
     )
     
     # 仓储

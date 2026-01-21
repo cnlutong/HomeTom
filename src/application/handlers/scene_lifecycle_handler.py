@@ -1,7 +1,7 @@
 """场景生命周期事件处理器"""
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from src.domain.Scene.events.scene_published import ScenePublished
 from src.domain.Scene.events.scene_disabled import SceneDisabled
@@ -10,6 +10,7 @@ from src.domain.Scene.events.scene_definition_updated import SceneDefinitionUpda
 from src.domain.Scene.events.scene_deleted import SceneDeleted
 from src.domain.Execution.aggregates.scene_executor import SceneExecutor
 from src.domain.Execution.repositories.executor_repository import IExecutorRepository
+from src.application.orchestration.OrchestrationService import OrchestrationService
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker
@@ -27,13 +28,20 @@ class SceneLifecycleHandler:
     - 当场景禁用时，停止对应的执行器
     """
     
-    def __init__(self, session_factory: "async_sessionmaker"):
+    
+    def __init__(
+        self, 
+        session_factory: "async_sessionmaker",
+        orchestration_service: Optional["OrchestrationService"] = None
+    ):
         """初始化处理器
         
         Args:
             session_factory: 数据库会话工厂
+            orchestration_service: 可选的编排服务，用于同步调度器
         """
         self._session_factory = session_factory
+        self._orchestration_service = orchestration_service
     
     async def on_scene_created(self, event: SceneCreated) -> None:
         """处理场景创建事件
@@ -112,6 +120,10 @@ class SceneLifecycleHandler:
                 logger.info(f"执行器不存在，已创建: {executor.executor_id} (场景: {scene_id}, 状态: {executor.status.value})")
             
             await session.commit()
+
+            # 更新调度器
+            if self._orchestration_service:
+                self._orchestration_service.register_executor(executor)
     
     def _compile_execution_flow(self, scene) -> dict:
         """编译场景定义为可执行的执行流程
@@ -122,24 +134,8 @@ class SceneLifecycleHandler:
         Returns:
             执行流程字典，可直接被调度器使用
         """
-        if not scene.definition:
-            return {
-                "triggers": [],
-                "conditions": [],
-                "actions": [],
-                "scene_id": scene.scene_id,
-                "scene_name": scene.name
-            }
-        
-        definition = scene.definition
-        
-        return {
-            "scene_id": scene.scene_id,
-            "scene_name": scene.name,
-            "triggers": [t.to_dict() for t in definition.triggers],
-            "conditions": [c.to_dict() for c in definition.conditions] if definition.conditions else [],
-            "actions": [a.to_dict() for a in definition.actions]
-        }
+        from src.application.scene.scene_compiler import compile_execution_flow
+        return compile_execution_flow(scene)
 
 
 
@@ -177,6 +173,10 @@ class SceneLifecycleHandler:
             await session.commit()
             
             logger.info(f"执行器已保存到数据库: {executor.executor_id}")
+
+            # 更新调度器
+            if self._orchestration_service:
+                self._orchestration_service.register_executor(executor)
     
     async def on_scene_disabled(self, event: SceneDisabled) -> None:
         """处理场景禁用事件
@@ -201,6 +201,10 @@ class SceneLifecycleHandler:
                 await repo.save(executor)
                 await session.commit()
                 logger.info(f"执行器已停止: {executor.executor_id} (场景: {scene_id})")
+                
+                # 更新调度器
+                if self._orchestration_service:
+                    self._orchestration_service.unregister_executor(scene_id)
             else:
                 logger.warning(f"未找到场景 {scene_id} 对应的执行器")
 
@@ -231,3 +235,7 @@ class SceneLifecycleHandler:
             
             await session.commit()
             logger.info(f"已清理场景 {scene_id} 相关的执行器和执行历史记录")
+            
+            # 更新调度器
+            if self._orchestration_service:
+                self._orchestration_service.unregister_executor(scene_id)

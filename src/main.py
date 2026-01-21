@@ -3,7 +3,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.api.routers import device_router, scene_router, execution_router, device_log_router
-from src.infrastructure.persistence.database import init_database, create_all_tables
 
 app = FastAPI(title="HomeTom API", version="1.0.0")
 
@@ -38,230 +37,52 @@ app.include_router(scene_router.router)
 app.include_router(execution_router.router)
 app.include_router(device_log_router.router)
 
+
 @app.on_event("startup")
 async def startup_event():
-    # 初始化数据库为 PostgreSQL 并创建表
-    from src.infrastructure.persistence.database import DatabaseConfig, get_current_session_factory
-    from src.infrastructure.messaging.in_memory_event_bus import InMemoryEventBus
-    from src.domain.Scene.events.scene_published import ScenePublished
-    from src.domain.Scene.events.scene_disabled import SceneDisabled
-    from src.domain.Scene.events.scene_created import SceneCreated
-    from src.domain.Scene.events.scene_definition_updated import SceneDefinitionUpdated
-    from src.domain.Scene.events.scene_deleted import SceneDeleted
-    from src.application.handlers.scene_lifecycle_handler import SceneLifecycleHandler
+    """应用启动事件处理
     
-    config = DatabaseConfig.postgresql(
-        host="10.0.3.10",
-        port=5432,
-        user="user_s4DTX3",
-        password="password_yrHKAp",
-        database="user_s4DTX3"
-    )
-    
-    await init_database(config)
-    await create_all_tables()
-    
-    # 初始化全局事件总线
-    global_event_bus = InMemoryEventBus()
-    await global_event_bus.start()
-    app.state.event_bus = global_event_bus
-    
-    # 注册场景生命周期事件处理器
-    session_factory = get_current_session_factory()
-    scene_handler = SceneLifecycleHandler(session_factory)
-    global_event_bus.subscribe(SceneCreated, scene_handler.on_scene_created)
-    global_event_bus.subscribe(SceneDefinitionUpdated, scene_handler.on_scene_definition_updated)
-    global_event_bus.subscribe(ScenePublished, scene_handler.on_scene_published)
-    global_event_bus.subscribe(SceneDisabled, scene_handler.on_scene_disabled)
-    global_event_bus.subscribe(SceneDeleted, scene_handler.on_scene_deleted)
-    
-    print("Global EventBus initialized and SceneLifecycleHandler registered.")
-    
-    await sync_initial_devices()
-    await sync_initial_scenes()
-    await sync_scene_executors()
-
-
-async def sync_initial_scenes():
-    """初始化样板场景"""
-    from src.infrastructure.persistence.database import get_current_session_factory
-    from src.infrastructure.persistence.repositories.scene_repository_impl import SceneRepositoryImpl
-    from src.infrastructure.persistence.repositories.device_repository_impl import DeviceRepositoryImpl
-    from src.domain.Scene.aggregates.scene_aggregate import SceneAggregate, SceneStatus
-    from src.domain.Scene.value_objects.scene_definition import SceneDefinition
-    from src.domain.Scene.value_objects.trigger import Trigger, TriggerType
-    from src.domain.Scene.value_objects.action import Action, ActionType
-    from src.domain.Scene.value_objects.condition import Condition
-
-    session_factory = get_current_session_factory()
-    async with session_factory() as session:
-        scene_repo = SceneRepositoryImpl(session)
-        device_repo = DeviceRepositoryImpl(session)
-        
-        # 检查是否已有场景
-        existing_scenes = await scene_repo.find_all()
-        if existing_scenes:
-            print(f"Database already has {len(existing_scenes)} scenes. Skipping seed.")
-            return
-
-        print("Seeding sample scene...")
-        
-        # 获取一些设备用于样板
-        devices = await device_repo.find_all()
-        if not devices:
-            print("No devices found. Cannot seed scene.")
-            return
-
-        # 找到一个灯和一个传感器（如果有）
-        light = next((d for d in devices if "light" in d.entity_id), devices[0])
-        sensor = next((d for d in devices if "sensor" in d.entity_id or "binary_sensor" in d.entity_id), devices[0])
-
-        # 创建样板场景：当传感器检测到动作时，打开灯
-        trigger = Trigger(
-            type=TriggerType.DEVICE_EVENT,
-            config={
-                "entity_id": sensor.entity_id,
-                "event_type": "state_changed",
-                "to_state": "on"
-            }
-        )
-        
-        action = Action(
-            type=ActionType.DEVICE_CONTROL,
-            target=light.entity_id,
-            command="turn_on",
-            parameters={"brightness": 255}
-        )
-        
-        definition = SceneDefinition(
-            triggers=[trigger],
-            actions=[action],
-            conditions=[]
-        )
-        
-        scene = SceneAggregate(
-            scene_id="sample-scene-001",
-            name="Sample: Light on Motion",
-            description="Automatically turn on the light when motion is detected.",
-            status=SceneStatus.PUBLISHED,
-            definition=definition
-        )
-        
-        await scene_repo.save(scene)
-        await session.commit()
-        print("Sample scene seeded successfully.")
-
-async def sync_initial_devices():
-    """从模拟 HASS 服务器同步初始设备"""
-    from src.infrastructure.persistence.database import get_current_session_factory
-    from src.infrastructure.persistence.repositories.device_repository_impl import DeviceRepositoryImpl
-    from src.infrastructure.messaging.in_memory_event_bus import InMemoryEventBus
-    from src.domain.Device.services.device_service_impl import DeviceService as DomainDeviceService
-    from src.application.device.DeviceService import DeviceService as AppDeviceService
-    from src.infrastructure.adapters.hardware_adapter import HomeAssistantClient
-    from src.infrastructure.adapters.hardware_client_registry import HardwareClientRegistry
-    
-    # 1. 配置硬件客户端
-    # 注意：模拟服务器默认运行在 8123 端口
-    ha_client = HomeAssistantClient(
-        base_url="http://localhost:8123",
-        access_token="test_token"
-    )
-    
-    registry = HardwareClientRegistry()
-    registry.register(ha_client)
-    
-    # 2. 初始化应用服务
-    session_factory = get_current_session_factory()
-    async with session_factory() as session:
-        repo = DeviceRepositoryImpl(session)
-        domain_service = DomainDeviceService()
-        event_bus = InMemoryEventBus()
-        
-        app_service = AppDeviceService(repo, domain_service, event_bus)
-        
-        # 3. 执行同步
-        print("Starting device sync from Mock HA Server...")
-        new_ids = await app_service.sync_devices_from_hardware("homeassistant", registry)
-        
-        await session.commit()
-        print(f"Device sync completed. Added {len(new_ids)} new devices.")
-
-
-async def sync_scene_executors():
-    """启动时同步场景执行器
-    
-    检查所有场景是否都有对应的执行器，如果没有则创建。
-    同时确保执行器状态与场景状态一致，并编译执行流程。
+    使用 SystemBootstrap 执行分阶段初始化:
+    1. 基础设施: 数据库、事件总线、调度器
+    2. 依赖注入: 硬件客户端、工作流引擎、事件处理器
+    3. 数据恢复: 设备同步、场景种子数据
+    4. 运行时设置: 执行器同步、调度器任务加载
+    5. 触发就绪: always_on 场景触发、健康检查
     """
-    from src.infrastructure.persistence.database import get_current_session_factory
-    from src.infrastructure.persistence.repositories.scene_repository_impl import SceneRepositoryImpl
-    from src.infrastructure.persistence.repositories.executor_repository_impl import ExecutorRepositoryImpl
-    from src.domain.Scene.aggregates.scene_aggregate import SceneStatus
-    from src.domain.Execution.aggregates.scene_executor import SceneExecutor
+    import logging
+    from src.application.bootstrap import SystemBootstrap
     
-    def compile_execution_flow(scene) -> dict:
-        """编译场景定义为可执行的执行流程"""
-        if not scene.definition:
-            return {
-                "triggers": [],
-                "conditions": [],
-                "actions": [],
-                "scene_id": scene.scene_id,
-                "scene_name": scene.name
-            }
-        
-        definition = scene.definition
-        return {
-            "scene_id": scene.scene_id,
-            "scene_name": scene.name,
-            "triggers": [t.to_dict() for t in definition.triggers],
-            "conditions": [c.to_dict() for c in definition.conditions] if definition.conditions else [],
-            "actions": [a.to_dict() for a in definition.actions]
-        }
+    logger = logging.getLogger(__name__)
     
-    session_factory = get_current_session_factory()
-    async with session_factory() as session:
-        scene_repo = SceneRepositoryImpl(session)
-        executor_repo = ExecutorRepositoryImpl(session)
-        
-        # 获取所有场景
-        scenes = await scene_repo.find_all()
-        
-        created_count = 0
-        synced_count = 0
-        
-        for scene in scenes:
-            execution_flow = compile_execution_flow(scene)
-            executor = await executor_repo.find_by_scene_id(scene.scene_id)
-            
-            if not executor:
-                # 执行器不存在，创建新的
-                executor = SceneExecutor.create(scene.scene_id, execution_flow)
-                if scene.status == SceneStatus.PUBLISHED:
-                    executor.activate()
-                await executor_repo.save(executor)
-                created_count += 1
-                print(f"Created executor for scene: {scene.scene_id} (status: {executor.status.value})")
-            else:
-                # 执行器存在，同步状态和执行流程
-                executor.update_execution_flow(execution_flow)
-                expected_active = scene.status == SceneStatus.PUBLISHED
-                if expected_active and not executor.is_active:
-                    executor.activate()
-                    synced_count += 1
-                elif not expected_active and executor.is_active:
-                    executor.stop()
-                    synced_count += 1
-                await executor_repo.save(executor)
-        
-        await session.commit()
-        print(f"Executor sync completed. Created: {created_count}, Synced: {synced_count}")
+    bootstrap = SystemBootstrap()
+    result = await bootstrap.initialize()
+    
+    if not result.success:
+        logger.error("=" * 60)
+        logger.error("SYSTEM INITIALIZATION FAILED")
+        for error in result.errors:
+            logger.error(f"  - {error}")
+        logger.error("=" * 60)
+        # 可选: 在严重错误时终止启动
+        # raise RuntimeError("System initialization failed")
+    
+    # 存储依赖容器供路由使用
+    app.state.container = result.container
+    app.state.event_bus = result.container.event_bus
+    app.state.scheduler = result.container.scheduler
+    
+    # 记录警告信息
+    if result.warnings:
+        logger.warning("Initialization completed with warnings:")
+        for warning in result.warnings:
+            logger.warning(f"  - {warning}")
 
 
 @app.get("/")
 async def root():
     return {"message": "Welcome to HomeTom API"}
 
+
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+

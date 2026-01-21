@@ -1,7 +1,12 @@
 """编排应用服务"""
 
 import uuid
+import logging
+import asyncio
 from typing import Optional, List, Dict, Any
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.interval import IntervalTrigger
 
 from ...domain.Scene.aggregates.scene_aggregate import SceneAggregate, SceneStatus
 from ...domain.Scene.repositories.scene_repository import ISceneRepository
@@ -13,6 +18,8 @@ from ...domain.Execution.services.workflow_engine import IWorkflowEngine
 from ...domain.Execution.value_objects.execution_context import ExecutionContext
 from ...domain.Execution.value_objects.retry_policy import RetryPolicy
 from ...infrastructure.messaging.event_bus import IEventBus
+
+logger = logging.getLogger(__name__)
 
 
 class OrchestrationService:
@@ -33,7 +40,8 @@ class OrchestrationService:
         execution_repository: IExecutionRepository,
         executor_repository: IExecutorRepository,
         workflow_engine: IWorkflowEngine,
-        event_bus: IEventBus
+        event_bus: IEventBus,
+        scheduler: Optional[AsyncIOScheduler] = None
     ):
         """初始化编排应用服务
         
@@ -51,6 +59,111 @@ class OrchestrationService:
         self._executor_repository = executor_repository
         self._workflow_engine = workflow_engine
         self._event_bus = event_bus
+        self._scheduler = scheduler if scheduler else AsyncIOScheduler()
+        self._execution_jobs: Dict[str, List[str]] = {}  # scene_id -> [job_ids]
+
+    async def start(self) -> None:
+        """启动编排服务"""
+        if not self._scheduler.running:
+            self._scheduler.start()
+            logger.info("Orchestration Scheduler started.")
+        
+        await self.load_active_executors()
+
+    async def load_active_executors(self) -> None:
+        """加载所有激活的执行器"""
+        logger.info("Loading active executors from database...")
+        # 注意: 这里的 find_all 可能会返回大量数据，实际生产环境应该有专门的方法只查询 active 的
+        # 但考虑到当前仓储接口限制，先获取全部再过滤，或者假设 executor 数量不多
+        # TODO: 在 ExecutorRepository 中增加 find_all_active 方法
+        all_executors = await self._executor_repository.find_all()
+        active_executors = [e for e in all_executors if e.is_active]
+        
+        count = 0
+        for executor in active_executors:
+            self.register_executor(executor)
+            count += 1
+            
+        logger.info(f"Loaded {count} active executors.")
+
+    def register_executor(self, executor) -> None:
+        """注册执行器到调度器
+        
+        解析执行器的触发器配置，注册相应的调度任务。
+        目前仅支持第一个触发器为 Timer 或 AlwaysOn 的情况。
+        """
+        scene_id = executor.scene_id
+        
+        # 先清理旧的任务
+        self.unregister_executor(scene_id)
+        
+        if not executor.is_active:
+            logger.warning(f"Executor {executor.executor_id} is not active, skipping registration.")
+            return
+
+        flow = executor.execution_flow
+        if not flow or "triggers" not in flow:
+            return
+
+        triggers = flow["triggers"]
+        if not triggers:
+            return
+            
+        # MVP: 仅处理第一个触发器
+        t0 = triggers[0]
+        trigger_type = t0.get("type")
+        config = t0.get("config", {})
+        
+        logger.info(f"Registering trigger for scene {scene_id}: {trigger_type}")
+
+        if trigger_type == "always_on":
+            # Always On: 启动即运行 (异步执行一次)
+            # 这是一个一次性的动作，当系统启动或场景发布时触发
+            asyncio.create_task(run_scheduled_job(scene_id, "always_on"))
+            logger.info(f"Triggered 'always_on' execution for scene {scene_id}")
+            
+        elif trigger_type == "timer":
+            # Timer: 添加调度任务
+            schedule = config.get("schedule")
+            if not schedule:
+                logger.error(f"Timer trigger missing schedule config for scene {scene_id}")
+                return
+
+            try:
+                # 简单解析：如果是 cron 格式 (5位或6位) 则用 CronTrigger
+                # 否则尝试作为 Interval (尚未实现复杂 interval 解析，这里假设 schedule 是 cron 表达式)
+                # 实际项目中应该有更严谨的解析逻辑
+                
+                # 这里直接假设 schedule 是 cron 表达式
+                # 格式: "minute hour day month day_of_week"
+                job = self._scheduler.add_job(
+                    run_scheduled_job, 
+                    CronTrigger.from_crontab(schedule),
+                    args=[scene_id, "timer"],
+                    id=f"scene_{scene_id}_timer",
+                    replace_existing=True
+                )
+                
+                if scene_id not in self._execution_jobs:
+                    self._execution_jobs[scene_id] = []
+                self._execution_jobs[scene_id].append(job.id)
+                
+                logger.info(f"Scheduled timer job for scene {scene_id}: {schedule}")
+                
+            except Exception as e:
+                logger.error(f"Failed to schedule timer for scene {scene_id}: {e}")
+
+    def unregister_executor(self, scene_id: str) -> None:
+        """移除执行器的调度任务"""
+        if scene_id in self._execution_jobs:
+            for job_id in self._execution_jobs[scene_id]:
+                try:
+                    self._scheduler.remove_job(job_id)
+                    logger.debug(f"Removed job {job_id} for scene {scene_id}")
+                except Exception:
+                    # Job 可能已经不存在
+                    pass
+            del self._execution_jobs[scene_id]
     
     async def trigger_execution(
         self,
@@ -280,3 +393,71 @@ class OrchestrationService:
             执行列表
         """
         return await self._execution_repository.find_by_scene_id(scene_id)
+
+
+async def run_scheduled_job(scene_id: str, source: str = "timer"):
+    """独立的任务执行函数
+    
+    尝试从全局容器获取依赖，如果容器不可用则回退到创建临时依赖。
+    """
+    try:
+        # 尝试使用全局容器
+        from ...application.container import get_container
+        
+        try:
+            container = get_container()
+            
+            async with container.session_factory() as session:
+                service = container.create_orchestration_service(session)
+                
+                logger.info(f"Executing scheduled job for scene {scene_id} (source: {source})")
+                await service.trigger_and_execute(scene_id, {"source": source})
+                await session.commit()
+                
+            return
+        except RuntimeError:
+            # 容器未初始化，回退到创建临时依赖
+            logger.warning("Global container not available, creating temporary dependencies")
+        
+        # 回退逻辑：创建临时依赖
+        from ...infrastructure.persistence.database import get_current_session_factory
+        from ...infrastructure.persistence.repositories.scene_repository_impl import SceneRepositoryImpl
+        from ...infrastructure.persistence.repositories.device_repository_impl import DeviceRepositoryImpl
+        from ...infrastructure.persistence.repositories.execution_repository_impl import ExecutionRepositoryImpl
+        from ...infrastructure.persistence.repositories.executor_repository_impl import ExecutorRepositoryImpl
+        from ...infrastructure.messaging.in_memory_event_bus import InMemoryEventBus
+        from ...domain.Execution.services.workflow_engine_impl import WorkflowEngine
+        from ...domain.Execution.services.device_manager import DeviceManager
+        from ...domain.Execution.services.condition_evaluator import ConditionEvaluator
+        from ...infrastructure.adapters.hardware_adapter import HomeAssistantClient
+        import os
+
+        session_factory = get_current_session_factory()
+        
+        event_bus = InMemoryEventBus() 
+
+        # Hardware Client setup
+        ha_base_url = os.environ.get("HA_BASE_URL", "http://localhost:8123")
+        ha_token = os.environ.get("HA_TOKEN", "test_token")
+        hardware_client = HomeAssistantClient(base_url=ha_base_url, access_token=ha_token)
+        device_manager = DeviceManager(hardware_client)
+        condition_evaluator = ConditionEvaluator(device_manager)
+        workflow_engine = WorkflowEngine(device_manager, condition_evaluator=condition_evaluator)
+
+        async with session_factory() as session:
+            service = OrchestrationService(
+                scene_repository=SceneRepositoryImpl(session),
+                device_repository=DeviceRepositoryImpl(session),
+                execution_repository=ExecutionRepositoryImpl(session),
+                executor_repository=ExecutorRepositoryImpl(session),
+                workflow_engine=workflow_engine,
+                event_bus=event_bus,
+                scheduler=None
+            )
+            
+            logger.info(f"Executing scheduled job for scene {scene_id} (source: {source})")
+            await service.trigger_and_execute(scene_id, {"source": source})
+            await session.commit()
+            
+    except Exception as e:
+        logger.error(f"Error executing scheduled job for scene {scene_id}: {e}")
