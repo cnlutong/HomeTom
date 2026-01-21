@@ -1,4 +1,4 @@
-# HomeTom Dependencies
+# Smart Home Demo Lab Dependencies
 
 # Web Framework
 fastapi>=0.104.0

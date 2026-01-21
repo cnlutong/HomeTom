@@ -102,10 +102,7 @@ function Header({ onReset, onPreviewJson, onImportJson, onBackToScenes, onSave, 
         <div className="header-brand">
           {!onBackToScenes ? (
             <>
-              <div className="header-logo">
-                <Layers size={18} />
-              </div>
-              <span className="header-title-text">Home <span className="header-title-accent">Tom</span></span>
+              <span className="header-title-text">Smart Home <span className="header-title-accent">Demo Lab</span></span>
             </>
           ) : (
             <div className="header-scene-info">

@@ -27,7 +27,7 @@ const SceneLogs = ({ onBack }) => {
             setError(null);
         } catch (err) {
             console.error("Error fetching logs:", err);
-            setError("Unable to connect to HomeTom backend. Please ensure the server is running.");
+            setError("Unable to connect to Smart Home Demo Lab backend. Please ensure the server is running.");
             // Fallback data for demo if backend fails (can be removed later)
             // setLogs([]);
         } finally {
