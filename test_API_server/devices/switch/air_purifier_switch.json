@@ -4,8 +4,22 @@
   "attributes": {
     "friendly_name": "Air Purifier Power",
     "device_class": "outlet",
-    "current_consumption": 6.870262554614392
+    "current_consumption": 0,
+    "capabilities": [
+      {
+        "name": "turn_on",
+        "value_type": "void"
+      },
+      {
+        "name": "turn_off",
+        "value_type": "void"
+      },
+      {
+        "name": "toggle",
+        "value_type": "void"
+      }
+    ]
   },
-  "last_changed": "2026-01-21T06:56:11.012645+00:00",
-  "last_updated": "2026-01-21T06:56:11.012646+00:00"
+  "last_changed": "2026-01-21T07:51:47.310917+00:00",
+  "last_updated": "2026-01-21T07:51:47.310919+00:00"
 }

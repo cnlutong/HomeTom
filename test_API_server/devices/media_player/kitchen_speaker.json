@@ -4,8 +4,46 @@
   "attributes": {
     "friendly_name": "Kitchen Speaker",
     "volume_level": 0.5,
-    "device_class": "speaker"
+    "device_class": "speaker",
+    "capabilities": [
+      {
+        "name": "turn_on",
+        "value_type": "void"
+      },
+      {
+        "name": "turn_off",
+        "value_type": "void"
+      },
+      {
+        "name": "play_media",
+        "value_type": "string"
+      },
+      {
+        "name": "media_play",
+        "value_type": "void"
+      },
+      {
+        "name": "media_pause",
+        "value_type": "void"
+      },
+      {
+        "name": "media_stop",
+        "value_type": "void"
+      },
+      {
+        "name": "volume_set",
+        "value_type": "float",
+        "constraints": {
+          "min": 0.0,
+          "max": 1.0
+        }
+      },
+      {
+        "name": "volume_mute",
+        "value_type": "boolean"
+      }
+    ]
   },
-  "last_changed": "2026-01-21T06:56:11.017285+00:00",
-  "last_updated": "2026-01-21T06:56:11.017286+00:00"
+  "last_changed": "2026-01-21T07:51:47.317919+00:00",
+  "last_updated": "2026-01-21T07:51:47.317923+00:00"
 }

@@ -1,17 +1,56 @@
 {
   "entity_id": "light.living_room_strip",
-  "state": "on",
+  "state": "off",
   "attributes": {
     "friendly_name": "Living Room Strip",
-    "brightness": 73,
-    "color_temp": 410,
+    "brightness": 125,
+    "color_temp": 308,
     "rgb_color": [
-      173,
       189,
-      158
+      125,
+      75
     ],
-    "supported_features": 63
+    "supported_features": 63,
+    "capabilities": [
+      {
+        "name": "turn_on",
+        "value_type": "void"
+      },
+      {
+        "name": "turn_off",
+        "value_type": "void"
+      },
+      {
+        "name": "toggle",
+        "value_type": "void"
+      },
+      {
+        "name": "set_brightness",
+        "value_type": "int",
+        "constraints": {
+          "min": 0,
+          "max": 255
+        }
+      },
+      {
+        "name": "set_color_temp",
+        "value_type": "int",
+        "constraints": {
+          "min": 153,
+          "max": 500
+        }
+      },
+      {
+        "name": "set_rgb_color",
+        "value_type": "int_array",
+        "constraints": {
+          "length": 3,
+          "min_val": 0,
+          "max_val": 255
+        }
+      }
+    ]
   },
-  "last_changed": "2026-01-21T06:56:11.008825+00:00",
-  "last_updated": "2026-01-21T06:56:11.008827+00:00"
+  "last_changed": "2026-01-21T07:51:47.306488+00:00",
+  "last_updated": "2026-01-21T07:51:47.306490+00:00"
 }

@@ -4,15 +4,58 @@
   "attributes": {
     "friendly_name": "Bedroom Master AC",
     "temperature": 24,
-    "current_temperature": 25.94035231120612,
+    "current_temperature": 22.003087663525385,
     "hvac_modes": [
       "off",
       "cool",
       "heat",
       "fan_only"
     ],
-    "fan_mode": "auto"
+    "fan_mode": "auto",
+    "capabilities": [
+      {
+        "name": "turn_on",
+        "value_type": "void"
+      },
+      {
+        "name": "turn_off",
+        "value_type": "void"
+      },
+      {
+        "name": "set_temperature",
+        "value_type": "float",
+        "constraints": {
+          "min": 16.0,
+          "max": 30.0,
+          "step": 0.5
+        }
+      },
+      {
+        "name": "set_hvac_mode",
+        "value_type": "enum",
+        "constraints": {
+          "options": [
+            "off",
+            "cool",
+            "heat",
+            "fan_only"
+          ]
+        }
+      },
+      {
+        "name": "set_fan_mode",
+        "value_type": "enum",
+        "constraints": {
+          "options": [
+            "auto",
+            "low",
+            "medium",
+            "high"
+          ]
+        }
+      }
+    ]
   },
-  "last_changed": "2026-01-21T06:56:11.016798+00:00",
-  "last_updated": "2026-01-21T06:56:11.016799+00:00"
+  "last_changed": "2026-01-21T07:51:47.317143+00:00",
+  "last_updated": "2026-01-21T07:51:47.317145+00:00"
 }

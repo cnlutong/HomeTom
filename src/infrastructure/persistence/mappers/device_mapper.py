@@ -32,8 +32,9 @@ class DeviceMapper:
             "capabilities": [
                 {
                     "name": cap.name,
+                    "value_type": cap.value_type,
+                    "constraints": cap.constraints,
                     "description": cap.description,
-                    "parameters": cap.parameters,
                 }
                 for cap in aggregate.capabilities.get_all()
             ]
@@ -69,8 +70,9 @@ class DeviceMapper:
         capabilities = DeviceCapabilities([
             DeviceCapability(
                 name=cap["name"],
+                value_type=cap.get("value_type", "void"),
+                constraints=cap.get("constraints") or cap.get("parameters"),
                 description=cap.get("description"),
-                parameters=cap.get("parameters"),
             )
             for cap in capabilities_data
         ])
@@ -100,8 +102,9 @@ class DeviceMapper:
             "capabilities": [
                 {
                     "name": cap.name,
+                    "value_type": cap.value_type,
+                    "constraints": cap.constraints,
                     "description": cap.description,
-                    "parameters": cap.parameters,
                 }
                 for cap in aggregate.capabilities.get_all()
             ]

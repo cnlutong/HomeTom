@@ -1,11 +1,25 @@
 {
   "entity_id": "switch.water_heater",
-  "state": "on",
+  "state": "off",
   "attributes": {
     "friendly_name": "Water Heater",
     "device_class": "outlet",
-    "current_consumption": 0
+    "current_consumption": 0,
+    "capabilities": [
+      {
+        "name": "turn_on",
+        "value_type": "void"
+      },
+      {
+        "name": "turn_off",
+        "value_type": "void"
+      },
+      {
+        "name": "toggle",
+        "value_type": "void"
+      }
+    ]
   },
-  "last_changed": "2026-01-21T06:56:11.013376+00:00",
-  "last_updated": "2026-01-21T06:56:11.013378+00:00"
+  "last_changed": "2026-01-21T07:51:47.311312+00:00",
+  "last_updated": "2026-01-21T07:51:47.311313+00:00"
 }

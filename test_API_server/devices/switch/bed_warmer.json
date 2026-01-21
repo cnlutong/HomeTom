@@ -1,11 +1,25 @@
 {
   "entity_id": "switch.bed_warmer",
-  "state": "on",
+  "state": "off",
   "attributes": {
     "friendly_name": "Bed Warmer",
     "device_class": "outlet",
-    "current_consumption": 77.41723498522403
+    "current_consumption": 58.04206272771222,
+    "capabilities": [
+      {
+        "name": "turn_on",
+        "value_type": "void"
+      },
+      {
+        "name": "turn_off",
+        "value_type": "void"
+      },
+      {
+        "name": "toggle",
+        "value_type": "void"
+      }
+    ]
   },
-  "last_changed": "2026-01-21T06:56:11.013464+00:00",
-  "last_updated": "2026-01-21T06:56:11.013465+00:00"
+  "last_changed": "2026-01-21T07:51:47.311396+00:00",
+  "last_updated": "2026-01-21T07:51:47.311397+00:00"
 }

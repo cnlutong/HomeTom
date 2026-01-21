@@ -299,9 +299,15 @@ class DeviceService:
                     # 获取友好名称，如果没有则使用 entity_id
                     friendly_name = state.attributes.get("friendly_name") or state.entity_id
                     
-                    # 根据 entity_id 前缀自动推断设备能力
-                    capabilities = get_capabilities_for_entity(state.entity_id)
-                    
+                    # 从属性中获取显式定义的能力
+                    capabilities = None
+                    caps_data = state.attributes.get("capabilities")
+                    if caps_data and isinstance(caps_data, list):
+                        try:
+                            capabilities = DeviceCapabilities.from_list(caps_data)
+                        except Exception as e:
+                            print(f"解析设备能力失败 {state.entity_id}: {e}")
+
                     # 注册新设备
                     device_id = await self.register_device(
                         entity_id=state.entity_id,

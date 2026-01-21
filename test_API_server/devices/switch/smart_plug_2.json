@@ -4,8 +4,22 @@
   "attributes": {
     "friendly_name": "Smart Plug 2",
     "device_class": "outlet",
-    "current_consumption": 24.999158474060312
+    "current_consumption": 73.24599544866878,
+    "capabilities": [
+      {
+        "name": "turn_on",
+        "value_type": "void"
+      },
+      {
+        "name": "turn_off",
+        "value_type": "void"
+      },
+      {
+        "name": "toggle",
+        "value_type": "void"
+      }
+    ]
   },
-  "last_changed": "2026-01-21T06:56:11.013671+00:00",
-  "last_updated": "2026-01-21T06:56:11.013672+00:00"
+  "last_changed": "2026-01-21T07:51:47.311568+00:00",
+  "last_updated": "2026-01-21T07:51:47.311569+00:00"
 }

@@ -1,11 +1,21 @@
 {
   "entity_id": "sensor.study_humidity",
-  "state": "41",
+  "state": "45",
   "attributes": {
     "friendly_name": "Study Humidity",
     "unit_of_measurement": "%",
-    "device_class": "humidity"
+    "device_class": "humidity",
+    "capabilities": [
+      {
+        "name": "value",
+        "value_type": "int",
+        "constraints": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    ]
   },
-  "last_changed": "2026-01-21T06:56:11.014733+00:00",
-  "last_updated": "2026-01-21T06:56:11.014734+00:00"
+  "last_changed": "2026-01-21T07:51:47.313465+00:00",
+  "last_updated": "2026-01-21T07:51:47.313467+00:00"
 }

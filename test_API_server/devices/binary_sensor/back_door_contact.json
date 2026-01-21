@@ -3,8 +3,14 @@
   "state": "off",
   "attributes": {
     "friendly_name": "Back Door Contact",
-    "device_class": "door"
+    "device_class": "door",
+    "capabilities": [
+      {
+        "name": "value",
+        "value_type": "boolean"
+      }
+    ]
   },
-  "last_changed": "2026-01-21T06:56:11.015385+00:00",
-  "last_updated": "2026-01-21T06:56:11.015386+00:00"
+  "last_changed": "2026-01-21T07:51:47.313965+00:00",
+  "last_updated": "2026-01-21T07:51:47.313966+00:00"
 }

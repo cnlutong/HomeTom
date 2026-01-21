@@ -1,11 +1,22 @@
 {
   "entity_id": "sensor.bedroom_master_temperature",
-  "state": "18.1",
+  "state": "25.0",
   "attributes": {
     "friendly_name": "Bedroom Master Temperature",
     "unit_of_measurement": "°C",
-    "device_class": "temperature"
+    "device_class": "temperature",
+    "capabilities": [
+      {
+        "name": "value",
+        "value_type": "float",
+        "constraints": {
+          "min": -20.0,
+          "max": 50.0,
+          "step": 0.1
+        }
+      }
+    ]
   },
-  "last_changed": "2026-01-21T06:56:11.014287+00:00",
-  "last_updated": "2026-01-21T06:56:11.014288+00:00"
+  "last_changed": "2026-01-21T07:51:47.312768+00:00",
+  "last_updated": "2026-01-21T07:51:47.312770+00:00"
 }

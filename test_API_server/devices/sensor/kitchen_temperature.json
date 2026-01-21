@@ -1,11 +1,22 @@
 {
   "entity_id": "sensor.kitchen_temperature",
-  "state": "22.1",
+  "state": "25.6",
   "attributes": {
     "friendly_name": "Kitchen Temperature",
     "unit_of_measurement": "°C",
-    "device_class": "temperature"
+    "device_class": "temperature",
+    "capabilities": [
+      {
+        "name": "value",
+        "value_type": "float",
+        "constraints": {
+          "min": -20.0,
+          "max": 50.0,
+          "step": 0.1
+        }
+      }
+    ]
   },
-  "last_changed": "2026-01-21T06:56:11.014466+00:00",
-  "last_updated": "2026-01-21T06:56:11.014467+00:00"
+  "last_changed": "2026-01-21T07:51:47.313067+00:00",
+  "last_updated": "2026-01-21T07:51:47.313068+00:00"
 }

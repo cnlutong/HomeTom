@@ -3,8 +3,14 @@
   "state": "on",
   "attributes": {
     "friendly_name": "Hallway Motion",
-    "device_class": "motion"
+    "device_class": "motion",
+    "capabilities": [
+      {
+        "name": "value",
+        "value_type": "boolean"
+      }
+    ]
   },
-  "last_changed": "2026-01-21T06:56:11.015762+00:00",
-  "last_updated": "2026-01-21T06:56:11.015763+00:00"
+  "last_changed": "2026-01-21T07:51:47.314424+00:00",
+  "last_updated": "2026-01-21T07:51:47.314425+00:00"
 }

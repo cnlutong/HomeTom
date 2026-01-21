@@ -36,8 +36,9 @@ class DimmableMixin:
         super().__init__(*args, **kwargs)
         if hasattr(self, '_capabilities'):
             self._capabilities._capabilities["set_brightness"] = DeviceCapability(
-                "set_brightness", 
-                parameters={"min": 0, "max": 100}
+                "set_brightness",
+                value_type="int",
+                constraints={"min": 0, "max": 100}
             )
         self.attributes.setdefault("brightness", 0)
 
@@ -77,7 +78,10 @@ class BinaryStateMixin:
         super().__init__(*args, **kwargs)
         if hasattr(self, '_capabilities'):
             # 虽然是只读传感器，但有时我们希望它能模拟触发
-            self._capabilities._capabilities["trigger_test"] = DeviceCapability("trigger_test")
+            self._capabilities._capabilities["value"] = DeviceCapability(
+                "value",
+                value_type="boolean"
+            )
         self.attributes.setdefault("binary_state", False)
 
     def set_binary_state(self, state: bool):
@@ -110,7 +114,8 @@ class CoverMixin:
         if hasattr(self, '_capabilities'):
             self._capabilities._capabilities["set_position"] = DeviceCapability(
                 "set_position",
-                parameters={"min": 0, "max": 100}
+                value_type="int",
+                constraints={"min": 0, "max": 100}
             )
             self._capabilities._capabilities["open_cover"] = DeviceCapability("open_cover")
             self._capabilities._capabilities["close_cover"] = DeviceCapability("close_cover")
@@ -135,7 +140,8 @@ class FanMixin:
         if hasattr(self, '_capabilities'):
             self._capabilities._capabilities["set_speed"] = DeviceCapability(
                 "set_speed",
-                parameters={"min": 0, "max": 100}
+                value_type="int",
+                constraints={"min": 0, "max": 100}
             )
             self._capabilities._capabilities["set_oscillating"] = DeviceCapability("set_oscillating")
         self.attributes.setdefault("speed", 0)

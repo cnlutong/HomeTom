@@ -1,0 +1,14 @@
+{
+  "entity_id": "weather.home",
+  "state": "sunny",
+  "attributes": {
+    "friendly_name": "Home Weather",
+    "temperature": 25,
+    "humidity": 60,
+    "pressure": 1013,
+    "wind_speed": 10,
+    "capabilities": []
+  },
+  "last_changed": "2026-01-21T07:51:47.319858+00:00",
+  "last_updated": "2026-01-21T07:51:47.319860+00:00"
+}

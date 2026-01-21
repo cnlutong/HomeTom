@@ -1,11 +1,20 @@
 {
   "entity_id": "sensor.power_usage_total",
-  "state": "2851.1",
+  "state": "2218.7",
   "attributes": {
     "friendly_name": "Total Power Usage",
     "unit_of_measurement": "W",
-    "device_class": "power"
+    "device_class": "power",
+    "capabilities": [
+      {
+        "name": "value",
+        "value_type": "float",
+        "constraints": {
+          "min": 0.0
+        }
+      }
+    ]
   },
-  "last_changed": "2026-01-21T06:56:11.014999+00:00",
-  "last_updated": "2026-01-21T06:56:11.015002+00:00"
+  "last_changed": "2026-01-21T07:51:47.313563+00:00",
+  "last_updated": "2026-01-21T07:51:47.313564+00:00"
 }

@@ -1,0 +1,36 @@
+{
+  "entity_id": "fan.living_room_fan",
+  "state": "off",
+  "attributes": {
+    "friendly_name": "Living Room Fan",
+    "speed": "low",
+    "oscillating": false,
+    "capabilities": [
+      {
+        "name": "turn_on",
+        "value_type": "void"
+      },
+      {
+        "name": "turn_off",
+        "value_type": "void"
+      },
+      {
+        "name": "set_speed",
+        "value_type": "enum",
+        "constraints": {
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ]
+        }
+      },
+      {
+        "name": "set_oscillating",
+        "value_type": "boolean"
+      }
+    ]
+  },
+  "last_changed": "2026-01-21T07:51:47.318804+00:00",
+  "last_updated": "2026-01-21T07:51:47.318806+00:00"
+}

@@ -1,12 +1,50 @@
 {
   "entity_id": "media_player.living_room_tv",
-  "state": "off",
+  "state": "paused",
   "attributes": {
     "friendly_name": "Living Room TV",
     "volume_level": 0.3,
     "source": "Netflix",
-    "device_class": "tv"
+    "device_class": "tv",
+    "capabilities": [
+      {
+        "name": "turn_on",
+        "value_type": "void"
+      },
+      {
+        "name": "turn_off",
+        "value_type": "void"
+      },
+      {
+        "name": "play_media",
+        "value_type": "string"
+      },
+      {
+        "name": "media_play",
+        "value_type": "void"
+      },
+      {
+        "name": "media_pause",
+        "value_type": "void"
+      },
+      {
+        "name": "media_stop",
+        "value_type": "void"
+      },
+      {
+        "name": "volume_set",
+        "value_type": "float",
+        "constraints": {
+          "min": 0.0,
+          "max": 1.0
+        }
+      },
+      {
+        "name": "volume_mute",
+        "value_type": "boolean"
+      }
+    ]
   },
-  "last_changed": "2026-01-21T06:56:11.017186+00:00",
-  "last_updated": "2026-01-21T06:56:11.017187+00:00"
+  "last_changed": "2026-01-21T07:51:47.317655+00:00",
+  "last_updated": "2026-01-21T07:51:47.317656+00:00"
 }

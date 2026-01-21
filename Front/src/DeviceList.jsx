@@ -185,8 +185,17 @@ const DeviceList = ({ onBack }) => {
                       <div className="device-table-capabilities">
                         {device.capabilities && device.capabilities.length > 0 ? (
                           device.capabilities.map((cap, idx) => (
-                            <span key={idx} className="capability-badge">
+                            <span
+                              key={idx}
+                              className="capability-badge"
+                              title={cap.constraints ? JSON.stringify(cap.constraints, null, 2) : ''}
+                            >
                               {cap.name}
+                              {cap.value_type && cap.value_type !== 'void' && (
+                                <span style={{ opacity: 0.7, marginLeft: '4px', fontSize: '0.9em' }}>
+                                  ({cap.value_type})
+                                </span>
+                              )}
                             </span>
                           ))
                         ) : (

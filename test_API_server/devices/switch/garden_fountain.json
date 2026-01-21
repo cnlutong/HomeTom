@@ -4,8 +4,22 @@
   "attributes": {
     "friendly_name": "Garden Fountain",
     "device_class": "outlet",
-    "current_consumption": 93.8914556636786
+    "current_consumption": 74.15556542157653,
+    "capabilities": [
+      {
+        "name": "turn_on",
+        "value_type": "void"
+      },
+      {
+        "name": "turn_off",
+        "value_type": "void"
+      },
+      {
+        "name": "toggle",
+        "value_type": "void"
+      }
+    ]
   },
-  "last_changed": "2026-01-21T06:56:11.012835+00:00",
-  "last_updated": "2026-01-21T06:56:11.012836+00:00"
+  "last_changed": "2026-01-21T07:51:47.311133+00:00",
+  "last_updated": "2026-01-21T07:51:47.311134+00:00"
 }

@@ -1,11 +1,25 @@
 {
   "entity_id": "switch.dehumidifier",
-  "state": "off",
+  "state": "on",
   "attributes": {
     "friendly_name": "Dehumidifier",
     "device_class": "outlet",
-    "current_consumption": 59.26686283760261
+    "current_consumption": 0,
+    "capabilities": [
+      {
+        "name": "turn_on",
+        "value_type": "void"
+      },
+      {
+        "name": "turn_off",
+        "value_type": "void"
+      },
+      {
+        "name": "toggle",
+        "value_type": "void"
+      }
+    ]
   },
-  "last_changed": "2026-01-21T06:56:11.012537+00:00",
-  "last_updated": "2026-01-21T06:56:11.012538+00:00"
+  "last_changed": "2026-01-21T07:51:47.310405+00:00",
+  "last_updated": "2026-01-21T07:51:47.310407+00:00"
 }

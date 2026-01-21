@@ -1,0 +1,37 @@
+{
+  "entity_id": "alarm_control_panel.home_alarm",
+  "state": "disarmed",
+  "attributes": {
+    "friendly_name": "Home Alarm",
+    "code_format": "number",
+    "capabilities": [
+      {
+        "name": "alarm_arm_away",
+        "value_type": "string",
+        "constraints": {
+          "regex": "^\\d{4}$"
+        }
+      },
+      {
+        "name": "alarm_arm_home",
+        "value_type": "string",
+        "constraints": {
+          "regex": "^\\d{4}$"
+        }
+      },
+      {
+        "name": "alarm_disarm",
+        "value_type": "string",
+        "constraints": {
+          "regex": "^\\d{4}$"
+        }
+      },
+      {
+        "name": "alarm_trigger",
+        "value_type": "void"
+      }
+    ]
+  },
+  "last_changed": "2026-01-21T07:51:47.319698+00:00",
+  "last_updated": "2026-01-21T07:51:47.319700+00:00"
+}

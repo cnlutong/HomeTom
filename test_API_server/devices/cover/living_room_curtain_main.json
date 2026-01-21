@@ -3,9 +3,31 @@
   "state": "open",
   "attributes": {
     "friendly_name": "Living Room Curtain Main",
-    "current_position": 90,
-    "device_class": "curtain"
+    "current_position": 89,
+    "device_class": "curtain",
+    "capabilities": [
+      {
+        "name": "open_cover",
+        "value_type": "void"
+      },
+      {
+        "name": "close_cover",
+        "value_type": "void"
+      },
+      {
+        "name": "stop_cover",
+        "value_type": "void"
+      },
+      {
+        "name": "set_cover_position",
+        "value_type": "int",
+        "constraints": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    ]
   },
-  "last_changed": "2026-01-21T06:56:11.016252+00:00",
-  "last_updated": "2026-01-21T06:56:11.016254+00:00"
+  "last_changed": "2026-01-21T07:51:47.315781+00:00",
+  "last_updated": "2026-01-21T07:51:47.315791+00:00"
 }

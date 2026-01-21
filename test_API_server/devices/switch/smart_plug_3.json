@@ -4,8 +4,22 @@
   "attributes": {
     "friendly_name": "Smart Plug 3",
     "device_class": "outlet",
-    "current_consumption": 96.94457832510967
+    "current_consumption": 84.01628914759206,
+    "capabilities": [
+      {
+        "name": "turn_on",
+        "value_type": "void"
+      },
+      {
+        "name": "turn_off",
+        "value_type": "void"
+      },
+      {
+        "name": "toggle",
+        "value_type": "void"
+      }
+    ]
   },
-  "last_changed": "2026-01-21T06:56:11.013779+00:00",
-  "last_updated": "2026-01-21T06:56:11.013780+00:00"
+  "last_changed": "2026-01-21T07:51:47.311654+00:00",
+  "last_updated": "2026-01-21T07:51:47.311655+00:00"
 }

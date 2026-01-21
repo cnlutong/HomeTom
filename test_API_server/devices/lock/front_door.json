@@ -1,0 +1,19 @@
+{
+  "entity_id": "lock.front_door",
+  "state": "unlocked",
+  "attributes": {
+    "friendly_name": "Front Door",
+    "capabilities": [
+      {
+        "name": "lock",
+        "value_type": "void"
+      },
+      {
+        "name": "unlock",
+        "value_type": "void"
+      }
+    ]
+  },
+  "last_changed": "2026-01-21T07:51:47.318343+00:00",
+  "last_updated": "2026-01-21T07:51:47.318354+00:00"
+}

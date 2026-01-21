@@ -1,11 +1,41 @@
 {
   "entity_id": "vacuum.roborock_s7",
-  "state": "paused",
+  "state": "cleaning",
   "attributes": {
     "friendly_name": "Roborock S7",
-    "battery_level": 4,
-    "fan_speed": "standard"
+    "battery_level": 12,
+    "fan_speed": "standard",
+    "capabilities": [
+      {
+        "name": "start",
+        "value_type": "void"
+      },
+      {
+        "name": "stop",
+        "value_type": "void"
+      },
+      {
+        "name": "pause",
+        "value_type": "void"
+      },
+      {
+        "name": "return_to_base",
+        "value_type": "void"
+      },
+      {
+        "name": "set_fan_speed",
+        "value_type": "enum",
+        "constraints": {
+          "options": [
+            "silent",
+            "standard",
+            "medium",
+            "turbo"
+          ]
+        }
+      }
+    ]
   },
-  "last_changed": "2026-01-21T06:56:11.017054+00:00",
-  "last_updated": "2026-01-21T06:56:11.017055+00:00"
+  "last_changed": "2026-01-21T07:51:47.317457+00:00",
+  "last_updated": "2026-01-21T07:51:47.317461+00:00"
 }

@@ -3,9 +3,31 @@
   "state": "open",
   "attributes": {
     "friendly_name": "Master Bedroom Blinds",
-    "current_position": 3,
-    "device_class": "blind"
+    "current_position": 10,
+    "device_class": "blind",
+    "capabilities": [
+      {
+        "name": "open_cover",
+        "value_type": "void"
+      },
+      {
+        "name": "close_cover",
+        "value_type": "void"
+      },
+      {
+        "name": "stop_cover",
+        "value_type": "void"
+      },
+      {
+        "name": "set_cover_position",
+        "value_type": "int",
+        "constraints": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    ]
   },
-  "last_changed": "2026-01-21T06:56:11.016462+00:00",
-  "last_updated": "2026-01-21T06:56:11.016463+00:00"
+  "last_changed": "2026-01-21T07:51:47.316163+00:00",
+  "last_updated": "2026-01-21T07:51:47.316166+00:00"
 }

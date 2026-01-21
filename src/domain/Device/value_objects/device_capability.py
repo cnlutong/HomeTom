@@ -11,9 +11,9 @@ class DeviceCapability:
     表示设备支持的操作，如 turn_on, turn_off, set_brightness 等
     """
     name: str  # 能力名称，如 "turn_on", "set_brightness"
+    value_type: str = "void"  # 值类型: void, boolean, int, float, string, enum
+    constraints: Optional[Dict[str, Any]] = None  # 约束条件: min, max, options 等
     description: Optional[str] = None  # 能力描述
-    parameters: Optional[Dict[str, Any]] = None  # 能力参数，如 {"min": 0, "max": 255}
-
     
     def __post_init__(self):
         """验证能力名称"""
@@ -22,17 +22,28 @@ class DeviceCapability:
     
     def to_dict(self) -> Dict[str, Any]:
         """转换为字典"""
-        result = {"name": self.name}
-        if self.parameters:
-            result["parameters"] = self.parameters
+        result = {
+            "name": self.name,
+            "value_type": self.value_type
+        }
+        if self.constraints:
+            result["constraints"] = self.constraints
+        if self.description:
+            result["description"] = self.description
         return result
     
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "DeviceCapability":
         """从字典创建"""
+        # 兼容旧代码，如果没有 value_type 只有 parameters，进行简单转换
+        val_type = data.get("value_type", "void")
+        constraints = data.get("constraints") or data.get("parameters")
+        
         return cls(
             name=data["name"],
-            parameters=data.get("parameters")
+            value_type=val_type,
+            constraints=constraints,
+            description=data.get("description")
         )
 
 

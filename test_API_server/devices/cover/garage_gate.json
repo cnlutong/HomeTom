@@ -3,9 +3,31 @@
   "state": "open",
   "attributes": {
     "friendly_name": "Garage Gate",
-    "current_position": 13,
-    "device_class": "garage"
+    "current_position": 78,
+    "device_class": "garage",
+    "capabilities": [
+      {
+        "name": "open_cover",
+        "value_type": "void"
+      },
+      {
+        "name": "close_cover",
+        "value_type": "void"
+      },
+      {
+        "name": "stop_cover",
+        "value_type": "void"
+      },
+      {
+        "name": "set_cover_position",
+        "value_type": "int",
+        "constraints": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    ]
   },
-  "last_changed": "2026-01-21T06:56:11.016554+00:00",
-  "last_updated": "2026-01-21T06:56:11.016555+00:00"
+  "last_changed": "2026-01-21T07:51:47.316328+00:00",
+  "last_updated": "2026-01-21T07:51:47.316330+00:00"
 }

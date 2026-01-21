@@ -1,0 +1,28 @@
+{
+  "entity_id": "camera.backyard",
+  "state": "idle",
+  "attributes": {
+    "friendly_name": "Backyard Camera",
+    "access_token": "mock_token",
+    "capabilities": [
+      {
+        "name": "turn_on",
+        "value_type": "void"
+      },
+      {
+        "name": "turn_off",
+        "value_type": "void"
+      },
+      {
+        "name": "start_recording",
+        "value_type": "void"
+      },
+      {
+        "name": "stop_recording",
+        "value_type": "void"
+      }
+    ]
+  },
+  "last_changed": "2026-01-21T07:51:47.319341+00:00",
+  "last_updated": "2026-01-21T07:51:47.319343+00:00"
+}

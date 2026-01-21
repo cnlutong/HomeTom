@@ -1,0 +1,12 @@
+{
+  "entity_id": "device_tracker.users_phone",
+  "state": "home",
+  "attributes": {
+    "friendly_name": "User's Phone",
+    "source_type": "router",
+    "ip": "192.168.1.100",
+    "capabilities": []
+  },
+  "last_changed": "2026-01-21T07:51:47.320005+00:00",
+  "last_updated": "2026-01-21T07:51:47.320006+00:00"
+}

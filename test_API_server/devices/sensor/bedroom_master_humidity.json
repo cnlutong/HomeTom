@@ -1,11 +1,21 @@
 {
   "entity_id": "sensor.bedroom_master_humidity",
-  "state": "43",
+  "state": "59",
   "attributes": {
     "friendly_name": "Bedroom Master Humidity",
     "unit_of_measurement": "%",
-    "device_class": "humidity"
+    "device_class": "humidity",
+    "capabilities": [
+      {
+        "name": "value",
+        "value_type": "int",
+        "constraints": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    ]
   },
-  "last_changed": "2026-01-21T06:56:11.014379+00:00",
-  "last_updated": "2026-01-21T06:56:11.014381+00:00"
+  "last_changed": "2026-01-21T07:51:47.312966+00:00",
+  "last_updated": "2026-01-21T07:51:47.312967+00:00"
 }

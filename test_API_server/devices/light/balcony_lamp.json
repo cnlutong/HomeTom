@@ -1,17 +1,56 @@
 {
   "entity_id": "light.balcony_lamp",
-  "state": "off",
+  "state": "on",
   "attributes": {
     "friendly_name": "Balcony Lamp",
-    "brightness": 70,
-    "color_temp": 494,
+    "brightness": 224,
+    "color_temp": 496,
     "rgb_color": [
-      50,
-      80,
-      120
+      74,
+      83,
+      208
     ],
-    "supported_features": 63
+    "supported_features": 63,
+    "capabilities": [
+      {
+        "name": "turn_on",
+        "value_type": "void"
+      },
+      {
+        "name": "turn_off",
+        "value_type": "void"
+      },
+      {
+        "name": "toggle",
+        "value_type": "void"
+      },
+      {
+        "name": "set_brightness",
+        "value_type": "int",
+        "constraints": {
+          "min": 0,
+          "max": 255
+        }
+      },
+      {
+        "name": "set_color_temp",
+        "value_type": "int",
+        "constraints": {
+          "min": 153,
+          "max": 500
+        }
+      },
+      {
+        "name": "set_rgb_color",
+        "value_type": "int_array",
+        "constraints": {
+          "length": 3,
+          "min_val": 0,
+          "max_val": 255
+        }
+      }
+    ]
   },
-  "last_changed": "2026-01-21T06:56:11.011572+00:00",
-  "last_updated": "2026-01-21T06:56:11.011573+00:00"
+  "last_changed": "2026-01-21T07:51:47.309384+00:00",
+  "last_updated": "2026-01-21T07:51:47.309386+00:00"
 }
