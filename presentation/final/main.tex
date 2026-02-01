@@ -141,57 +141,54 @@
     {Strict adherence to Onion Architecture for maintainability}
     
     \centering
-    \begin{tikzpicture}[scale=0.8, transform shape]
-        % Zones
-        \draw[fill=FUblue!5, dashed] (0,0) circle (3.5cm);
-        \draw[fill=white, draw=FUblue, thick] (0,0) circle (2.5cm);
-        \draw[fill=FUgreen!10, draw=FUgreen, thick] (0,0) circle (1.5cm);
-        
-        % Labels
-        \node at (0, 2.8) {\bfseries Application Layer};
-        \node at (0, 1.8) {\bfseries Domain Layer};
-        \node at (0, 3.8) {\bfseries Infrastructure / API};
-        
-        % Content
-        \node[align=center] at (0,0) {\textbf{Core Domains}\\\small Device\\Scene\\Execution};
-        \node[align=center] at (0,-2) {\small Orchestration Service\\Workflow Engine};
-        \node[align=center] at (3.5, 0) {\small FastAPI\\Routers};
-        \node[align=center] at (-3.5, 0) {\small SQLAlchemy\\Persistence};
-    \end{tikzpicture}
-    
-    \vspace{0.5em}
-    \small \textbf{Benefit}: Business logic is isolated from external tools (Database, HTTP API).
+    \includegraphics[width=0.45\textwidth]{3.1.png}
 \end{frame}
 
 % --- Slide 5: Tech Stack ---
 \begin{frame}{Implementation: Technology Stack}
-    {Modern, high-performance tooling}
-    
+    {A professional implementation focusing on decoupling and scalability}
+
+    % Top Row
     \begin{columns}[t]
-        \column{0.33\textwidth}
-            \textbf{\color{FUblue}Backend}
-            \begin{itemize}
-                \item \textbf{Language}: Python 3.10+
-                \item \textbf{Framework}: FastAPI (Async)
-                \item \textbf{Validation}: Pydantic v2
-                \item \textbf{ORM}: SQLAlchemy 2.0
-            \end{itemize}
+        \column{0.48\textwidth}
+            \begin{block}{Architecture \& Engineering}
+                \begin{itemize}
+                    \item \textbf{Onion Arch \& DDD}: Strict \textbf{Layering} \& \textbf{Dependency Inversion}.
+                    \item \textbf{Scalability}: Designed for high \textbf{extensibility} and modularity.
+                    \item \textbf{Event-Driven}: Async Event Bus.
+                \end{itemize}
+            \end{block}
 
-        \column{0.33\textwidth}
-            \textbf{\color{FUblue}Frontend}
-            \begin{itemize}
-                \item \textbf{Framework}: React (Vite)
-                \item \textbf{UI Lib}: TailwindCSS
-                \item \textbf{Editor}: Custom DAG (Reference: n8n)
-            \end{itemize}
+        \column{0.48\textwidth}
+            \begin{block}{Frontend Visualization}
+                \begin{itemize}
+                    \item \textbf{Visual Editor}: Custom DAG Engine (SVG/Canvas).
+                    \item \textbf{Modern Stack}: React / Vite / Lucide.
+                    \item \textbf{Custom UI}: Responsive Vanilla CSS system.
+                \end{itemize}
+            \end{block}
+    \end{columns}
 
-        \column{0.33\textwidth}
-            \textbf{\color{FUblue}Infrastucture}
-            \begin{itemize}
-                \item \textbf{Ecosystem}: Home Assistant (via API)
-                \item \textbf{Mock Server}: Custom Python simulated hardware
-                \item \textbf{Dev}: Docker \& Pytest
-            \end{itemize}
+    \vspace{0.2em}
+
+    % Bottom Row
+    \begin{columns}[t]
+        \column{0.48\textwidth}
+            \begin{block}{Backend Core}
+                \begin{itemize}
+                    \item \textbf{FastAPI}: High-performance async service.
+                    \item \textbf{Persistence}: SQLAlchemy + PostgreSQL.
+                    \item \textbf{Scheduler}: APScheduler for automation logic.
+                \end{itemize}
+            \end{block}
+
+        \column{0.48\textwidth}
+            \begin{block}{Integration \& QA}
+                \begin{itemize}
+                    \item \textbf{Hardware Abstraction}: Home Assistant REST API.
+                    \item \textbf{Reliability}: Pytest-Asyncio / Mock Hardware.
+                \end{itemize}
+            \end{block}
     \end{columns}
 \end{frame}
 
@@ -200,7 +197,7 @@
 \begin{frame}{Solution: User Interface}
     {Visualization of the Smart Home Controller Dashboard}
     \centering
-    \includegraphics[width=0.85\textwidth]{ui_screenshot.png}
+    \includegraphics[width=0.80\textwidth]{ui_screenshot.png}
 
     \vspace{0.5em}
     \footnotesize

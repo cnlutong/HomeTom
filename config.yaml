@@ -6,7 +6,7 @@ database:
   port: 5432
   user: user_s4DTX3
   password: "password_yrHKAp"
-  name: home_tom
+  name: user_s4DTX3
   pool_size: 5
   max_overflow: 10
   echo: false
