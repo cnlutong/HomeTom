@@ -7,10 +7,13 @@ uvicorn>=0.24.0
 # Database ORM
 sqlalchemy>=2.0.0
 aiosqlite>=0.19.0       # SQLite async driver (development)
-# asyncpg>=0.29.0       # PostgreSQL async driver (production, uncomment when needed)
+asyncpg>=0.29.0         # PostgreSQL async driver (production)
 
 # Data Validation
 pydantic>=2.0.0
+
+# Configuration
+PyYAML>=6.0.0
 
 # Async HTTP Client
 httpx>=0.25.0

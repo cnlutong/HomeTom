@@ -74,15 +74,17 @@ class SystemBootstrap:
     
     def __init__(
         self,
-        db_host: str = "10.0.3.10",
-        db_port: int = 5432,
-        db_user: str = "user_s4DTX3",
-        db_password: str = "password_yrHKAp",
-        db_name: str = "user_s4DTX3",
-        ha_base_url: str = "http://localhost:8123",
-        ha_token: str = "test_token"
+        db_host: str = None,
+        db_port: int = None,
+        db_user: str = None,
+        db_password: str = None,
+        db_name: str = None,
+        ha_base_url: str = None,
+        ha_token: str = None
     ):
         """初始化引导器
+        
+        优先使用传入的参数，如果未传入则从配置文件读取。
         
         Args:
             db_host: 数据库主机
@@ -93,13 +95,18 @@ class SystemBootstrap:
             ha_base_url: Home Assistant API URL
             ha_token: Home Assistant 访问令牌
         """
-        self.db_host = db_host
-        self.db_port = db_port
-        self.db_user = db_user
-        self.db_password = db_password
-        self.db_name = db_name
-        self.ha_base_url = os.environ.get("HA_BASE_URL", ha_base_url)
-        self.ha_token = os.environ.get("HA_TOKEN", ha_token)
+        # 从配置文件加载配置
+        from src.infrastructure.config.settings import get_settings
+        settings = get_settings()
+        
+        # 优先使用传入的参数，否则使用配置文件中的值
+        self.db_host = db_host if db_host is not None else settings.database.host
+        self.db_port = db_port if db_port is not None else settings.database.port
+        self.db_user = db_user if db_user is not None else settings.database.user
+        self.db_password = db_password if db_password is not None else settings.database.password
+        self.db_name = db_name if db_name is not None else settings.database.name
+        self.ha_base_url = ha_base_url if ha_base_url is not None else settings.homeassistant.base_url
+        self.ha_token = ha_token if ha_token is not None else settings.homeassistant.token
         
         self._container: Optional["AppContainer"] = None
         self._phase_results: List[PhaseResult] = []
