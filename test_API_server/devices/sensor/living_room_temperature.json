@@ -1,6 +1,6 @@
 {
   "entity_id": "sensor.living_room_temperature",
-  "state": "18.3",
+  "state": "20.6",
   "attributes": {
     "friendly_name": "Living Room Temperature",
     "unit_of_measurement": "°C",
@@ -17,6 +17,6 @@
       }
     ]
   },
-  "last_changed": "2026-01-21T07:51:47.312257+00:00",
-  "last_updated": "2026-01-21T07:51:47.312258+00:00"
+  "last_changed": "2026-02-01T17:17:33.806647+00:00",
+  "last_updated": "2026-02-01T17:17:33.806648+00:00"
 }

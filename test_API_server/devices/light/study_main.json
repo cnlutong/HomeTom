@@ -1,14 +1,14 @@
 {
   "entity_id": "light.study_main",
-  "state": "off",
+  "state": "on",
   "attributes": {
     "friendly_name": "Study Main",
-    "brightness": 38,
-    "color_temp": 392,
+    "brightness": 227,
+    "color_temp": 174,
     "rgb_color": [
-      33,
-      21,
-      80
+      248,
+      80,
+      42
     ],
     "supported_features": 63,
     "capabilities": [
@@ -51,6 +51,6 @@
       }
     ]
   },
-  "last_changed": "2026-01-21T07:51:47.309487+00:00",
-  "last_updated": "2026-01-21T07:51:47.309488+00:00"
+  "last_changed": "2026-02-01T17:17:33.804126+00:00",
+  "last_updated": "2026-02-01T17:17:33.804128+00:00"
 }

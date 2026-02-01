@@ -1,6 +1,6 @@
 {
   "entity_id": "media_player.living_room_tv",
-  "state": "paused",
+  "state": "on",
   "attributes": {
     "friendly_name": "Living Room TV",
     "volume_level": 0.3,
@@ -45,6 +45,6 @@
       }
     ]
   },
-  "last_changed": "2026-01-21T07:51:47.317655+00:00",
-  "last_updated": "2026-01-21T07:51:47.317656+00:00"
+  "last_changed": "2026-02-01T17:17:33.809996+00:00",
+  "last_updated": "2026-02-01T17:17:33.809997+00:00"
 }

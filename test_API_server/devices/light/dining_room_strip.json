@@ -3,12 +3,12 @@
   "state": "on",
   "attributes": {
     "friendly_name": "Dining Room Strip",
-    "brightness": 100,
-    "color_temp": 233,
+    "brightness": 168,
+    "color_temp": 388,
     "rgb_color": [
-      63,
-      18,
-      102
+      172,
+      207,
+      29
     ],
     "supported_features": 63,
     "capabilities": [
@@ -51,6 +51,6 @@
       }
     ]
   },
-  "last_changed": "2026-01-21T07:51:47.308403+00:00",
-  "last_updated": "2026-01-21T07:51:47.308405+00:00"
+  "last_changed": "2026-02-01T17:17:33.802795+00:00",
+  "last_updated": "2026-02-01T17:17:33.802796+00:00"
 }

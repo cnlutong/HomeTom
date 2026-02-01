@@ -1,6 +1,6 @@
 {
   "entity_id": "sensor.living_room_humidity",
-  "state": "68",
+  "state": "50",
   "attributes": {
     "friendly_name": "Living Room Humidity",
     "unit_of_measurement": "%",
@@ -16,6 +16,6 @@
       }
     ]
   },
-  "last_changed": "2026-01-21T07:51:47.312455+00:00",
-  "last_updated": "2026-01-21T07:51:47.312459+00:00"
+  "last_changed": "2026-02-01T17:17:33.806769+00:00",
+  "last_updated": "2026-02-01T17:17:33.806770+00:00"
 }

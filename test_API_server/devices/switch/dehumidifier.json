@@ -4,7 +4,7 @@
   "attributes": {
     "friendly_name": "Dehumidifier",
     "device_class": "outlet",
-    "current_consumption": 0,
+    "current_consumption": 36.35492669658268,
     "capabilities": [
       {
         "name": "turn_on",
@@ -20,6 +20,6 @@
       }
     ]
   },
-  "last_changed": "2026-01-21T07:51:47.310405+00:00",
-  "last_updated": "2026-01-21T07:51:47.310407+00:00"
+  "last_changed": "2026-02-01T17:17:33.805262+00:00",
+  "last_updated": "2026-02-01T17:17:33.805263+00:00"
 }

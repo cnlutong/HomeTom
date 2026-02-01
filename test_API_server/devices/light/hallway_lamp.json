@@ -1,14 +1,14 @@
 {
   "entity_id": "light.hallway_lamp",
-  "state": "off",
+  "state": "on",
   "attributes": {
     "friendly_name": "Hallway Lamp",
-    "brightness": 84,
-    "color_temp": 481,
+    "brightness": 53,
+    "color_temp": 438,
     "rgb_color": [
-      215,
-      133,
-      83
+      234,
+      170,
+      60
     ],
     "supported_features": 63,
     "capabilities": [
@@ -51,6 +51,6 @@
       }
     ]
   },
-  "last_changed": "2026-01-21T07:51:47.308200+00:00",
-  "last_updated": "2026-01-21T07:51:47.308202+00:00"
+  "last_changed": "2026-02-01T17:17:33.802558+00:00",
+  "last_updated": "2026-02-01T17:17:33.802560+00:00"
 }

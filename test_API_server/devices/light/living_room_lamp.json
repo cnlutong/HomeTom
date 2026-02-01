@@ -3,12 +3,12 @@
   "state": "on",
   "attributes": {
     "friendly_name": "Living Room Lamp",
-    "brightness": 42,
-    "color_temp": 480,
+    "brightness": 12,
+    "color_temp": 371,
     "rgb_color": [
-      154,
-      177,
-      62
+      242,
+      181,
+      11
     ],
     "supported_features": 63,
     "capabilities": [
@@ -51,6 +51,6 @@
       }
     ]
   },
-  "last_changed": "2026-01-21T07:51:47.306775+00:00",
-  "last_updated": "2026-01-21T07:51:47.306776+00:00"
+  "last_changed": "2026-02-01T17:17:33.796165+00:00",
+  "last_updated": "2026-02-01T17:17:33.796167+00:00"
 }

@@ -1,14 +1,14 @@
 {
   "entity_id": "light.study_spot",
-  "state": "on",
+  "state": "off",
   "attributes": {
     "friendly_name": "Study Spot",
-    "brightness": 148,
-    "color_temp": 343,
+    "brightness": 197,
+    "color_temp": 328,
     "rgb_color": [
-      199,
-      220,
-      10
+      37,
+      187,
+      206
     ],
     "supported_features": 63,
     "capabilities": [
@@ -51,6 +51,6 @@
       }
     ]
   },
-  "last_changed": "2026-01-21T07:51:47.309687+00:00",
-  "last_updated": "2026-01-21T07:51:47.309688+00:00"
+  "last_changed": "2026-02-01T17:17:33.804391+00:00",
+  "last_updated": "2026-02-01T17:17:33.804392+00:00"
 }

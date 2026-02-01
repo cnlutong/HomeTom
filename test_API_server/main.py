@@ -23,6 +23,8 @@ from fastapi import FastAPI, HTTPException, Header, Request, Query
 from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
 
+from . import populate_devices
+
 # ==================== 配置 ====================
 
 DEVICES_DIR = Path(__file__).parent / "devices"
@@ -234,6 +236,12 @@ class EventPayload(BaseModel):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     count = store.load_all()
+    if count == 0:
+        logger.info("⚠️  未发现设备数据，正在执行自动初始化...")
+        populate_devices.main()
+        count = store.load_all()
+        logger.info(f"✨ 自动初始化完成，已加载 {count} 个设备")
+    
     logger.info("🚀 Home Assistant 测试服务器启动")
     logger.info(f"📖 Swagger 文档: http://localhost:8123/docs")
     logger.info(f"🏠 已加载 {count} 个设备 (JSON 持久化)")

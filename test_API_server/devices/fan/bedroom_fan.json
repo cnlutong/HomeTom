@@ -1,6 +1,6 @@
 {
   "entity_id": "fan.bedroom_fan",
-  "state": "off",
+  "state": "on",
   "attributes": {
     "friendly_name": "Bedroom Fan",
     "speed": "low",
@@ -31,6 +31,6 @@
       }
     ]
   },
-  "last_changed": "2026-01-21T07:51:47.318983+00:00",
-  "last_updated": "2026-01-21T07:51:47.318985+00:00"
+  "last_changed": "2026-02-01T17:17:33.810772+00:00",
+  "last_updated": "2026-02-01T17:17:33.810774+00:00"
 }

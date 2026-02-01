@@ -3,12 +3,12 @@
   "state": "on",
   "attributes": {
     "friendly_name": "Bedroom Master Main",
-    "brightness": 31,
-    "color_temp": 328,
+    "brightness": 171,
+    "color_temp": 433,
     "rgb_color": [
-      223,
-      214,
-      184
+      64,
+      47,
+      201
     ],
     "supported_features": 63,
     "capabilities": [
@@ -51,6 +51,6 @@
       }
     ]
   },
-  "last_changed": "2026-01-21T07:51:47.307134+00:00",
-  "last_updated": "2026-01-21T07:51:47.307136+00:00"
+  "last_changed": "2026-02-01T17:17:33.796673+00:00",
+  "last_updated": "2026-02-01T17:17:33.796674+00:00"
 }

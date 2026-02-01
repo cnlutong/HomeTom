@@ -3,12 +3,12 @@
   "state": "on",
   "attributes": {
     "friendly_name": "Balcony Strip",
-    "brightness": 158,
-    "color_temp": 461,
+    "brightness": 208,
+    "color_temp": 420,
     "rgb_color": [
-      193,
-      53,
-      50
+      179,
+      49,
+      104
     ],
     "supported_features": 63,
     "capabilities": [
@@ -51,6 +51,6 @@
       }
     ]
   },
-  "last_changed": "2026-01-21T07:51:47.309171+00:00",
-  "last_updated": "2026-01-21T07:51:47.309172+00:00"
+  "last_changed": "2026-02-01T17:17:33.803692+00:00",
+  "last_updated": "2026-02-01T17:17:33.803693+00:00"
 }

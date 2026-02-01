@@ -3,12 +3,12 @@
   "state": "on",
   "attributes": {
     "friendly_name": "Garage Lamp",
-    "brightness": 229,
-    "color_temp": 263,
+    "brightness": 19,
+    "color_temp": 350,
     "rgb_color": [
-      73,
-      15,
-      129
+      93,
+      69,
+      209
     ],
     "supported_features": 63,
     "capabilities": [
@@ -51,6 +51,6 @@
       }
     ]
   },
-  "last_changed": "2026-01-21T07:51:47.310157+00:00",
-  "last_updated": "2026-01-21T08:50:47.534168+00:00"
+  "last_changed": "2026-02-01T17:17:33.804982+00:00",
+  "last_updated": "2026-02-01T17:17:33.804983+00:00"
 }

@@ -1,14 +1,14 @@
 {
   "entity_id": "light.hallway_spot",
-  "state": "off",
+  "state": "on",
   "attributes": {
     "friendly_name": "Hallway Spot",
-    "brightness": 131,
-    "color_temp": 408,
+    "brightness": 234,
+    "color_temp": 414,
     "rgb_color": [
-      240,
-      197,
-      111
+      63,
+      174,
+      225
     ],
     "supported_features": 63,
     "capabilities": [
@@ -51,6 +51,6 @@
       }
     ]
   },
-  "last_changed": "2026-01-21T07:51:47.308097+00:00",
-  "last_updated": "2026-01-21T07:51:47.308098+00:00"
+  "last_changed": "2026-02-01T17:17:33.802440+00:00",
+  "last_updated": "2026-02-01T17:17:33.802441+00:00"
 }

@@ -1,6 +1,6 @@
 {
   "entity_id": "sensor.study_humidity",
-  "state": "45",
+  "state": "54",
   "attributes": {
     "friendly_name": "Study Humidity",
     "unit_of_measurement": "%",
@@ -16,6 +16,6 @@
       }
     ]
   },
-  "last_changed": "2026-01-21T07:51:47.313465+00:00",
-  "last_updated": "2026-01-21T07:51:47.313467+00:00"
+  "last_changed": "2026-02-01T17:17:33.807474+00:00",
+  "last_updated": "2026-02-01T17:17:33.807475+00:00"
 }

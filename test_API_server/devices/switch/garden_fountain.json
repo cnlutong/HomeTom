@@ -4,7 +4,7 @@
   "attributes": {
     "friendly_name": "Garden Fountain",
     "device_class": "outlet",
-    "current_consumption": 74.15556542157653,
+    "current_consumption": 24.156663176815652,
     "capabilities": [
       {
         "name": "turn_on",
@@ -20,6 +20,6 @@
       }
     ]
   },
-  "last_changed": "2026-01-21T07:51:47.311133+00:00",
-  "last_updated": "2026-01-21T07:51:47.311134+00:00"
+  "last_changed": "2026-02-01T17:17:33.805588+00:00",
+  "last_updated": "2026-02-01T17:17:33.805589+00:00"
 }

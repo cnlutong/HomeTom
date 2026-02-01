@@ -1,10 +1,10 @@
 {
   "entity_id": "switch.smart_plug_3",
-  "state": "off",
+  "state": "on",
   "attributes": {
     "friendly_name": "Smart Plug 3",
     "device_class": "outlet",
-    "current_consumption": 84.01628914759206,
+    "current_consumption": 4.5448424693079525,
     "capabilities": [
       {
         "name": "turn_on",
@@ -20,6 +20,6 @@
       }
     ]
   },
-  "last_changed": "2026-01-21T07:51:47.311654+00:00",
-  "last_updated": "2026-01-21T07:51:47.311655+00:00"
+  "last_changed": "2026-02-01T17:17:33.806272+00:00",
+  "last_updated": "2026-02-01T17:17:33.806273+00:00"
 }

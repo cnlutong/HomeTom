@@ -4,7 +4,7 @@
   "attributes": {
     "friendly_name": "Living Room AC",
     "temperature": 24,
-    "current_temperature": 22.5770644776903,
+    "current_temperature": 23.376470466175554,
     "hvac_modes": [
       "off",
       "cool",
@@ -56,6 +56,6 @@
       }
     ]
   },
-  "last_changed": "2026-01-21T07:51:47.316989+00:00",
-  "last_updated": "2026-01-21T07:51:47.316992+00:00"
+  "last_changed": "2026-02-01T17:17:33.809398+00:00",
+  "last_updated": "2026-02-01T17:17:33.809399+00:00"
 }

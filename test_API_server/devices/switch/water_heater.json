@@ -4,7 +4,7 @@
   "attributes": {
     "friendly_name": "Water Heater",
     "device_class": "outlet",
-    "current_consumption": 0,
+    "current_consumption": 12.438972039639463,
     "capabilities": [
       {
         "name": "turn_on",
@@ -20,6 +20,6 @@
       }
     ]
   },
-  "last_changed": "2026-01-21T07:51:47.311312+00:00",
-  "last_updated": "2026-01-21T07:51:47.311313+00:00"
+  "last_changed": "2026-02-01T17:17:33.805821+00:00",
+  "last_updated": "2026-02-01T17:17:33.805823+00:00"
 }

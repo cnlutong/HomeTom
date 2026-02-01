@@ -4,7 +4,7 @@
   "attributes": {
     "friendly_name": "Router Restart",
     "device_class": "outlet",
-    "current_consumption": 0,
+    "current_consumption": 65.08374511001709,
     "capabilities": [
       {
         "name": "turn_on",
@@ -20,6 +20,6 @@
       }
     ]
   },
-  "last_changed": "2026-01-21T07:51:47.311223+00:00",
-  "last_updated": "2026-01-21T07:51:47.311224+00:00"
+  "last_changed": "2026-02-01T17:17:33.805711+00:00",
+  "last_updated": "2026-02-01T17:17:33.805712+00:00"
 }

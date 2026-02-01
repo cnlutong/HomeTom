@@ -1,6 +1,6 @@
 {
   "entity_id": "binary_sensor.bedroom_window_contact",
-  "state": "on",
+  "state": "off",
   "attributes": {
     "friendly_name": "Bedroom Window Contact",
     "device_class": "window",
@@ -11,6 +11,6 @@
       }
     ]
   },
-  "last_changed": "2026-01-21T07:51:47.314216+00:00",
-  "last_updated": "2026-01-21T07:51:47.314218+00:00"
+  "last_changed": "2026-02-01T17:17:33.808240+00:00",
+  "last_updated": "2026-02-01T17:17:33.808241+00:00"
 }

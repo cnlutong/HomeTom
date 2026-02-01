@@ -1,10 +1,10 @@
 {
   "entity_id": "climate.study_ac",
-  "state": "heat",
+  "state": "auto",
   "attributes": {
     "friendly_name": "Study AC",
     "temperature": 24,
-    "current_temperature": 24.438172519956275,
+    "current_temperature": 23.539123698146284,
     "hvac_modes": [
       "off",
       "cool",
@@ -56,6 +56,6 @@
       }
     ]
   },
-  "last_changed": "2026-01-21T07:51:47.317270+00:00",
-  "last_updated": "2026-01-21T07:51:47.317271+00:00"
+  "last_changed": "2026-02-01T17:28:47.084883+00:00",
+  "last_updated": "2026-02-01T17:28:47.084883+00:00"
 }
