@@ -1,0 +1,51 @@
+\frametitle{Solution: Core Domain Logic}\framesubtitle {Code snippets showing Domain-Driven Design in action}
+
+    \begin{columns}[t]
+        \column{0.48\textwidth}
+            \textbf{\small 1. Device Aggregate (Domain)}
+            \vspace{0.2em}
+            \begin{lstlisting}[language=Python, basicstyle=\tiny\ttfamily]
+def enable(self) -> None:
+    """Enable device & publish event"""
+    if self._status == DeviceStatus.ENABLED:
+        return
+
+    old_status = self._status
+    self._status = DeviceStatus.ENABLED
+
+    # Domain Event Publication
+    event = DeviceStatusChanged(
+        device_id=self._device_id,
+        entity_id=self._entity_id,
+        old_status=old_status,
+        new_status=self._status,
+        occurred_at=datetime.utcnow()
+    )
+    self._add_domain_event(event)
+            \end{lstlisting}
+
+        \column{0.48\textwidth}
+            \textbf{\small 2. Workflow Engine (Execution service)}
+            \vspace{0.2em}
+            \begin{lstlisting}[language=Python, basicstyle=\tiny\ttfamily]
+async def _execute_action_by_type(self, action: Action):
+    """Dispatch action by type Strategy"""
+
+    if action.type == ActionType.DEVICE_CONTROL:
+        # Delegate to Device Manager
+        return await self._execute_device_control(
+            action
+        )
+
+    elif action.type == ActionType.SCENE_CALL:
+        # Recursive Scene execution
+        return await self._execute_scene_call(
+            action
+        )
+
+    else:
+        return CommandResult.failed(
+            message=f"Unsupported: {action.type}"
+        )
+            \end{lstlisting}
+    \end{columns}

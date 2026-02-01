@@ -1,0 +1,17 @@
+# HomeTom 配置文件
+
+# 数据库配置
+database:
+  host: 10.0.0.20
+  port: 5432
+  user: user_s4DTX3
+  password: "password_yrHKAp"
+  name: home_tom
+  pool_size: 5
+  max_overflow: 10
+  echo: false
+
+# Home Assistant 配置
+homeassistant:
+  base_url: http://localhost:8123
+  token: "test_token"
