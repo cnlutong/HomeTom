@@ -62,7 +62,7 @@
             \textbf{\Large Team Members}
             \vspace{1em}
             
-            \begin{itemize}
+            \begin{itemize}[<+->]
                 \item \textbf{Yixue Wang}
                 \item \textbf{Linghao Dong}
                 \item \textbf{Yang Xiao}
@@ -89,10 +89,11 @@
         \textbf{Programmable Scene}: Define Automation Logic.
     \end{block}
     
+    \pause
     \vspace{1em}
     
     \begin{block}{Project Motivation}
-        \begin{itemize}
+        \begin{itemize}[<+->]
             \item \textbf{Home Assistant}: Feature-heavy but overly complex.
             \item \textbf{Our Mission}: Simplify complexity while maintaining reliability.
         \end{itemize}
@@ -104,15 +105,17 @@
     {Smart Home Demo Lab - Team 2}
     
     \begin{block}{Internal Goals / Requirements}
-        \begin{itemize}
+        \begin{itemize}[<+->]
             \item \textbf{Domain Driven Design (DDD) + Onion Architecture}: Independence
             \item \textbf{Extensibility}: Integration capabilities for new device and scenarios.
             \item \textbf{Testability}: Support for hardware mocking.
         \end{itemize}
     \end{block}
 
+    \pause
+
     \begin{block}{External Goals / Requirements}
-        \begin{itemize}
+        \begin{itemize}[<+->]
             \item \textbf{Integration}: Interact with Home Assistant API.
             \item \textbf{Automation}: Trigger-Condition-Action model.
             \item \textbf{Usability}: Graphical Scene Editor (based on DAG style).
@@ -126,7 +129,7 @@
     
     \centering
     \begin{beamercolorbox}[sep=1em, rounded=true, shadow=true, wd=0.95\textwidth, center]{block body}
-        \begin{itemize}
+        \begin{itemize}[<+->]
             \setlength\itemsep{0.8em}
             \item \textbf{Device Management}: Device Registration, Status Monitoring and Control
             \item \textbf{Scenario Management}: Creation, save, and execution.
@@ -152,7 +155,7 @@
     \begin{columns}[t]
         \column{0.48\textwidth}
             \begin{block}{Architecture \& Engineering}
-                \begin{itemize}
+                \begin{itemize}[<+->]
                     \item \textbf{Onion Arch \& DDD}: Strict \textbf{Layering} \& \textbf{Dependency Inversion}.
                     \item \textbf{Scalability}: Designed for high \textbf{extensibility} and modularity.
                     \item \textbf{Event-Driven}: Async Event Bus.
@@ -161,7 +164,7 @@
 
         \column{0.48\textwidth}
             \begin{block}{Frontend Visualization}
-                \begin{itemize}
+                \begin{itemize}[<+->]
                     \item \textbf{Visual Editor}: Custom DAG Engine (SVG/Canvas).
                     \item \textbf{Modern Stack}: React / Vite / Lucide.
                     \item \textbf{Custom UI}: Responsive Vanilla CSS system.
@@ -169,13 +172,14 @@
             \end{block}
     \end{columns}
 
+    \pause
     \vspace{0.2em}
 
     % Bottom Row
     \begin{columns}[t]
         \column{0.48\textwidth}
             \begin{block}{Backend Core}
-                \begin{itemize}
+                \begin{itemize}[<+->]
                     \item \textbf{FastAPI}: High-performance async service.
                     \item \textbf{Persistence}: SQLAlchemy + PostgreSQL.
                     \item \textbf{Scheduler}: APScheduler for automation logic.
@@ -184,7 +188,7 @@
 
         \column{0.48\textwidth}
             \begin{block}{Integration \& QA}
-                \begin{itemize}
+                \begin{itemize}[<+->]
                     \item \textbf{Hardware Abstraction}: Home Assistant REST API.
                     \item \textbf{Reliability}: Pytest-Asyncio / Mock Hardware.
                 \end{itemize}
@@ -201,7 +205,7 @@
 
     \vspace{0.5em}
     \footnotesize
-    \begin{itemize}
+    \begin{itemize}[<+->]
         \item \textbf{Dashboard}: Real-time status of Device Aggregates.
         \item \textbf{Orchestration}: Visual feedback for Workflow execution.
     \end{itemize}
@@ -228,7 +232,7 @@
     \Large \color{FUblue} \textbf{What did we achieve?}
     \vspace{1em}
     \normalsize
-    \begin{itemize}
+    \begin{itemize}[<+->]
         \setlength\itemsep{1.5em}
         \item \textbf{Full-Stack Implementation}
         \item \textbf{Visual DAG Editor}
@@ -244,7 +248,7 @@
     \Large \color{FUblue} \textbf{What conclusions did we reach?}
     \vspace{1em}
     \normalsize
-    \begin{itemize}
+    \begin{itemize}[<+->]
         \setlength\itemsep{1.5em}
         \item \textbf{Visualization is the only solution to complex logic.}
         \item \textbf{The importance of real-time.}
@@ -281,7 +285,8 @@
     \begin{columns}[t]
         \column{0.5\textwidth}
             \begin{block}{What worked well? $\checkmark$}
-                \begin{itemize}
+                \pause
+                \begin{itemize}[<+->]
                     \setlength\itemsep{0.5em}
                     \item \textbf{Strict Onion Architecture}: Strong decoupling allowed changing Infrastructure (e.g., DB) without touching Domain logic.
                     \item \textbf{API-First Design}: Defined Contracts (OpenAPI) first, enabling Frontend to develop without blocking on Backend.
@@ -291,7 +296,8 @@
 
         \column{0.5\textwidth}
             \begin{block}{What did NOT work? $\times$}
-                \begin{itemize}
+                \pause
+                \begin{itemize}[<+->]
                     \setlength\itemsep{0.5em}
                     \item \textbf{Integration Timing}: "Big Bang" integration at the end caused hidden bugs (Leading to "Tracer Bullet" idea).
                     \item \textbf{Manual Object Mapping}: Tedious conversion between DTOs, Domain Entities, and ORM Models resulted in boilerplate.
@@ -307,7 +313,7 @@
     \footnotesize
     \begin{columns}[c]
         \column{0.65\textwidth}
-            \begin{itemize}
+            \begin{itemize}[<+->]
                 \setlength\itemsep{1.2em}
                 
                 \item \textbf{Process: "Tracer Bullet" Approach}
@@ -343,17 +349,20 @@
 \begin{frame}{Lessons Learned}
     {Part 3: Key Takeaways for our Engineering Career}
     \footnotesize
+    \pause
     \begin{block}{1. The Cost of Abstraction}
         Clean Architecture is powerful but expensive. For early-stage demos or MVPs, \textbf{YAGNI} (You Aren't Gonna Need It) should outweigh architectural purity.
     \end{block}
 
     \vspace{0.5em}
+    \pause
 
     \begin{block}{2. The "Integration Tax"}
         Integration risks grow exponentially with time. Delaying integration until the end implies that you are creating a "debt" of unverified assumptions.
     \end{block}
 
     \vspace{0.5em}
+    \pause
 
     \begin{block}{3. Contracts set you Free}
         Investing time in a strict \textbf{JSON Schema/OpenAPI} at the very beginning was the single best decision we made. It allowed 5
